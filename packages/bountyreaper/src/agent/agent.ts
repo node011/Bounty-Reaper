@@ -204,6 +204,7 @@ export namespace Agent {
           defaults,
           PermissionNext.fromConfig({
             question: "allow",
+            hackbrowser: "allow",
           }),
           user,
         ),
