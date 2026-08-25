@@ -45,6 +45,7 @@ import { WebGetVulnerabilitiesTool } from "./web-get-vulnerabilities"
 import { WebGetVulnDetailTool } from "./web-get-vuln-detail"
 import { WebUpdateCredentialClaimsTool } from "./web-update-credential-claims"
 import { WebUpdateCredentialTool } from "./web-update-credential"
+import { CredentialSaveTool } from "./credential-save"
 import { CsrfExtractTool } from "./csrf-extract"
 import { HackbrowserTool } from "./hackbrowser"
 import { JsReconTool } from "./js-recon"
@@ -187,6 +188,7 @@ export namespace ToolRegistry {
       WebGetVulnDetailTool,
       WebUpdateCredentialClaimsTool,
       WebUpdateCredentialTool,
+      CredentialSaveTool,
       CsrfExtractTool,
       // Hackbrowser — autonomous crawler that produces captures the
       // proxy-analyzer ingests. Upstream of the rest of the web pipeline.
