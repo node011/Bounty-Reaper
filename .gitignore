@@ -1,0 +1,54 @@
+.DS_Store
+node_modules
+.worktrees
+.sst
+.env
+.idea
+.vscode
+.codex
+.claude/
+.bountyreper/*
+!.bountyreper/skill/
+__MACOSX/
+*~
+playground
+tmp
+dist
+ts-dist
+.turbo
+**/.serena
+.serena/
+/result
+refs
+Session.vim
+bountyreper.json
+a.out
+target
+.scripts
+.direnv/
+
+# Local dev files
+test-cases/
+opencode-dev
+logs/
+*.bun-build
+.skill-signing-key
+
+# Local throwaway test/eval harness (not committed)
+packages/bountyreper/test/proxy-eval/
+
+# Exported session transcripts and reports
+session-*.md
+
+# Python (vendored MCP servers under mcp/)
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Personal engagement tooling / state — not part of the project
+.bob/
+.bobmodes/
+
+# Local backups
+*.bak

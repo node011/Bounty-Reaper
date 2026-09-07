@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body>
+    <header>
+      <input id="server" type="text" spellcheck="false" placeholder="http://127.0.0.1:4096" />
+      <input id="password" type="password" placeholder="password (remote only)" autocomplete="off" />
+      <button id="validate">Validate</button>
+      <span id="status" class="status"></span>
+    </header>
+
+    <section class="bar">
+      <button id="capture-toggle" class="toggle on">● Capturing</button>
+      <label><input id="filter-api" type="checkbox" checked /> XHR/Fetch only</label>
+      <button id="refresh">Refresh</button>
+      <button id="clear">Clear</button>
+      <span id="count" class="count"></span>
+    </section>
+
+    <main>
+      <div id="list" class="list" role="listbox" aria-label="Captured requests"></div>
+      <div class="right">
+        <pre id="detail" class="detail" aria-label="Selected request"></pre>
+        <div class="send-bar">
+          <input id="instruction" type="text" spellcheck="false" />
+          <button id="send" disabled>Send</button>
+          <button id="stop" disabled>Stop</button>
+        </div>
+        <pre id="output" class="output" aria-live="polite" aria-label="Agent output"></pre>
+      </div>
+    </main>
+
+    <script src="../lib/constants.js"></script>
+    <script src="../lib/http-normalize.js"></script>
+    <script src="../lib/api.js"></script>
+    <script src="panel.js"></script>
+  </body>
+</html>

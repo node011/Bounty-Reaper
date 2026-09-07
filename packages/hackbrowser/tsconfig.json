@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/bun/tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    // Mirror bountyreper's tsconfig settings — required because we import bountyreper source directly
+    "types": ["bun"],
+    "noUncheckedIndexedAccess": false,
+    "paths": {
+      "@/*": ["../bountyreper/src/*"],
+      "@tui/*": ["../bountyreper/src/cli/cmd/tui/*"]
+    }
+  },
+  "exclude": ["test-cases"]
+}

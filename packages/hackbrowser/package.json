@@ -1,0 +1,29 @@
+{
+  "name": "@bountyreper-io/hackbrowser",
+  "version": "1.1.16",
+  "description": "AI-driven hackbrowser — autonomous web pentesting crawler with HTTP capture and UI context",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./api": "./src/api.ts"
+  },
+  "scripts": {
+    "start": "bun run ./src/index.ts",
+    "test": "bun test --timeout 30000",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "2.0.0",
+    "@ai-sdk/openai": "2.0.2",
+    "ai": "catalog:",
+    "playwright": "1.58.2",
+    "psl": "1.15.0"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
+  }
+}

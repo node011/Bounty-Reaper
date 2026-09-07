@@ -1,0 +1,19 @@
+# BountyReper Code Owners
+
+# Core CLI & agents
+packages/bountyreper/            @badchars
+packages/bountyreper/src/agent/  @badchars
+
+# Security knowledge base & skills
+knowledge/                       @badchars
+.bountyreper/skill/              @badchars
+
+# Web & Desktop
+packages/app/                    @badchars
+packages/desktop/                @badchars
+
+# MCP Kali
+packages/mcp-kali/               @badchars
+
+# Infrastructure
+.github/                         @badchars

@@ -1,0 +1,37 @@
+CIS Benchmarks content — separately licensed
+============================================
+
+The material in this directory is derived from the CIS Benchmarks, published by
+the Center for Internet Security, Inc. ("CIS"). It is NOT covered by the MIT
+license that applies to the rest of this repository.
+
+    Content: Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+             International Public License (CC BY-NC-SA 4.0)
+    Source:  https://www.cisecurity.org/cis-benchmarks
+    License: https://creativecommons.org/licenses/by-nc-sa/4.0/
+    Terms:   https://www.cisecurity.org/terms-of-use-for-non-member-cis-products
+
+CIS Benchmarks are the copyright of the Center for Internet Security, Inc.
+These files reformat CIS control text into the skill format used by this project;
+the descriptions, rationale and remediation text are CIS's.
+
+This is a derivative work and is NOT a CIS Benchmark. It is not endorsed by,
+affiliated with, or sponsored by CIS.
+
+
+What this means for you
+-----------------------
+
+NonCommercial. You may use, copy and redistribute this directory's content for
+non-commercial purposes. Commercial use — including using these specific skills
+on a paid engagement — requires prior approval from CIS. Contact CIS if you need
+a commercial license.
+
+ShareAlike. If you remix or build upon this content, you must distribute your
+contributions under CC BY-NC-SA 4.0.
+
+Attribution. Keep this notice, credit CIS, and link the license.
+
+The rest of BountyReper is MIT licensed and carries none of these restrictions.
+Deleting this directory removes them entirely — nothing in the codebase depends
+on it, and no entry in ../index.json references it.

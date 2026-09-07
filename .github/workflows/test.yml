@@ -1,0 +1,83 @@
+name: test
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: unit (linux)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Configure git identity
+        run: |
+          git config --global user.email "bot@bountyreper.io"
+          git config --global user.name "bountyreper"
+
+      - name: Run unit tests
+        run: bun turbo test
+
+      # plugins/ is not a workspace, so turbo does not reach it.
+      - name: Run browser-extension tests
+        run: bun test
+        working-directory: plugins/browser-extension
+
+  mcp:
+    name: mcp servers (python)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      # Every bundled server must at least import — a broken dependency pin
+      # otherwise only surfaces when a user's server silently fails to start.
+      - name: Import-check every bundled MCP server
+        run: |
+          set -euo pipefail
+          for dir in mcp/*/; do
+            [ -f "$dir/pyproject.toml" ] || continue
+            echo "::group::$dir"
+            uv sync --directory "$dir" --quiet
+            echo "::endgroup::"
+          done
+
+      - name: Run bb-recon tests
+        run: uv run --directory mcp/bb-recon pytest -q
+
+  required:
+    name: test (linux)
+    runs-on: ubuntu-24.04
+    needs:
+      - unit
+      - mcp
+    if: always()
+    steps:
+      - name: Verify upstream test jobs passed
+        run: |
+          echo "unit=${{ needs.unit.result }}"
+          echo "mcp=${{ needs.mcp.result }}"
+          test "${{ needs.unit.result }}" = "success"
+          test "${{ needs.mcp.result }}" = "success"

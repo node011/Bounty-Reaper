@@ -1,0 +1,29 @@
+name: release-github-action
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "github/**"
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - run: git fetch --force --tags
+
+      - name: Release
+        run: |
+          git config --global user.email "bountyreper@sst.dev"
+          git config --global user.name "bountyreper"
+          ./github/script/release

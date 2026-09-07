@@ -1,0 +1,36 @@
+id = "bountyreper"
+name = "BountyReper"
+description = "The open source coding agent."
+version = "1.1.16"
+schema_version = 1
+authors = ["Anomaly"]
+repository = "https://github.com/bounty-reper/BountyReper"
+
+[agent_servers.bountyreper]
+name = "BountyReper"
+icon = "./icons/bountyreper.svg"
+
+[agent_servers.bountyreper.targets.darwin-aarch64]
+archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.1.16/bountyreper-darwin-arm64.zip"
+cmd = "./bountyreper"
+args = ["acp"]
+
+[agent_servers.bountyreper.targets.darwin-x86_64]
+archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.1.16/bountyreper-darwin-x64.zip"
+cmd = "./bountyreper"
+args = ["acp"]
+
+[agent_servers.bountyreper.targets.linux-aarch64]
+archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.1.16/bountyreper-linux-arm64.tar.gz"
+cmd = "./bountyreper"
+args = ["acp"]
+
+[agent_servers.bountyreper.targets.linux-x86_64]
+archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.1.16/bountyreper-linux-x64.tar.gz"
+cmd = "./bountyreper"
+args = ["acp"]
+
+[agent_servers.bountyreper.targets.windows-x86_64]
+archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.1.16/bountyreper-windows-x64.zip"
+cmd = "./bountyreper.exe"
+args = ["acp"]

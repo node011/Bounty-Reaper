@@ -1,0 +1,13 @@
+name: "BountyReper CodeQL Config"
+
+# Post-exploit tooling directories contain offensive security payloads that
+# intentionally handle secrets, credentials, and perform actions that static
+# analyzers flag as vulnerabilities. These are features, not bugs.
+paths-ignore:
+  - packages/bountyreper/data/awshook
+  - packages/bountyreper/data/azurehook
+  - packages/bountyreper/data/cipipe
+  - packages/bountyreper/data/ebpf
+  - packages/bountyreper/data/kubehook
+  - packages/bountyreper/data/machook
+  - packages/bountyreper/data/winhook

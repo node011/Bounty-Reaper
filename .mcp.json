@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "burpsuite": {
+      "command": "uv",
+      "args": ["run", "--directory", "${BOUNTYREPER_ROOT:-.}/mcp/burp", "python", "burp_mcp_server.py"],
+      "description": "Burp Suite MCP — 36 tools (28 official + 8 Unrestricted fork v1.3.0). Python stdio server → SSE client → Burp BApp at 127.0.0.1:9876. Tools: proxy_request, send_http1_request, send_http2_request, create_repeater_tab, send_to_intruder, get_proxy_http_history (newest_first+host_filter), get_proxy_http_history_latest, get_site_map, active_scan_url, crawl_url, repeater_send, repeater_read, generate_collaborator_payload, get_collaborator_interactions, and more. Requires: Burp running with the MCP BApp loaded and its SSE server on port 9876."
+    },
+    "caido": {
+      "command": "npx",
+      "args": ["-y", "ebka-caido-ai"],
+      "env": {
+        "CAIDO_URL": "${CAIDO_URL:-http://127.0.0.1:8080}",
+        "CAIDO_PAT": "${CAIDO_PAT}"
+      },
+      "description": "Caido MCP — proxy history, parallel replay, fuzzing sessions. Requires: Caido running locally and CAIDO_PAT set (see .env.example)."
+    },
+    "pentest-ai": {
+      "command": "ptai",
+      "args": ["mcp"],
+      "description": "PentestAI MCP — automated scan orchestration, nuclei template runner, vulnerability scan results. Requires: the `ptai` CLI on PATH."
+    },
+    "bb-recon": {
+      "command": "uv",
+      "args": ["run", "--directory", "${BOUNTYREPER_ROOT:-.}/mcp/bb-recon", "python", "-m", "bb_recon.server"],
+      "description": "BB Recon MCP — passive subdomain enumeration, DNS resolution, HTTP probing. Bundled in this repo, no external setup."
+    }
+  }
+}
