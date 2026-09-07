@@ -36,7 +36,7 @@
 
 <p align="center">
   Automated penetration testing from your terminal — plug in your Claude, GPT, or any LLM subscription<br>
-  and turn it into an autonomous red team agent with 13+ specialized agents, 7,600+ security skills, and 120+ OWASP test cases.<br>
+  and turn it into an autonomous red team agent with 13+ specialized agents, 900+ MITRE ATT&CK techniques, 120+ OWASP WSTG test cases, and 6,600+ CIS/NIST compliance controls.<br>
   <b>150+ AI providers</b> &bull; <b>5,300+ models</b> &bull; <b>56+ built-in tools</b> &bull; <b>176+ MCP tools</b>
 </p>
 
@@ -433,13 +433,13 @@ See [NOTICE](./NOTICE) for all third-party attributions.
 
 BountyReper is the core platform. These MCP servers extend its capabilities:
 
-| Project                                                                | Domain                                  | Tools                                                       |
-| ---------------------------------------------------------------------- | --------------------------------------- | ----------------------------------------------------------- |
-| **BountyReper**                                                        | **Autonomous offensive security agent** | **13+ agents, 56+ tools, 7,600+ skills, 150+ AI providers** |
-| [cloud-audit-mcp](https://github.com/badchars/cloud-audit-mcp)         | Cloud security (AWS/Azure/GCP)          | 38 tools, 60+ checks                                        |
-| [github-security-mcp](https://github.com/badchars/github-security-mcp) | GitHub security posture                 | 39 tools, 45 checks                                         |
-| [cve-mcp](https://github.com/badchars/cve-mcp)                         | Vulnerability intelligence              | 23 tools, 5 sources                                         |
-| [osint-mcp](https://github.com/badchars/osint-mcp-server)              | OSINT & reconnaissance                  | 37 tools, 12 sources                                        |
+| Project                                                                | Domain                                  | Tools                                                                          |
+| ---------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------ |
+| **BountyReper**                                                        | **Autonomous offensive security agent** | **13+ agents, 69 tools, 213 AI providers, ATT&CK + OWASP + CIS/NIST coverage** |
+| [cloud-audit-mcp](https://github.com/badchars/cloud-audit-mcp)         | Cloud security (AWS/Azure/GCP)          | 38 tools, 60+ checks                                                           |
+| [github-security-mcp](https://github.com/badchars/github-security-mcp) | GitHub security posture                 | 39 tools, 45 checks                                                            |
+| [cve-mcp](https://github.com/badchars/cve-mcp)                         | Vulnerability intelligence              | 23 tools, 5 sources                                                            |
+| [osint-mcp](https://github.com/badchars/osint-mcp-server)              | OSINT & reconnaissance                  | 37 tools, 12 sources                                                           |
 
 ---
 

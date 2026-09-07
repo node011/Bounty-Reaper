@@ -4,6 +4,14 @@ Copyright (c) 2026 BountyReper
 This product includes software and content developed by third parties.
 Their notices and terms follow.
 
+IMPORTANT -- NOT ALL OF THIS REPOSITORY IS MIT LICENSED.
+
+  .bountyreper/skill/CIS_benchmarks/  is CC BY-NC-SA 4.0 (NonCommercial).
+
+Everything else is MIT. See the CIS Benchmarks section below, and that
+directory's own LICENSE file, for what that means and how to remove the
+restriction.
+
 ================================================================================
 opencode
 ================================================================================

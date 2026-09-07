@@ -1,9 +1,5 @@
 MIT License
 
-Applies to all of BountyReper EXCEPT .bountyreper/skill/CIS_benchmarks/, which is
-derived from the CIS Benchmarks and is licensed CC BY-NC-SA 4.0 (NonCommercial).
-See that directory's LICENSE file and NOTICE for details.
-
 Copyright (c) 2026 BountyReper
 Copyright (c) 2025 opencode
 
