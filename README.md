@@ -1,34 +1,8 @@
 <p align="center">
-  <a href="README.md">English</a> |
-  <a href="README.zh.md">简体中文</a> |
-  <a href="README.zht.md">繁體中文</a> |
-  <a href="README.ko.md">한국어</a> |
-  <a href="README.de.md">Deutsch</a> |
-  <a href="README.es.md">Español</a> |
-  <a href="README.fr.md">Français</a> |
-  <a href="README.it.md">Italiano</a> |
-  <a href="README.da.md">Dansk</a> |
-  <a href="README.ja.md">日本語</a> |
-  <a href="README.pl.md">Polski</a> |
-  <a href="README.ru.md">Русский</a> |
-  <a href="README.bs.md">Bosanski</a> |
-  <a href="README.ar.md">العربية</a> |
-  <a href="README.no.md">Norsk</a> |
-  <a href="README.br.md">Português (Brasil)</a> |
-  <a href="README.th.md">ไทย</a> |
-  <a href="README.tr.md">Türkçe</a> |
-  <a href="README.uk.md">Українська</a> |
-  <a href="README.bn.md">বাংলা</a> |
-  <a href="README.el.md">Ελληνικά</a> |
-  <a href="README.vi.md">Tiếng Việt</a> |
-  <a href="README.hi.md">हिन्दी</a>
-</p>
-
-<p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.webp">
-    <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.webp">
-    <img src="assets/hero-dark.png" alt="BountyReper — open-source AI agent for offensive security" width="880">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
+    <img src="assets/hero-dark.svg" alt="BountyReper — the open-source AI agent built for offensive security" width="880">
   </picture>
 </p>
 
@@ -37,7 +11,7 @@
 <p align="center">
   Automated penetration testing from your terminal — plug in your Claude, GPT, or any LLM subscription<br>
   and turn it into an autonomous red team agent with 13+ specialized agents, 900+ MITRE ATT&CK techniques, 120+ OWASP WSTG test cases, and 6,600+ CIS/NIST compliance controls.<br>
-  <b>150+ AI providers</b> &bull; <b>5,300+ models</b> &bull; <b>56+ built-in tools</b> &bull; <b>176+ MCP tools</b>
+  <b>200+ AI providers</b> &bull; <b>7,500+ models</b> &bull; <b>69 built-in tools</b> &bull; <b>49 bundled MCP tools</b>
 </p>
 
 <p align="center">
@@ -99,9 +73,9 @@ BountyReper isn't just a wrapper around an LLM. It's an intelligence layer that 
 - **Provider auto-detection** — Automatically identifies your LLM endpoint and configures the optimal transport
 - **Tool orchestration** — Chains security tools intelligently based on findings, not fixed scripts
 
-**150+ AI providers and 5,300+ models supported out of the box:**
+**200+ AI providers and 7,500+ models supported out of the box:**
 
-BountyReper integrates with the entire AI ecosystem through 23 bundled SDK providers and 150+ providers via the [models.dev](https://models.dev) catalog. Here are the core integrations:
+BountyReper integrates with the entire AI ecosystem through 23 bundled SDK providers and 200+ providers via the [models.dev](https://models.dev) catalog. Here are the core integrations:
 
 | Provider                  | Models                   | Notes                                   |
 | ------------------------- | ------------------------ | --------------------------------------- |
@@ -148,7 +122,7 @@ BountyReper ships with 13+ agents purpose-built for security domains. Each agent
 
 **Intelligence Layer, Not Just an LLM Wrapper**
 
-Most AI security tools are thin wrappers that send your prompt to an API. BountyReper's intelligence layer normalizes outputs across 150+ providers and 5,300+ models, guards context between test phases, auto-detects your provider configuration, and orchestrates multi-step attack chains. The result: consistent, methodology-driven pentesting regardless of which model you use.
+Most AI security tools are thin wrappers that send your prompt to an API. BountyReper's intelligence layer normalizes outputs across 200+ providers and 7,500+ models, guards context between test phases, auto-detects your provider configuration, and orchestrates multi-step attack chains. The result: consistent, methodology-driven pentesting regardless of which model you use.
 
 </td>
 </tr>
@@ -157,7 +131,7 @@ Most AI security tools are thin wrappers that send your prompt to an API. Bounty
 
 **150+ Providers, Zero Lock-in**
 
-Anthropic, OpenAI, Google, Amazon Bedrock, Azure, Groq, Mistral, xAI, DeepSeek, Cerebras, Cohere, OpenRouter, Together AI, GitHub Copilot — or run fully offline with Ollama and LM Studio. 150+ providers, 5,300+ models. You choose the model. You own the results. As AI models get better and cheaper, BountyReper gets better with them. Switch providers in seconds without reconfiguring anything.
+Anthropic, OpenAI, Google, Amazon Bedrock, Azure, Groq, Mistral, xAI, DeepSeek, Cerebras, Cohere, OpenRouter, Together AI, GitHub Copilot — or run fully offline with Ollama and LM Studio. 200+ providers, 7,500+ models. You choose the model. You own the results. As AI models get better and cheaper, BountyReper gets better with them. Switch providers in seconds without reconfiguring anything.
 
 </td>
 <td width="50%">
