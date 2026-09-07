@@ -56,11 +56,11 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@bountyreper-io/bountyreper"><img alt="npm" src="https://img.shields.io/npm/v/@bountyreper-io/bountyreper?style=flat-square&color=1e40af" /></a>
-  <a href="https://www.npmjs.com/package/@bountyreper-io/bountyreper"><img alt="Downloads" src="https://img.shields.io/npm/dm/@bountyreper-io/bountyreper?style=flat-square&color=1e40af" /></a>
-  <a href="https://github.com/bounty-reper/BountyReper/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/bounty-reper/BountyReper/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://github.com/node011/Bounty-Reper/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/node011/Bounty-Reper?style=flat-square&color=1e40af" /></a>
+  <a href="https://github.com/node011/Bounty-Reper/releases"><img alt="Release" src="https://img.shields.io/github/v/release/node011/Bounty-Reper?style=flat-square&color=1e40af&display_name=tag" /></a>
+  <a href="https://github.com/node011/Bounty-Reper/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/node011/Bounty-Reper/publish.yml?style=flat-square&branch=main" /></a>
   <a href="https://discord.gg/snunAaHf6U"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord&color=1e40af" /></a>
-  <a href="https://github.com/bounty-reper/BountyReper/blob/dev/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-1e40af?style=flat-square" /></a>
+  <a href="https://github.com/node011/Bounty-Reper/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-1e40af?style=flat-square" /></a>
 </p>
 
 ---
@@ -68,10 +68,17 @@
 ### Quick Start
 
 ```bash
-npm i -g @bountyreper-io/bountyreper@latest && bountyreper
+git clone https://github.com/node011/Bounty-Reper.git
+cd Bounty-Reper
+./script/bootstrap.sh
+bun dev
 ```
 
-That's it. BountyReper launches a TUI in your terminal, asks for your LLM provider and API key on first run, and you're ready to go. Tell it what to test — it handles reconnaissance, vulnerability discovery, exploitation, and reporting autonomously.
+BountyReper is installed by cloning and building — there is no package on npm, Homebrew or Scoop. `bootstrap.sh` checks your prerequisites, installs dependencies, sets up the bundled MCP servers in isolated environments, fetches Chromium, and registers the servers so they load in every folder. It is idempotent, so re-run it after a `git pull`.
+
+`bun dev` launches the TUI, asks for your LLM provider and API key on first run, and you're ready. Tell it what to test — it handles reconnaissance, vulnerability discovery, exploitation, and reporting.
+
+**Prerequisites:** [bun](https://bun.sh) 1.3+, [uv](https://docs.astral.sh/uv/), and git. Bootstrap stops with instructions if any are missing.
 
 > **Already have a Claude Code or OpenAI subscription?** BountyReper's intelligence layer sits on top of your existing AI subscription. No separate API costs — your current plan powers an entire pentest toolkit.
 
@@ -360,22 +367,33 @@ All post-exploitation tools are agent-driven — they execute based on context a
 
 ### Installation
 
+**Clone and build. This is the only supported installation method** — BountyReper is not published to npm, Homebrew or Scoop, and there are no release binaries to download.
+
 ```bash
-# npm (recommended)
-npm i -g @bountyreper-io/bountyreper@latest
-
-# bun / pnpm / yarn
-bun add -g @bountyreper-io/bountyreper@latest
-
-# macOS (Homebrew)
-brew install bounty-reper/tap/bountyreper
-
-# Windows (Scoop)
-scoop install bountyreper
-
-# Linux / macOS (curl)
-curl -fsSL https://bountyreper.io/install.sh | bash
+git clone https://github.com/node011/Bounty-Reper.git
+cd Bounty-Reper
+./script/bootstrap.sh
 ```
+
+Run it straight from the repo:
+
+```bash
+bun dev
+```
+
+Or build a standalone binary and put it on your `PATH`:
+
+```bash
+cd packages/bountyreper && bun run build && cd ../..
+
+# pick the target matching your machine
+ls packages/bountyreper/dist/
+./install --binary packages/bountyreper/dist/bountyreper-darwin-arm64/bin/bountyreper
+```
+
+That installs to `~/.bountyreper/bin`, copies the hackbrowser worker alongside it, and adds the directory to your shell config. `bountyreper --version` should then work from anywhere.
+
+Full setup notes, MCP server configuration and troubleshooting: **[docs/SETUP.md](./docs/SETUP.md)**.
 
 ---
 
@@ -405,7 +423,7 @@ Read the [Contributing Guide](./CONTRIBUTING.md) before submitting a PR. All con
 
 [MIT](./LICENSE), with one exception: [`.bountyreper/skill/CIS_benchmarks/`](./.bountyreper/skill/CIS_benchmarks/) is derived from the CIS Benchmarks and is licensed [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — **NonCommercial**. Using those specific compliance skills on a paid engagement needs prior approval from CIS; everything else carries no such restriction, and deleting that directory removes it entirely (nothing depends on it).
 
-BountyReper is derived from [opencode](https://github.com/anomalyco/opencode) (MIT). Its engagement methodology follows the approach of [CyberStrikeAI](https://github.com/Ed1s0nZ/CyberStrikeAI) (Apache-2.0); no code from it is included.
+BountyReper is derived from [opencode](https://github.com/anomalyco/opencode) (MIT).
 
 See [NOTICE](./NOTICE) for all third-party attributions.
 
@@ -426,7 +444,7 @@ BountyReper is the core platform. These MCP servers extend its capabilities:
 ---
 
 <p align="center">
-  <a href="https://bountyreper.io"><b>bountyreper.io</b></a> · <a href="https://docs.bountyreper.io"><b>Docs</b></a> · <a href="https://discord.gg/snunAaHf6U"><b>Discord</b></a> · <a href="https://x.com/bountyreperio"><b>X.com</b></a> · <a href="https://github.com/bounty-reper/BountyReper"><b>GitHub</b></a>
+  <a href="https://bountyreper.io"><b>bountyreper.io</b></a> · <a href="https://docs.bountyreper.io"><b>Docs</b></a> · <a href="https://discord.gg/snunAaHf6U"><b>Discord</b></a> · <a href="https://x.com/bountyreperio"><b>X.com</b></a> · <a href="https://github.com/node011/Bounty-Reper"><b>GitHub</b></a>
 </p>
 <p align="center">
   <sub>Built by hackers who got tired of copy-pasting between terminals.</sub>

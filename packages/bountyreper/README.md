@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/bounty-reper/BountyReper/dev/assets/social-preview-dark.svg" alt="BountyReper" width="800">
+  <img src="https://raw.githubusercontent.com/node011/Bounty-Reper/dev/assets/social-preview-dark.svg" alt="BountyReper" width="800">
 </p>
 
 <h3 align="center">The first open-source AI agent built for offensive security.</h3>
@@ -25,9 +25,9 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@bountyreper-io/bountyreper"><img alt="npm" src="https://img.shields.io/npm/v/@bountyreper-io/bountyreper?style=flat-square&color=00ff41" /></a>
   <a href="https://www.npmjs.com/package/@bountyreper-io/bountyreper"><img alt="Downloads" src="https://img.shields.io/npm/dm/@bountyreper-io/bountyreper?style=flat-square&color=00ff41" /></a>
-  <a href="https://github.com/bounty-reper/BountyReper/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/bounty-reper/BountyReper/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://github.com/node011/Bounty-Reper/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/node011/Bounty-Reper/publish.yml?style=flat-square&branch=dev" /></a>
   <a href="https://discord.gg/snunAaHf6U"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord&color=00ff41" /></a>
-  <a href="https://github.com/bounty-reper/BountyReper/blob/dev/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-00ff41?style=flat-square" /></a>
+  <a href="https://github.com/node011/Bounty-Reper/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-00ff41?style=flat-square" /></a>
 </p>
 
 ---
@@ -35,7 +35,8 @@
 ### Quick Start
 
 ```bash
-npm i -g @bountyreper-io/bountyreper@latest && bountyreper
+git clone https://github.com/node011/Bounty-Reper.git
+cd Bounty-Reper && ./script/bootstrap.sh && bun dev
 ```
 
 That's it. BountyReper launches a TUI in your terminal, asks for your LLM provider and API key on first run, and you're ready to go. Tell it what to test — it loads relevant skills from 7,300+ MITRE ATT&CK, CIS, OWASP, and NIST test procedures, then handles reconnaissance, vulnerability discovery, exploitation, and reporting autonomously.
@@ -115,7 +116,7 @@ Tools: Invoke-Kerberoast.ps1, Rubeus, setspn
 Platforms: Windows
 ```
 
-Read more: [MITRE ATT&CK Integration](https://github.com/bounty-reper/BountyReper/blob/main/.bountyreper/skill/mitre_attack/), [CIS Benchmarks](https://github.com/bounty-reper/BountyReper/tree/main/.bountyreper/skill/CIS_benchmarks)
+Read more: [MITRE ATT&CK Integration](https://github.com/node011/Bounty-Reper/blob/main/.bountyreper/skill/mitre_attack/), [CIS Benchmarks](https://github.com/node011/Bounty-Reper/tree/main/.bountyreper/skill/CIS_benchmarks)
 
 ---
 
@@ -189,7 +190,7 @@ bountyreper web
 
 Use **[app.bountyreper.io](https://app.bountyreper.io)** (static page, no backend) or self-host from `packages/app/dist/`.
 
-See the [full README](https://github.com/bounty-reper/BountyReper#web-ui--remote-access) for the complete security model.
+See the [full README](https://github.com/node011/Bounty-Reper#web-ui--remote-access) for the complete security model.
 
 ---
 
@@ -255,22 +256,18 @@ Plus a **plugin SDK** — build your own agents and tools, register them at runt
 
 ### Installation
 
+**Clone and build — the only supported method.** BountyReper is not published to
+npm, Homebrew or Scoop, and there are no release binaries.
+
 ```bash
-# npm (recommended)
-npm i -g @bountyreper-io/bountyreper@latest
-
-# bun / pnpm / yarn
-bun add -g @bountyreper-io/bountyreper@latest
-
-# macOS (Homebrew)
-brew install bounty-reper/tap/bountyreper
-
-# Windows (Scoop)
-scoop install bountyreper
-
-# Linux / macOS (curl)
-curl -fsSL https://bountyreper.io/install.sh | bash
+git clone https://github.com/node011/Bounty-Reper.git
+cd Bounty-Reper
+./script/bootstrap.sh
+bun dev
 ```
+
+Requires [bun](https://bun.sh) 1.3+, [uv](https://docs.astral.sh/uv/) and git.
+See [docs/SETUP.md](../../docs/SETUP.md) for the full guide.
 
 ---
 
@@ -292,13 +289,13 @@ BountyReper is built by the security community, for the security community. We w
 - **Knowledge base** — WSTG, MASTG, PTES, CIS methodology guides
 - **Core improvements** — Performance, UX, provider integrations, bug fixes
 
-Read the [Contributing Guide](https://github.com/bounty-reper/BountyReper/blob/dev/CONTRIBUTING.md) before submitting a PR. All contributions must follow the project's [ethical use policy](https://github.com/bounty-reper/BountyReper/blob/dev/CODE_OF_CONDUCT.md) — BountyReper is for authorized security testing only.
+Read the [Contributing Guide](https://github.com/node011/Bounty-Reper/blob/main/CONTRIBUTING.md) before submitting a PR. All contributions must follow the project's [ethical use policy](https://github.com/node011/Bounty-Reper/blob/main/CODE_OF_CONDUCT.md) — BountyReper is for authorized security testing only.
 
 ---
 
 ### License
 
-[MIT](https://github.com/bounty-reper/BountyReper/blob/dev/LICENSE) — see NOTICE for third-party attributions.
+[MIT](https://github.com/node011/Bounty-Reper/blob/main/LICENSE) — see NOTICE for third-party attributions.
 
 ---
 
@@ -317,7 +314,7 @@ BountyReper is the core platform. These MCP servers extend its capabilities:
 ---
 
 <p align="center">
-  <a href="https://bountyreper.io"><b>bountyreper.io</b></a> · <a href="https://docs.bountyreper.io"><b>Docs</b></a> · <a href="https://discord.gg/snunAaHf6U"><b>Discord</b></a> · <a href="https://x.com/bountyreperio"><b>X.com</b></a> · <a href="https://github.com/bounty-reper/BountyReper"><b>GitHub</b></a>
+  <a href="https://bountyreper.io"><b>bountyreper.io</b></a> · <a href="https://docs.bountyreper.io"><b>Docs</b></a> · <a href="https://discord.gg/snunAaHf6U"><b>Discord</b></a> · <a href="https://x.com/bountyreperio"><b>X.com</b></a> · <a href="https://github.com/node011/Bounty-Reper"><b>GitHub</b></a>
 </p>
 <p align="center">
   <sub>Built by hackers who got tired of copy-pasting between terminals.</sub>
