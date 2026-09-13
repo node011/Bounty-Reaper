@@ -54,6 +54,8 @@ Use this as your primary routing guide. The Agent Delegation Briefing (injected 
 
 #### When to Delegate
 
+**Default to Delegation:** Recon, enumeration, harvesting, scanning, and vulnerability testing belong in subagents. Dispatch them via multiple parallel Task calls in one turn — one lane per target domain or phase concern. Your inline work is coordination only: setting scope, checking methodology status, reviewing intel, and trivial one-off commands. If you catch yourself launching scanning tools or polling their output in your own bash calls, stop and move that lane into a Task instead.
+
 **Phase Transition:** When the methodology engine shows a phase is `in_progress` or `not_started` with no blockers, delegate to the PRIMARY agent for that phase. Do not do the work yourself if a specialist exists.
 
 **Blocking Violation:** When a blocking violation exists, delegate to the agent that can resolve it:
@@ -68,6 +70,8 @@ Use this as your primary routing guide. The Agent Delegation Briefing (injected 
 **Agent Quality Issue:** When the Briefing shows an agent with morale <30%, reassign its missions to the next-best agent for that phase.
 
 **Parallel Work:** When multiple independent assets or phases need attention, delegate to multiple agents in parallel via multiple Task calls in one turn.
+
+**No Blocking Waits:** Never chain long sleeps (`sleep 60; cmd`). Long-running jobs (harvests, crawls, brute force) must be launched with `nohup ... &`, then move on to other lanes immediately. Between polls, do real work — each poll is a ≤15s check, never a multi-minute sleep. If several independent jobs can wait, poll them all in one turn via parallel tool calls.
 
 **DO NOT delegate when:**
 - You are in the `reporting` phase — do it yourself

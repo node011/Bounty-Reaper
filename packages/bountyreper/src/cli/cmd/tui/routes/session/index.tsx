@@ -55,6 +55,7 @@ import { parsePatch } from "diff"
 import { useDialog } from "../../ui/dialog"
 import { TodoItem } from "../../component/todo-item"
 import { DialogMessage } from "./dialog-message"
+import { DialogSubagent } from "./dialog-subagent"
 import type { PromptInfo } from "../../component/prompt/history"
 import { DialogConfirm } from "@tui/ui/dialog-confirm"
 import { DialogTimeline } from "./dialog-timeline"
@@ -571,6 +572,18 @@ export function Session() {
       },
       onSelect: (dialog) => {
         dialog.replace(() => <DialogMethodology sessionID={route.sessionID} />)
+      },
+    },
+    {
+      title: "View subagent activity",
+      value: "session.subagents",
+      category: "Session",
+      slash: {
+        name: "subagents",
+        aliases: ["agents", "workers"],
+      },
+      onSelect: (dialog) => {
+        dialog.replace(() => <DialogSubagent sessionID={route.sessionID} />)
       },
     },
     {
