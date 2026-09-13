@@ -3,7 +3,7 @@ import os from "os"
 import fuzzysort from "fuzzysort"
 import { Config } from "../config/config"
 import { mapValues, mergeDeep, omit, pickBy, sortBy } from "remeda"
-import { NoSuchModelError, type Provider as SDK } from "ai"
+import { NoSuchModelError } from "ai"
 import { Log } from "../util/log"
 import { BunProc } from "../bun"
 import { Plugin } from "../plugin"
@@ -26,11 +26,172 @@ import { createAnthropicSubscriptionModel, SUBSCRIPTION_BETAS, AGENT_SDK_PREFIX 
 // Only the type-only imports and createGitLab (referenced via `typeof` below)
 // are still needed directly here.
 import type { AmazonBedrockProviderSettings } from "@ai-sdk/amazon-bedrock"
-import type { LanguageModelV2 } from "@openrouter/ai-sdk-provider"
+import type {
+  LanguageModelV2,
+  LanguageModelV2FinishReason,
+  LanguageModelV2Usage,
+  LanguageModelV3,
+  LanguageModelV3FinishReason,
+  LanguageModelV3Usage,
+} from "@ai-sdk/provider"
 import { createGitLab, VERSION as GITLAB_PROVIDER_VERSION } from "@gitlab/gitlab-ai-provider"
-import { BUNDLED_PROVIDERS } from "./bundled-providers"
+import { BUNDLED_PROVIDERS, type BundledSDK as SDK } from "./bundled-providers"
 import { ProviderTransform } from "./transform"
 import { Installation } from "../installation"
+import { HeaderTimeoutError, ResponseStreamError } from "./error"
+
+// Wrap an SSE response so a stalled stream fails instead of hanging forever:
+// if no chunk arrives within `ms`, abort the request with ResponseStreamError.
+function wrapSSE(res: Response, ms: number, ctl: AbortController) {
+  if (typeof ms !== "number" || ms <= 0) return res
+  if (!res.body) return res
+  if (!res.headers.get("content-type")?.includes("text/event-stream")) return res
+
+  const reader = res.body.getReader()
+
+  // Progress = a real SSE field line (data:/event:/id:/retry:/continuation),
+  // NOT bare keepalive comments (": ping"). Keepalive drip used to reset the
+  // stall timer, so a stuck model + heartbeat-dripping gateway hung a session
+  // forever.
+  const decoder = new TextDecoder()
+  function progress(chunk: Uint8Array) {
+    const text = decoder.decode(chunk, { stream: true })
+    for (const line of text.split("\n")) {
+      const trimmed = line.trim()
+      if (trimmed && !trimmed.startsWith(":")) return true
+    }
+    return false
+  }
+
+  let last = Date.now()
+  const tick = setInterval(() => {
+    if (Date.now() - last < ms) return
+    clearInterval(tick)
+    const err = new ResponseStreamError("SSE read timed out")
+    ctl.abort(err)
+    reader.cancel(err).catch(() => {})
+  }, Math.min(ms, 30_000))
+  tick.unref?.()
+
+  const body = new ReadableStream<Uint8Array>({
+    async pull(ctrl) {
+      const part = await reader.read()
+      if (part.done) {
+        clearInterval(tick)
+        ctrl.close()
+        return
+      }
+      if (progress(part.value)) last = Date.now()
+      ctrl.enqueue(part.value)
+    },
+    async cancel(reason) {
+      clearInterval(tick)
+      ctl.abort(reason)
+      await reader.cancel(reason)
+    },
+  })
+
+  return new Response(body, {
+    headers: new Headers(res.headers),
+    status: res.status,
+    statusText: res.statusText,
+  })
+}
+
+function timeoutController(ms: number) {
+  const ctl = new AbortController()
+  const id = setTimeout(() => ctl.abort(new HeaderTimeoutError(ms)), ms)
+  return {
+    signal: ctl.signal,
+    clear: () => clearTimeout(id),
+  }
+}
+
+function googleVertexEndpoint(location: string) {
+  if (location === "global") return "aiplatform.googleapis.com"
+  if (location === "eu" || location === "us") return `aiplatform.${location}.rep.googleapis.com`
+  return `${location}-aiplatform.googleapis.com`
+}
+
+function selectAzureLanguageModel(sdk: any, modelID: string, useChat: boolean) {
+  if (useChat && sdk.chat) return sdk.chat(modelID)
+  if (sdk.responses) return sdk.responses(modelID)
+  if (sdk.messages) return sdk.messages(modelID)
+  if (sdk.chat) return sdk.chat(modelID)
+  return sdk.languageModel(modelID)
+}
+
+// Spec-v2 models (vendored copilot, anthropic subscription proxy) only differ in
+// finish-reason and usage shape. Mirror ai@6's internal asLanguageModelV3 so
+// wrapLanguageModel/streamText middleware sees the v3 shape for every model.
+function v2UsageToV3(usage: LanguageModelV2Usage): LanguageModelV3Usage {
+  return {
+    inputTokens: {
+      total: usage.inputTokens,
+      noCache: undefined,
+      cacheRead: usage.cachedInputTokens,
+      cacheWrite: undefined,
+    },
+    outputTokens: {
+      total: usage.outputTokens,
+      text: undefined,
+      reasoning: usage.reasoningTokens,
+    },
+  }
+}
+
+function v2FinishToV3(finishReason: LanguageModelV2FinishReason): LanguageModelV3FinishReason {
+  return {
+    unified: finishReason === "unknown" ? "other" : finishReason,
+    raw: undefined,
+  }
+}
+
+function asLanguageModelV3(model: LanguageModelV2 | LanguageModelV3): LanguageModelV3 {
+  if (model.specificationVersion === "v3") return model
+  const v2 = model as LanguageModelV2
+  return new Proxy(v2, {
+    get(target, prop) {
+      switch (prop) {
+        case "specificationVersion":
+          return "v3"
+        case "doGenerate":
+          return async (...args: Parameters<LanguageModelV2["doGenerate"]>) => {
+            const result = await target.doGenerate(...args)
+            return {
+              ...result,
+              finishReason: v2FinishToV3(result.finishReason),
+              usage: v2UsageToV3(result.usage),
+            }
+          }
+        case "doStream":
+          return async (...args: Parameters<LanguageModelV2["doStream"]>) => {
+            const result = await target.doStream(...args)
+            return {
+              ...result,
+              stream: result.stream.pipeThrough(
+                new TransformStream({
+                  transform(chunk, controller) {
+                    if (chunk.type !== "finish") {
+                      controller.enqueue(chunk)
+                      return
+                    }
+                    controller.enqueue({
+                      ...chunk,
+                      finishReason: v2FinishToV3(chunk.finishReason),
+                      usage: v2UsageToV3(chunk.usage),
+                    })
+                  },
+                }),
+              ),
+            }
+          }
+        default:
+          return target[prop as keyof LanguageModelV2]
+      }
+    },
+  }) as unknown as LanguageModelV3
+}
 
 export namespace Provider {
   const log = Log.create({ service: "provider" })
@@ -47,7 +208,7 @@ export namespace Provider {
     return isGpt5OrLater(modelID) && !modelID.startsWith("gpt-5-mini")
   }
 
-  type CustomModelLoader = (sdk: any, modelID: string, options?: Record<string, any>) => Promise<any>
+  type CustomModelLoader = (sdk: any, modelID: string, options?: Record<string, any>, model?: Model) => Promise<any>
   type CustomLoader = (provider: Info) => Promise<{
     autoload: boolean
     getModel?: CustomModelLoader
@@ -207,8 +368,12 @@ export namespace Provider {
     "github-copilot": async () => {
       return {
         autoload: false,
-        async getModel(sdk: any, modelID: string, _options?: Record<string, any>) {
+        async getModel(sdk: any, modelID: string, _options?: Record<string, any>, model?: Model) {
           if (sdk.responses === undefined && sdk.chat === undefined) return sdk.languageModel(modelID)
+          if (model?.api.endpoint) {
+            if (model.api.endpoint === "responses" && sdk.responses) return sdk.responses(modelID)
+            if (model.api.endpoint === "chat" && sdk.chat) return sdk.chat(modelID)
+          }
           return shouldUseCopilotResponsesApi(modelID) ? sdk.responses(modelID) : sdk.chat(modelID)
         },
         options: {},
@@ -217,39 +382,57 @@ export namespace Provider {
     "github-copilot-enterprise": async () => {
       return {
         autoload: false,
-        async getModel(sdk: any, modelID: string, _options?: Record<string, any>) {
+        async getModel(sdk: any, modelID: string, _options?: Record<string, any>, model?: Model) {
           if (sdk.responses === undefined && sdk.chat === undefined) return sdk.languageModel(modelID)
+          if (model?.api.endpoint) {
+            if (model.api.endpoint === "responses" && sdk.responses) return sdk.responses(modelID)
+            if (model.api.endpoint === "chat" && sdk.chat) return sdk.chat(modelID)
+          }
           return shouldUseCopilotResponsesApi(modelID) ? sdk.responses(modelID) : sdk.chat(modelID)
         },
         options: {},
       }
     },
-    azure: async () => {
-      return {
-        autoload: false,
-        async getModel(sdk: any, modelID: string, options?: Record<string, any>) {
-          if (options?.["useCompletionUrls"]) {
-            return sdk.chat(modelID)
-          } else {
-            return sdk.responses(modelID)
-          }
-        },
-        options: {},
+    azure: async (input) => {
+      const auth = await Auth.get(input.id)
+      const resource = [
+        input.options?.resourceName,
+        auth?.type === "oauth" ? auth.accountId : undefined,
+        Env.get("AZURE_RESOURCE_NAME"),
+      ].find((name): name is string => typeof name === "string" && name.trim() !== "")
+
+      if (!resource && !input.options?.baseURL) {
+        return {
+          autoload: false,
+          async getModel() {
+            throw new Error(
+              "AZURE_RESOURCE_NAME is missing, set it using env var or reconnect the azure provider and set it",
+            )
+          },
+        }
       }
-    },
-    "azure-cognitive-services": async () => {
-      const resourceName = Env.get("AZURE_COGNITIVE_SERVICES_RESOURCE_NAME")
+
       return {
         autoload: false,
         async getModel(sdk: any, modelID: string, options?: Record<string, any>) {
-          if (options?.["useCompletionUrls"]) {
-            return sdk.chat(modelID)
-          } else {
-            return sdk.responses(modelID)
-          }
+          return selectAzureLanguageModel(sdk, modelID, Boolean(options?.["useCompletionUrls"]))
         },
         options: {
-          baseURL: resourceName ? `https://${resourceName}.cognitiveservices.azure.com/openai` : undefined,
+          resourceName: resource,
+        },
+      }
+    },
+    "azure-cognitive-services": async (input) => {
+      const resourceName = input.options?.resourceName ?? Env.get("AZURE_COGNITIVE_SERVICES_RESOURCE_NAME")
+      return {
+        autoload: false,
+        async getModel(sdk: any, modelID: string, options?: Record<string, any>) {
+          return selectAzureLanguageModel(sdk, modelID, Boolean(options?.["useCompletionUrls"]))
+        },
+        options: {
+          baseURL: resourceName
+            ? `https://${resourceName}.cognitiveservices.azure.com/openai${input.options?.useDeploymentBasedUrls ? "" : "/v1"}`
+            : undefined,
         },
       }
     },
@@ -270,6 +453,7 @@ export namespace Provider {
       const profile = configProfile ?? envProfile
 
       const awsAccessKeyId = Env.get("AWS_ACCESS_KEY_ID")
+      const configApiKey = providerConfig?.options?.apiKey
 
       // TODO: Using process.env directly because Env.set only updates a process.env shallow copy,
       // until the scope of the Env API is clarified (test only or runtime?)
@@ -293,9 +477,9 @@ export namespace Provider {
         !profile &&
         !awsAccessKeyId &&
         !awsBearerToken &&
+        !configApiKey &&
         !awsWebIdentityTokenFile &&
-        !containerCreds &&
-        !providerConfig
+        !containerCreds
       )
         return { autoload: false }
 
@@ -305,7 +489,7 @@ export namespace Provider {
 
       // Only use credential chain if no bearer token exists
       // Bearer token takes precedence over credential chain (profiles, access keys, IAM roles, web identity tokens)
-      if (!awsBearerToken) {
+      if (!awsBearerToken && !configApiKey) {
         const credentialProviderOptions = profile ? { profile } : {}
         try {
           const { fromNodeProviderChain } = await import(await BunProc.install("@aws-sdk/credential-providers"))
@@ -329,6 +513,10 @@ export namespace Provider {
         async getModel(sdk: any, modelID: string, options?: Record<string, any>) {
           // Skip region prefixing if model already has a cross-region inference profile prefix
           // Models from models.dev may already include prefixes like us., eu., global., etc.
+          if (modelID.startsWith("arn:")) {
+            return sdk.languageModel(modelID)
+          }
+
           const crossRegionPrefixes = ["global.", "us.", "eu.", "jp.", "apac.", "au."]
           if (crossRegionPrefixes.some((prefix) => modelID.startsWith(prefix))) {
             return sdk.languageModel(modelID)
@@ -448,6 +636,9 @@ export namespace Provider {
         "us-east5"
       const hasCredentials = Boolean(Env.get("GOOGLE_APPLICATION_CREDENTIALS"))
       if (!project && !hasCredentials) return { autoload: false }
+      // Continental multi-regions (eu, us) require Regional Endpoint Platform
+      // domains; @ai-sdk/google-vertex resolves the endpoint from this env var.
+      if (!Env.get("GOOGLE_VERTEX_ENDPOINT")) process.env.GOOGLE_VERTEX_ENDPOINT = googleVertexEndpoint(location)
       return {
         autoload: true,
         options: {
@@ -589,6 +780,9 @@ export namespace Provider {
       }
     },
     "cloudflare-ai-gateway": async (input) => {
+      // When baseURL is already configured (e.g. corporate config), skip the ID checks.
+      if (input.options?.baseURL) return { autoload: false }
+
       const accountId = Env.get("CLOUDFLARE_ACCOUNT_ID")
       const gateway = Env.get("CLOUDFLARE_GATEWAY_ID")
 
@@ -613,15 +807,41 @@ export namespace Provider {
       // Use official ai-gateway-provider package (v2.x for AI SDK v5 compatibility)
       const { createAiGateway } = await import("ai-gateway-provider")
       const { createUnified } = await import("ai-gateway-provider/providers/unified")
+      const { createOpenAI } = await import("ai-gateway-provider/providers/openai")
+      const { createAnthropic } = await import("ai-gateway-provider/providers/anthropic")
+      const { createOpenAICompatible } = await import("@ai-sdk/openai-compatible")
 
       const aigateway = createAiGateway({ accountId, gateway, apiKey: apiToken })
-      const unified = createUnified()
 
       return {
         autoload: true,
         async getModel(_sdk: any, modelID: string, _options?: Record<string, any>) {
-          // Model IDs use Unified API format: provider/model (e.g., "anthropic/claude-sonnet-4-5")
-          return aigateway(unified(modelID))
+          // Model IDs use Unified API format: provider/model (e.g., "anthropic/claude-sonnet-4-5").
+          // OpenAI and Anthropic ride their native passthrough routes so agents get the Responses
+          // and Messages APIs; new OpenAI models reject tools+reasoning_effort on chat completions.
+          if (modelID.startsWith("openai/")) return aigateway(createOpenAI()(modelID.slice("openai/".length)))
+          // models.dev lists Anthropic ids with dotted versions (claude-haiku-4.5); Anthropic's
+          // Messages API expects dashed native slugs (claude-haiku-4-5), so translate before passing.
+          // No native Anthropic slug contains a dot, so the blanket replacement is lossless here -
+          // unlike OpenAI above, whose native ids (e.g. gpt-4.1) keep their dots and must not be touched.
+          if (modelID.startsWith("anthropic/"))
+            return aigateway(createAnthropic()(modelID.slice("anthropic/".length).replaceAll(".", "-")))
+          // Workers AI is Cloudflare's own upstream, so it rides the unified compat route with the
+          // Cloudflare token as its upstream Authorization header. Third-party providers must not
+          // receive the token; they rely on the gateway's stored/BYOK keys instead.
+          const isWorkersAi = modelID.startsWith("workers-ai/") || modelID.startsWith("@cf/")
+          if (isWorkersAi) return aigateway(createUnified({ apiKey: apiToken })(modelID))
+          // Every other third-party provider (google, xai, alibaba, deepseek, moonshotai, …) is only
+          // served by Cloudflare's catalog-aware REST API. The universal/compat gateway route rejects
+          // them with "Invalid provider", so point an OpenAI-compatible client at the REST endpoint
+          // and bind it to the gateway with cf-aig-gateway-id — that keeps requests gateway-routed
+          // (analytics/caching/BYOK), not a bypass.
+          return createOpenAICompatible({
+            name: "cloudflare-ai-gateway",
+            baseURL: `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
+            apiKey: apiToken,
+            headers: { "cf-aig-gateway-id": gateway },
+          })(modelID)
         },
         options: {},
       }
@@ -646,6 +866,7 @@ export namespace Provider {
         id: z.string(),
         url: z.string(),
         npm: z.string(),
+        endpoint: z.string().optional(),
       }),
       name: z.string(),
       family: z.string().optional(),
@@ -743,6 +964,7 @@ export namespace Provider {
         id: model.id,
         url: model.provider?.api ?? provider.api!,
         npm: model.provider?.npm ?? provider.npm ?? "@ai-sdk/openai-compatible",
+        endpoint: model.provider?.endpoint,
       },
       status: model.status ?? "active",
       headers: model.headers ?? {},
@@ -840,7 +1062,7 @@ export namespace Provider {
     }
 
     const providers: { [providerID: string]: Info } = {}
-    const languages = new Map<string, LanguageModelV2>()
+    const languages = new Map<string, LanguageModelV3>()
     const modelLoaders: {
       [providerID: string]: CustomModelLoader
     } = {}
@@ -907,6 +1129,7 @@ export namespace Provider {
               modelsDev[providerID]?.npm ??
               "@ai-sdk/openai-compatible",
             url: model.provider?.api ?? provider?.api ?? existingModel?.api.url ?? modelsDev[providerID]?.api,
+            endpoint: model.provider?.endpoint ?? existingModel?.api.endpoint,
           },
           status: model.status ?? existingModel?.status ?? "active",
           name,
@@ -1145,21 +1368,29 @@ export namespace Provider {
       if (existing) return existing
 
       const customFetch = options["fetch"]
+      const chunkTimeout = options["chunkTimeout"] ?? 300_000
+      const headerTimeout = options["headerTimeout"] ?? 300_000
+      delete options["chunkTimeout"]
+      delete options["headerTimeout"]
 
       options["fetch"] = async (input: any, init?: BunFetchRequestInit) => {
         // Preserve custom fetch if it exists, wrap it with timeout logic
         const fetchFn = customFetch ?? fetch
         const opts = init ?? {}
 
-        if (options["timeout"] !== undefined && options["timeout"] !== null) {
-          const signals: AbortSignal[] = []
-          if (opts.signal) signals.push(opts.signal)
-          if (options["timeout"] !== false) signals.push(AbortSignal.timeout(options["timeout"]))
+        const chunkAbortCtl = typeof chunkTimeout === "number" && chunkTimeout > 0 ? new AbortController() : undefined
+        const headerTimeoutMs = headerTimeout === false ? undefined : headerTimeout
+        const headerTimeoutCtl = typeof headerTimeoutMs === "number" ? timeoutController(headerTimeoutMs) : undefined
+        const signals: AbortSignal[] = []
 
-          const combined = signals.length > 1 ? AbortSignal.any(signals) : signals[0]
+        if (opts.signal) signals.push(opts.signal)
+        if (chunkAbortCtl) signals.push(chunkAbortCtl.signal)
+        if (headerTimeoutCtl) signals.push(headerTimeoutCtl.signal)
+        if (options["timeout"] !== undefined && options["timeout"] !== null && options["timeout"] !== false)
+          signals.push(AbortSignal.timeout(options["timeout"]))
 
-          opts.signal = combined
-        }
+        const combined = signals.length === 0 ? null : signals.length === 1 ? signals[0] : AbortSignal.any(signals)
+        if (combined) opts.signal = combined
 
         // Strip openai itemId metadata following what codex does
         // Codex uses #[serde(skip_serializing)] on id fields for all item types:
@@ -1183,11 +1414,14 @@ export namespace Provider {
           }
         }
 
-        return fetchFn(input, {
+        const res = await fetchFn(input, {
           ...opts,
           // @ts-ignore see here: https://github.com/oven-sh/bun/issues/16682
           timeout: false,
-        })
+        }).finally(() => headerTimeoutCtl?.clear())
+
+        if (!chunkAbortCtl) return res
+        return wrapSSE(res, chunkTimeout, chunkAbortCtl)
       }
 
       const bundledFn = BUNDLED_PROVIDERS[model.api.npm]
@@ -1247,7 +1481,7 @@ export namespace Provider {
     return info
   }
 
-  export async function getLanguage(model: Model): Promise<LanguageModelV2> {
+  export async function getLanguage(model: Model): Promise<LanguageModelV3> {
     const s = await state()
     const key = `${model.providerID}/${model.id}`
     if (s.models.has(key)) return s.models.get(key)!
@@ -1256,9 +1490,11 @@ export namespace Provider {
     const sdk = await getSDK(model)
 
     try {
-      const language = s.modelLoaders[model.providerID]
-        ? await s.modelLoaders[model.providerID](sdk, model.api.id, provider.options)
-        : sdk.languageModel(model.api.id)
+      const language = asLanguageModelV3(
+        s.modelLoaders[model.providerID]
+          ? await s.modelLoaders[model.providerID](sdk, model.api.id, provider.options, model)
+          : sdk.languageModel(model.api.id),
+      )
       s.models.set(key, language)
       return language
     } catch (e) {
@@ -1399,6 +1635,11 @@ export namespace Provider {
     // using, hence entitled). Copilot is subscription-billed, so a separate
     // small model saves nothing here anyway.
     if (providerID.startsWith("github-copilot")) return undefined
+
+    // OrcaRouter's "small model" priority match is a PAID model (claude-haiku-4.5)
+    // which silently bills the wallet for background title/summarize tasks.
+    // Defer to the caller's session model instead (free tier stays free).
+    if (providerID === "orcarouter") return undefined
 
     const provider = await state().then((state) => state.providers[providerID])
     if (provider) {

@@ -141,9 +141,7 @@ export namespace SessionProcessor {
                       state: {
                         status: "running",
                         input: value.input,
-                        time: {
-                          start: Date.now(),
-                        },
+                        time: match.state.status === "running" ? match.state.time : { start: Date.now() },
                       },
                       metadata: value.providerMetadata,
                     })
@@ -246,6 +244,21 @@ export namespace SessionProcessor {
                   break
 
                 case "finish-step":
+                  // Anthropic reports thinking blocks it removed before the model saw the
+                  // prompt. Prefix mismatches mean bountyreper changed history behind a
+                  // signed block; log them so the churn can be tracked down.
+                  const dropped =
+                    value.providerMetadata?.anthropic && "inputTransformations" in value.providerMetadata.anthropic
+                      ? value.providerMetadata.anthropic.inputTransformations
+                      : undefined
+                  if (Array.isArray(dropped) && dropped.length > 0) {
+                    log.warn("thinking blocks dropped by provider", {
+                      sessionID: input.sessionID,
+                      messageID: input.assistantMessage.id,
+                      model: input.model.id,
+                      transformations: JSON.stringify(dropped),
+                    })
+                  }
                   const usage = Session.getUsage({
                     model: input.model,
                     usage: value.usage,

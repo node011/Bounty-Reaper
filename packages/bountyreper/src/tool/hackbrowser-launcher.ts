@@ -32,6 +32,7 @@ import { Auth } from "../auth"
 import { Server } from "../server/server"
 import { Log } from "../util/log"
 import { Identifier } from "../id/id"
+import { Agent } from "../agent/agent"
 import { Session } from "../session"
 import { HackbrowserStatus } from "../session/hackbrowser-status"
 import { Global } from "../global"
@@ -279,12 +280,24 @@ async function writeFailureMessage(
   modelInfo: { providerID: string; modelID: string },
 ): Promise<void> {
   const messageID = Identifier.ascending("message")
+  // This synthetic note becomes the session's lastUser on the next loop entry,
+  // so its agent MUST be registered — "hackbrowser" isn't; Agent.get returned
+  // undefined and the prompt loop crashed on agent.steps. Attribute the note to
+  // the session's most recent registered user agent.
+  const known = new Set((await Agent.list()).map((a) => a.name))
+  const msgs = await Session.messages({ sessionID })
+  const agent =
+    msgs
+      .filter((m) => m.info.role === "user")
+      .map((m) => (m.info as { agent: string }).agent)
+      .reverse()
+      .find((name) => known.has(name)) ?? "bountyreper"
   await Session.updateMessage({
     id: messageID,
     role: "user",
     sessionID,
     time: { created: Date.now() },
-    agent: "hackbrowser",
+    agent,
     model: modelInfo,
   })
   await Session.updatePart({

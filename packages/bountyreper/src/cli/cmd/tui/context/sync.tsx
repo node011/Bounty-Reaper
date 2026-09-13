@@ -719,11 +719,24 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             http.get({ url: `/session/${sessionID}/web/functions` }).catch(() => ({ data: [] })),
             http.get({ url: `/session/${sessionID}/web/retest-queue` }).catch(() => ({ data: { pending: [] } })),
           ])
+          // Children aren't in the startup (roots-only) list — the TUI only ever
+          // saw them via live session.updated events. After a TUI restart on an
+          // OLD session, cycling subagents (session.child.next / Prev-Next) saw
+          // zero children. Pull the family on session open instead.
+          const rootId = session.data!.parentID ?? sessionID
+          const family = await sdk.client.session.children({ sessionID: rootId }).catch(() => ({ data: [] }))
+          const root =
+            rootId === sessionID ? session : await sdk.client.session.get({ sessionID: rootId }).catch(() => ({data: undefined }))
           setStore(
             produce((draft) => {
-              const match = Binary.search(draft.session, sessionID, (s) => s.id)
-              if (match.found) draft.session[match.index] = session.data!
-              if (!match.found) draft.session.splice(match.index, 0, session.data!)
+              const upsert = (info: Session) => {
+                const match = Binary.search(draft.session, info.id, (s) => s.id)
+                if (match.found) draft.session[match.index] = info
+                if (!match.found) draft.session.splice(match.index, 0, info)
+              }
+              upsert(session.data!)
+              for (const child of family.data ?? []) upsert(child)
+              if (root.data) upsert(root.data)
               draft.todo[sessionID] = todo.data ?? []
               draft.vulnerability[sessionID] = vuln?.data ?? []
               draft.request[sessionID] = req?.data ?? []

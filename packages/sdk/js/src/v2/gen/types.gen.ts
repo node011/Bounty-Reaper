@@ -994,6 +994,39 @@ export type EventWebRetestUpdated = {
   }
 }
 
+export type EventAssetUpdated = {
+  type: "asset.updated"
+  properties: {
+    projectID: string
+    id: string
+    action: "upsert" | "remove" | "touch"
+  }
+}
+
+export type PlanItem = {
+  id: string
+  session_id: string
+  parent_id: string | null
+  content: string
+  status: "pending" | "in_progress" | "completed" | "blocked" | "cancelled"
+  priority: "high" | "medium" | "low"
+  depends_on: Array<string>
+  position: number
+  available: boolean
+  time: {
+    created: number
+    updated: number
+  }
+}
+
+export type EventPlanUpdated = {
+  type: "plan.updated"
+  properties: {
+    sessionID: string
+    items: Array<PlanItem>
+  }
+}
+
 export type EventTuiPromptAppend = {
   type: "tui.prompt.append"
   properties: {
@@ -1264,6 +1297,8 @@ export type Event =
   | EventWebObjectValueUpdated
   | EventWebRoleUpdated
   | EventWebRetestUpdated
+  | EventAssetUpdated
+  | EventPlanUpdated
   | EventTuiPromptAppend
   | EventTuiCommandExecute
   | EventTuiToastShow
@@ -1893,6 +1928,7 @@ export type ProviderConfig = {
       provider?: {
         npm?: string
         api?: string
+        endpoint?: string
       }
       reasoning_options?: Array<
         | {
@@ -2308,6 +2344,7 @@ export type Model = {
     id: string
     url: string
     npm: string
+    endpoint?: string
   }
   name: string
   family?: string
@@ -2497,6 +2534,45 @@ export type ProviderAuthAuthorization = {
   url: string
   method: "auto" | "code"
   instructions: string
+}
+
+export type Asset = {
+  id?: string
+  project_id: string
+  session_id?: string
+  parent_id?: string
+  type: "domain" | "subdomain" | "ip" | "service" | "app" | "endpoint"
+  value: string
+  meta?: {
+    [key: string]: string
+  }
+  tested: boolean
+  finding_count: number
+  time?: {
+    created: number
+    updated: number
+  }
+}
+
+export type RetestVerdict = {
+  id: string
+  vulnerability_id: string
+  session_id: string
+  verdict: "still_reproducible" | "fixed" | "inconclusive"
+  note: string | null
+  time: {
+    created: number
+    updated: number
+  }
+}
+
+export type TraceMatch = {
+  session_id: string
+  session_title: string
+  message_id: string
+  part_id: string
+  snippet: string
+  time_created: number
 }
 
 export type Symbol = {
@@ -5328,6 +5404,7 @@ export type ProviderListResponses = {
           provider?: {
             npm?: string
             api?: string
+            endpoint?: string
           }
           reasoning_options?: Array<
             | {
@@ -5458,6 +5535,258 @@ export type ProviderOauthCallbackResponses = {
 }
 
 export type ProviderOauthCallbackResponse = ProviderOauthCallbackResponses[keyof ProviderOauthCallbackResponses]
+
+export type AssetListData = {
+  body?: never
+  path: {
+    projectID: string
+  }
+  query?: {
+    directory?: string
+    type?: "domain" | "subdomain" | "ip" | "service" | "app" | "endpoint"
+    tested?: string
+  }
+  url: "/project/{projectID}/asset"
+}
+
+export type AssetListErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type AssetListError = AssetListErrors[keyof AssetListErrors]
+
+export type AssetListResponses = {
+  /**
+   * Assets
+   */
+  200: Array<Asset>
+}
+
+export type AssetListResponse = AssetListResponses[keyof AssetListResponses]
+
+export type AssetGraphData = {
+  body?: never
+  path: {
+    projectID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/project/{projectID}/asset/graph"
+}
+
+export type AssetGraphErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type AssetGraphError = AssetGraphErrors[keyof AssetGraphErrors]
+
+export type AssetGraphResponses = {
+  /**
+   * Asset graph
+   */
+  200: {
+    nodes: Array<Asset>
+    edges: Array<{
+      from: string
+      to: string
+    }>
+  }
+}
+
+export type AssetGraphResponse = AssetGraphResponses[keyof AssetGraphResponses]
+
+export type PlanListData = {
+  body?: never
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/session/{sessionID}/plan"
+}
+
+export type PlanListErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type PlanListError = PlanListErrors[keyof PlanListErrors]
+
+export type PlanListResponses = {
+  /**
+   * Plan items with availability
+   */
+  200: {
+    items: Array<PlanItem>
+    counts: {
+      total: number
+      pending: number
+      in_progress: number
+      completed: number
+      blocked: number
+      cancelled: number
+    }
+  }
+}
+
+export type PlanListResponse = PlanListResponses[keyof PlanListResponses]
+
+export type PlanUpdateData = {
+  body?: {
+    status?: "pending" | "in_progress" | "completed" | "blocked" | "cancelled"
+    content?: string
+    priority?: "high" | "medium" | "low"
+  }
+  path: {
+    sessionID: string
+    itemID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/session/{sessionID}/plan/item/{itemID}"
+}
+
+export type PlanUpdateErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type PlanUpdateError = PlanUpdateErrors[keyof PlanUpdateErrors]
+
+export type PlanUpdateResponses = {
+  /**
+   * Updated plan item
+   */
+  200: PlanItem
+}
+
+export type PlanUpdateResponse = PlanUpdateResponses[keyof PlanUpdateResponses]
+
+export type RetestHistoryData = {
+  body?: never
+  path: {
+    vulnID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/vulnerability/{vulnID}/retest"
+}
+
+export type RetestHistoryErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type RetestHistoryError = RetestHistoryErrors[keyof RetestHistoryErrors]
+
+export type RetestHistoryResponses = {
+  /**
+   * Retest verdicts
+   */
+  200: Array<RetestVerdict>
+}
+
+export type RetestHistoryResponse = RetestHistoryResponses[keyof RetestHistoryResponses]
+
+export type RetestRecordData = {
+  body?: {
+    sessionID: string
+    verdict: "still_reproducible" | "fixed" | "inconclusive"
+    note?: string
+  }
+  path: {
+    vulnID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/vulnerability/{vulnID}/retest"
+}
+
+export type RetestRecordErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type RetestRecordError = RetestRecordErrors[keyof RetestRecordErrors]
+
+export type RetestRecordResponses = {
+  /**
+   * Recorded verdict with resulting vulnerability status
+   */
+  200: {
+    id: string
+    vulnerability_id: string
+    session_id: string
+    verdict: "still_reproducible" | "fixed" | "inconclusive"
+    note: string | null
+    time: {
+      created: number
+      updated: number
+    }
+    status: string
+  }
+}
+
+export type RetestRecordResponse = RetestRecordResponses[keyof RetestRecordResponses]
+
+export type TraceSearchData = {
+  body?: never
+  path: {
+    projectID: string
+  }
+  query: {
+    directory?: string
+    q: string
+    sessionID?: string
+    limit?: string
+  }
+  url: "/project/{projectID}/trace/search"
+}
+
+export type TraceSearchErrors = {
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type TraceSearchError = TraceSearchErrors[keyof TraceSearchErrors]
+
+export type TraceSearchResponses = {
+  /**
+   * Trace matches
+   */
+  200: Array<TraceMatch>
+}
+
+export type TraceSearchResponse = TraceSearchResponses[keyof TraceSearchResponses]
 
 export type FindTextData = {
   body?: never

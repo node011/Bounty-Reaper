@@ -113,6 +113,19 @@ describe("session.retry.retryable", () => {
     expect(SessionRetry.retryable(error)).toBeUndefined()
   })
 
+  test("does not retry FreeUsageLimitError quota walls", () => {
+    const error = new MessageV2.APIError({
+      message: "Rate limit exceeded. Please try again later.",
+      isRetryable: true,
+      statusCode: 429,
+      responseHeaders: { "retry-after": "25083" },
+      responseBody:
+        '{"type":"error","error":{"type":"FreeUsageLimitError","message":"Rate limit exceeded. Please try again later."},"metadata":{}}',
+    }).toObject() as ReturnType<NamedError["toObject"]>
+
+    expect(SessionRetry.retryable(error)).toBeUndefined()
+  })
+
   test("does not retry context overflow errors", () => {
     const error = new MessageV2.ContextOverflowError({
       message: "Input exceeds context window of this model",

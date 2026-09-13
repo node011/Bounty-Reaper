@@ -2,7 +2,7 @@
   "name": "bountyreper",
   "displayName": "bountyreper",
   "description": "bountyreper for VS Code",
-  "version": "1.1.16",
+  "version": "1.1.17",
   "publisher": "sst-dev",
   "repository": {
     "type": "git",
@@ -15,7 +15,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.94.0"
+    "vscode": "^1.97.0"
   },
   "categories": [
     "Other"
@@ -41,10 +41,38 @@
         }
       },
       {
+        "command": "bountyreper.openSidebar",
+        "title": "Open bountyreper in side bar",
+        "icon": {
+          "light": "images/button-dark.svg",
+          "dark": "images/button-light.svg"
+        }
+      },
+      {
         "command": "bountyreper.addFilepathToTerminal",
         "title": "Add Filepath to Terminal"
       }
     ],
+    "viewsContainers": {
+      "secondarySidebar": [
+        {
+          "id": "bountyreper",
+          "title": "bountyreper",
+          "icon": "images/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "bountyreper": [
+        {
+          "type": "webview",
+          "id": "bountyreper.chat",
+          "name": "bountyreper",
+          "icon": "images/icon.svg",
+          "contextualTitle": "bountyreper"
+        }
+      ]
+    },
     "menus": {
       "editor/title": [
         {
@@ -94,15 +122,16 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.94.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/vscode": "^1.94.0",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
-    "eslint": "^9.25.1",
-    "esbuild": "^0.25.3",
-    "typescript": "^5.8.3",
     "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.25.3",
+    "eslint": "^9.25.1",
+    "ghostty-web": "0.4.0",
+    "typescript": "^5.8.3"
   }
 }

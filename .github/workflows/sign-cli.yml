@@ -13,7 +13,7 @@ permissions:
 jobs:
   sign-cli:
     runs-on: ubuntu-24.04
-    if: github.repository == 'BountyReperus/BountyReper'
+    if: github.repository == 'node011/Bounty-Reper'
     steps:
       - uses: actions/checkout@v3
         with:

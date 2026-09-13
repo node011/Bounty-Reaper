@@ -1510,8 +1510,10 @@ export const SessionRoutes = lazy(() =>
         }),
       ),
       async (c) => {
-        // Genuine user abort (Esc) — stop the background hackbrowser crawl too.
-        SessionPrompt.cancel(c.req.valid("param").sessionID, { stopCrawl: true })
+        // Genuine user abort (Esc) — stop the background hackbrowser crawl AND
+        // drop queued ingest tasks; otherwise the queue restarts the same work
+        // milliseconds after the abort ("session never goes idle").
+        SessionPrompt.cancel(c.req.valid("param").sessionID, { stopCrawl: true, stopIngest: true })
         return c.json(true)
       },
     )

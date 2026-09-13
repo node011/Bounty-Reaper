@@ -26,7 +26,7 @@ jobs:
       - uses: ./.github/actions/setup-bun
 
       - name: Run bountyreper
-        uses: BountyReperus/BountyReper/github@latest
+        uses: node011/Bounty-Reper/github@latest
         env:
           BOUNTYREPER_API_KEY: ${{ secrets.BOUNTYREPER_API_KEY }}
           BOUNTYREPER_PERMISSION: '{"bash": "deny"}'

@@ -178,6 +178,48 @@ describe("IngestQueue isolation", () => {
   })
 })
 
+describe("IngestQueue.clear", () => {
+  test("skips not-yet-started tasks (user abort), keeps queue usable afterwards", async () => {
+    await withInstance(async () => {
+      const sid = "c1"
+      const order: string[] = []
+      const gate = defer()
+      IngestQueue.enqueue(sid, async () => {
+        order.push("inflight")
+        await gate.promise
+        order.push("inflight-done")
+      })
+      IngestQueue.enqueue(sid, async () => {
+        order.push("queued")
+      })
+      expect(IngestQueue.pendingCount(sid)).toBe(2)
+
+      // let the first task actually START (it's microtask-scheduled)
+      await new Promise((r) => setTimeout(r, 5))
+      expect(order).toEqual(["inflight"])
+
+      IngestQueue.clear(sid)
+      gate.resolve()
+      await new Promise((r) => setTimeout(r, 10))
+      expect(order).toEqual(["inflight", "inflight-done"])
+      expect(IngestQueue.pendingCount(sid)).toBe(0)
+
+      IngestQueue.enqueue(sid, async () => {
+        order.push("after-clear")
+      })
+      await new Promise((r) => setTimeout(r, 10))
+      expect(order).toContain("after-clear")
+    })
+  })
+
+  test("clear on empty queue is a no-op", async () => {
+    await withInstance(async () => {
+      IngestQueue.clear("never-seen")
+      expect(IngestQueue.pendingCount("never-seen")).toBe(0)
+    })
+  })
+})
+
 describe("SessionQueueStatus", () => {
   test("get returns default when nothing set", async () => {
     await withInstance(async () => {

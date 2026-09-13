@@ -11,7 +11,7 @@ import { MessageTable, PartTable } from "./session.sql"
 import { ProviderTransform } from "@/provider/transform"
 import { STATUS_CODES } from "http"
 import { Storage } from "@/storage/storage"
-import { ProviderError } from "@/provider/error"
+import { ProviderError, HeaderTimeoutError, ResponseStreamError } from "@/provider/error"
 import { iife } from "@/util/iife"
 import { type SystemError } from "bun"
 import type { Provider } from "@/provider/provider"
@@ -508,7 +508,7 @@ export namespace MessageV2 {
   })
   export type WithParts = z.infer<typeof WithParts>
 
-  export function toModelMessages(input: WithParts[], model: Provider.Model): ModelMessage[] {
+  export async function toModelMessages(input: WithParts[], model: Provider.Model): Promise<ModelMessage[]> {
     const result: UIMessage[] = []
     const toolNames = new Set<string>()
     // Track media from tool results that need to be injected as user messages
@@ -532,7 +532,8 @@ export namespace MessageV2 {
       return false
     })()
 
-    const toModelOutput = (output: unknown) => {
+    const toModelOutput = (options: { toolCallId: string; input: unknown; output: unknown }) => {
+      const output = options.output
       if (typeof output === "string") {
         return { type: "text", value: output }
       }
@@ -549,7 +550,7 @@ export namespace MessageV2 {
         return {
           type: "content",
           value: [
-            { type: "text", text: outputObject.text },
+            ...(outputObject.text ? [{ type: "text", text: outputObject.text }] : []),
             ...attachments.map((attachment) => ({
               type: "media",
               mediaType: attachment.mime,
@@ -872,6 +873,29 @@ export namespace MessageV2 {
           {
             providerID: ctx.providerID,
             message: e.message,
+          },
+          { cause: e },
+        ).toObject()
+      case e instanceof HeaderTimeoutError:
+        return new MessageV2.APIError(
+          {
+            message: e.message,
+            isRetryable: true,
+            metadata: {
+              code: e.name,
+              timeoutMs: String(e.ms),
+            },
+          },
+          { cause: e },
+        ).toObject()
+      case e instanceof ResponseStreamError:
+        return new MessageV2.APIError(
+          {
+            message: e.message,
+            isRetryable: true,
+            metadata: {
+              code: e.name,
+            },
           },
           { cause: e },
         ).toObject()

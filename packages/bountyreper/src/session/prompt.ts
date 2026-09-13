@@ -52,6 +52,7 @@ import { MethodologyContext } from "@/methodology/context"
 import { AgentPerformance } from "@/methodology/performance"
 import { testerClass } from "@/tool/vuln-scope"
 import { stopHackbrowser } from "@/tool/hackbrowser-launcher"
+import { IngestQueue } from "./ingest-queue"
 import { toolSig, READ_ONLY_TOOLS } from "./stuck/signals"
 import { StuckDetector, DEFAULT_STUCK_CONFIG } from "./stuck/stuck-detector"
 import { RepeatDetector } from "./stuck/repeat-detector"
@@ -272,13 +273,14 @@ export namespace SessionPrompt {
   // user pressing Esc (/abort route) or the session being deleted — passes
   // stopCrawl:true. Previously this always stopped the crawl, so every turn end
   // killed the crawl after ~3 pages (see hackbrowser crawl-lifetime fix).
-  export function cancel(sessionID: string, opts?: { stopCrawl?: boolean }) {
-    log.info("cancel", { sessionID, stopCrawl: opts?.stopCrawl ?? false })
+  export function cancel(sessionID: string, opts?: { stopCrawl?: boolean; stopIngest?: boolean }) {
+    log.info("cancel", { sessionID, stopCrawl: opts?.stopCrawl ?? false, stopIngest: opts?.stopIngest ?? false })
     if (opts?.stopCrawl) {
       try {
         stopHackbrowser(sessionID)
       } catch {}
     }
+    if (opts?.stopIngest) IngestQueue.clear(sessionID)
     const s = state()
     const match = s[sessionID]
     if (!match) {
@@ -341,6 +343,11 @@ export namespace SessionPrompt {
     // forces wrap-up (nudge) then aborts (backstop). Different args never collide
     // because toolSig includes the args, so legitimate probing is unaffected.
     const repeatDetector = new RepeatDetector(3)
+    // Fail-safe tier fallback: when a useSmallModel agent's small-tier provider
+    // fails (quota wall, transient error, …), skip the downgrade for the rest of
+    // the run so the turn reruns on the session's main model (reported: free zen
+    // quota dead → proxy-analyzer stuck at 0 tool calls).
+    let tierFallback = false
     while (true) {
       SessionStatus.set(sessionID, { type: "busy" })
       log.info("loop", { step, sessionID })
@@ -403,8 +410,10 @@ export namespace SessionPrompt {
       // running agent's useSmallModel — NOT persisted on the user message (which
       // keeps the original model so dispatched testers inherit the full tier). The
       // provider is kept; only the tier is forced down (anthropic→haiku, etc).
+      const mainModel = model
       const runAgent = lastUser.agent ? await Agent.get(lastUser.agent).catch(() => undefined) : undefined
-      if (runAgent?.useSmallModel) {
+      const tierDowngraded = runAgent?.useSmallModel === true && !tierFallback
+      if (tierDowngraded) {
         const small = await Provider.getSmallModel(model.providerID).catch(() => undefined)
         if (small) model = (await Provider.getModel(small.providerID, small.id).catch(() => undefined)) ?? model
       }
@@ -644,7 +653,39 @@ export namespace SessionPrompt {
       }
 
       // normal processing
-      const agent = await Agent.get(lastUser.agent)
+      let agent = await Agent.get(lastUser.agent)
+      if (!agent) {
+        // Stored user messages can reference agents the registry no longer knows
+        // (renamed config agents, synthetic writers — e.g. old hackbrowser failure
+        // notes wrote agent: "hackbrowser"). Fall back to the most recent user
+        // message naming a registered agent; hard-fail only when none do.
+        const found = fallback(msgs, (await Agent.list()).map((a) => a.name))
+        if (!found)
+          throw new Error(
+            `Session's last user message references unknown agent "${lastUser.agent}", and no earlier user message names a registered agent.`,
+          )
+        log.warn("unknown agent on stored user message — falling back", {
+          sessionID,
+          stored: lastUser.agent,
+          agent: found,
+        })
+        agent = (await Agent.get(found))!
+      }
+      // Stale seed repair: task.ts seeds {task:* deny} into every leaf subagent
+      // session at creation. When the session is later reused by an agent that
+      // DOES delegate (task resume with another subagent_type, ingest forcing
+      // proxy-agent into a former `general` crawl session), the stale seed still
+      // hard-denies every dispatch — the model then asks the user to "enable
+      // task", which cannot change a deny rule, so it asks forever (observed in
+      // the field). Auto-seeded rules live only on task-created sessions
+      // (parentID set); user-config denies live in agent.permission and keep
+      // their last-match-wins behavior — untouched here.
+      const repaired = repairSeed(session, agent)
+      if (repaired) {
+        session.permission = repaired
+        log.warn("stripped stale seeded task deny — running agent can delegate", { sessionID, agent: agent.name })
+        await Session.setPermission({ sessionID, permission: repaired })
+      }
       const maxSteps = agent.steps ?? Infinity
       const isLastStep = step >= maxSteps
       // Hard backstop (loop-termination Layer 1): the forced wrap-up turn strips
@@ -793,6 +834,7 @@ export namespace SessionPrompt {
           "# MCP Tools",
           `You have ${mcpLazyStats.available} tools available from MCP servers. These tools are NOT yet in your context.`,
           "Use `tool_search` to find tools by capability, then `load_tools` to make them usable.",
+          "This covers MCP server tools only: all built-in tools (hackbrowser, bash, task, skill, web_*, asset_record, planwrite, http_replay, ...) are already callable directly — never search for or try to load them.",
           "",
           "Available servers:",
         ]
@@ -856,12 +898,22 @@ export namespace SessionPrompt {
       }
 
       // Pre-flight token check — trigger compaction before wasting an API call
-      const modelMessages = MessageV2.toModelMessages(
+      const modelMessages = await MessageV2.toModelMessages(
         lastUser.excludeHistory
           ? MessageV2.filterToOnly(sessionMessages, lastUser.id)
           : MessageV2.filterExcluded(sessionMessages, lastUser.id),
         model,
       )
+      if (process.env["BOUNTYREPER_PROMPT_DEBUG"]) {
+        system.forEach((entry, i) => {
+          log.info("system-section", { index: i, tokens: Token.estimate(entry), head: entry.slice(0, 80) })
+        })
+        const toolSizes = Object.entries(tools)
+          .map(([name, def]) => ({ name, tokens: Token.estimate(JSON.stringify(def)) }))
+          .sort((a, b) => b.tokens - a.tokens)
+        log.info("system-total", { tokens: Token.estimate(system.join("")), tools: Token.estimate(JSON.stringify(tools)), messages: Token.estimate(JSON.stringify(modelMessages)) })
+        for (const t of toolSizes.slice(0, 25)) log.info("tool-size", t)
+      }
       const preflightEstimate = Token.estimate(JSON.stringify(modelMessages) + system.join(""))
       const preflightLimit = model.limit.input
         ? model.limit.input
@@ -902,6 +954,20 @@ export namespace SessionPrompt {
         model,
         toolChoice: format.type === "json_schema" ? "required" : undefined,
       })
+
+      // Fail-safe: the small-tier call failed (quota wall / transient error that
+      // in-session retry could not recover) — rerun the turn on the main model.
+      if (processor.message.error && tierDowngraded && !tierFallback) {
+        tierFallback = true
+        log.warn("small tier failed — falling back to main model", {
+          sessionID,
+          agent: agent.name,
+          small: model.id,
+          main: mainModel.id,
+          error: processor.message.error.name,
+        })
+        continue
+      }
 
       // Context usage logging
       const tokens = processor.message.tokens
@@ -1035,6 +1101,62 @@ export namespace SessionPrompt {
     return Provider.defaultModel()
   }
 
+  // Heavy tool definitions excluded in lite mode (~33k tokens of schemas for
+  // cloud/post-ex hooks that free-tier models rarely need).
+  const LITE_EXCLUDED_TOOLS = new Set([
+    "todowrite",
+    "awshook",
+    "azurehook",
+    "gcphook",
+    "machook",
+    "winhook",
+    "linuxhook",
+    "ebpf",
+    "containerhook",
+    "kubehook",
+    "iachook",
+    "llmhook",
+    "cloud_audit",
+    "k8s_audit",
+    "ci_audit",
+    "inject_probe",
+  ])
+
+  let burpProbe: { at: number; up: boolean } | undefined
+  async function burpReachable(): Promise<boolean> {
+    if (burpProbe && Date.now() - burpProbe.at < 60_000) return burpProbe.up
+    let up = false
+    try {
+      await fetch("http://127.0.0.1:9876/", { signal: AbortSignal.timeout(300) })
+      up = true
+    } catch {
+      up = false
+    }
+    burpProbe = { at: Date.now(), up }
+    return up
+  }
+
+  /** @internal Exported for testing — fallback for unregistered agent names on stored user messages */
+  export function fallback(messages: MessageV2.WithParts[], known: string[]): string | undefined {
+    return messages
+      .filter((msg) => msg.info.role === "user")
+      .map((msg) => (msg.info as MessageV2.User).agent)
+      .reverse()
+      .find((name) => known.includes(name))
+  }
+
+  /** @internal Exported for testing — strips the stale auto-seeded task:* deny (only exists on task-created subagent sessions) once the running agent itself allows task */
+  export function repairSeed(
+    session: { parentID?: string | null; permission?: PermissionNext.Ruleset },
+    agent: { permission: PermissionNext.Ruleset },
+  ): PermissionNext.Ruleset | undefined {
+    if (!session.parentID) return undefined
+    if (!session.permission?.some((r) => r.permission === "task" && r.pattern === "*" && r.action === "deny"))
+      return undefined
+    if (PermissionNext.evaluate("task", "*", agent.permission).action === "deny") return undefined
+    return session.permission.filter((r) => !(r.permission === "task" && r.pattern === "*" && r.action === "deny"))
+  }
+
   /** @internal Exported for testing */
   export async function resolveTools(input: {
     agent: Agent.Info
@@ -1047,6 +1169,15 @@ export namespace SessionPrompt {
   }) {
     using _ = log.time("resolveTools")
     const tools: Record<string, AITool> = {}
+
+    // Lite mode — slim the tool surface for gateways with per-request prompt
+    // caps (OrcaRouter free tier rejects prompts over a small, live-tuned
+    // ceiling). Auto-enabled for free models; force with BOUNTYREPER_LITE_TOOLS=1/0.
+    const envLite = process.env["BOUNTYREPER_LITE_TOOLS"]
+    const lite =
+      envLite === "1" ||
+      (envLite !== "0" &&
+        (input.model.providerID === "orcarouter" || input.model.api.id.endsWith("-free")))
 
     // Within-turn duplicate suppression (loop-termination). A weak model can emit the
     // SAME (tool+args) call dozens/hundreds of times in ONE generation. This resolveTools
@@ -1097,6 +1228,7 @@ export namespace SessionPrompt {
       { modelID: input.model.api.id, providerID: input.model.providerID },
       input.agent,
     )) {
+      if (lite && LITE_EXCLUDED_TOOLS.has(item.id)) continue
       const schema = ProviderTransform.schema(input.model, z.toJSONSchema(item.parameters))
       tools[item.id] = tool({
         id: item.id as any,
@@ -1158,8 +1290,12 @@ export namespace SessionPrompt {
     for (const [key, item] of Object.entries(mcpToolSource)) {
       const execute = item.execute
       if (!execute) continue
+      if (lite && key.startsWith("burp_") && !(await burpReachable())) continue
 
-      const transformed = ProviderTransform.schema(input.model, asSchema(item.inputSchema).jsonSchema)
+      const transformed = ProviderTransform.schema(
+        input.model,
+        await Promise.resolve(asSchema(item.inputSchema).jsonSchema),
+      )
       item.inputSchema = jsonSchema(transformed)
       // Wrap execute to add plugin hooks and format output
       item.execute = async (args: any, opts: any) => {
@@ -1249,6 +1385,13 @@ export namespace SessionPrompt {
       tools[key] = item
     }
 
+    if (lite) {
+      log.info("lite tools", {
+        count: Object.keys(tools).length,
+        tokens: Token.estimate(JSON.stringify(tools)),
+      })
+    }
+
     return tools
   }
 
@@ -1273,10 +1416,10 @@ export namespace SessionPrompt {
           metadata: { valid: true },
         }
       },
-      toModelOutput(result) {
+      toModelOutput({ output }) {
         return {
           type: "text",
-          value: result.output,
+          value: output.output,
         }
       },
     })
@@ -2269,10 +2412,12 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         },
         ...(hasOnlySubtaskParts
           ? [{ role: "user" as const, content: subtaskParts.map((p) => p.prompt).join("\n") }]
-          : MessageV2.toModelMessages(contextMessages, model)),
+          : await MessageV2.toModelMessages(contextMessages, model)),
       ],
     })
-    const text = await result.text.catch((err) => log.error("failed to generate title", { error: err }))
+    const text = await Promise.resolve(result.text).catch((err: unknown) =>
+      log.error("failed to generate title", { error: err }),
+    )
     if (text) {
       const cleaned = text
         .replace(/<think>[\s\S]*?<\/think>\s*/g, "")

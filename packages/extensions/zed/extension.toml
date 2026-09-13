@@ -1,7 +1,7 @@
 id = "bountyreper"
 name = "BountyReper"
 description = "The open source coding agent."
-version = "1.1.16"
+version = "1.2.0"
 schema_version = 1
 authors = ["Anomaly"]
 repository = "https://github.com/bounty-reper/BountyReper"

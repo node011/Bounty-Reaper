@@ -90,7 +90,9 @@ export namespace ModelsDev {
     status: z.enum(["alpha", "beta", "deprecated"]).optional(),
     options: z.record(z.string(), z.any()),
     headers: z.record(z.string(), z.string()).optional(),
-    provider: z.object({ npm: z.string().optional(), api: z.string().optional() }).optional(),
+    provider: z
+      .object({ npm: z.string().optional(), api: z.string().optional(), endpoint: z.string().optional() })
+      .optional(),
     reasoning_options: z
       .array(
         z.union([

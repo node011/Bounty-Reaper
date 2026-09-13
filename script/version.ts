@@ -7,8 +7,14 @@ import { buildNotes, getLatestRelease } from "./changelog"
 const output = [`version=${Script.version}`]
 
 if (!Script.preview) {
-  const previous = await getLatestRelease()
-  const notes = await buildNotes(previous, "HEAD")
+  // First release: npm has no dist-tags and no prior GH release exists yet.
+  const previous = await getLatestRelease(Script.version).catch((e) => {
+    console.log("no previous release found (first release?):", (e as Error).message)
+    return undefined
+  })
+  const notes = previous
+    ? await buildNotes(previous, "HEAD")
+    : ["## Highlights", "", `First tagged release: v${Script.version}.`, "", "See the commit history for the full set of changes."]
   const body = notes.join("\n") || "No notable changes"
   const dir = process.env.RUNNER_TEMP ?? "/tmp"
   const file = `${dir}/bountyreper-release-notes.txt`

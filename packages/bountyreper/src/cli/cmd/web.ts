@@ -30,7 +30,7 @@ function getNetworkIPs() {
 
 export const WebCommand = cmd({
   command: "web",
-  builder: (yargs) => withNetworkOptions(yargs),
+  builder: (yargs) => withNetworkOptions(yargs).option("open", { type: "boolean", describe: "open the web interface in the browser", default: true }),
   describe: "start bountyreper server and open web interface",
   handler: async (args) => {
     if (!Flag.BOUNTYREPER_SERVER_PASSWORD) {
@@ -71,13 +71,14 @@ export const WebCommand = cmd({
           `${opts.mdnsDomain}:${server.port}`,
         )
       }
-
-      // Open localhost in browser
-      open(localhostUrl.toString()).catch(() => {})
     } else {
       const displayUrl = server.url.toString()
       UI.println(UI.Style.TEXT_INFO_BOLD + "  Web interface:    ", UI.Style.TEXT_NORMAL, displayUrl)
-      open(displayUrl).catch(() => {})
+    }
+
+    if (args.open) {
+      const url = opts.hostname === "0.0.0.0" ? `http://localhost:${server.port}` : server.url.toString()
+      open(url).catch(() => {})
     }
 
     await new Promise(() => {})

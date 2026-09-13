@@ -1,0 +1,37 @@
+{
+  "merged": [
+    "grafana.spaces.xyne.ai",
+    "grid.external.xyne.ai",
+    "livekit.spaces.xyne.ai",
+    "spaces.xyne.ai",
+    "www.xyne.ai",
+    "xyne.ai"
+  ],
+  "by_source": {
+    "crt.sh": [
+      "grid.external.xyne.ai",
+      "livekit.spaces.xyne.ai",
+      "spaces.xyne.ai",
+      "www.xyne.ai",
+      "xyne.ai"
+    ],
+    "agniops": [
+      "www.xyne.ai"
+    ],
+    "crt.name": [
+      "grafana.spaces.xyne.ai",
+      "grid.external.xyne.ai",
+      "livekit.spaces.xyne.ai",
+      "spaces.xyne.ai",
+      "www.xyne.ai",
+      "xyne.ai"
+    ],
+    "subfinder": [
+      "grafana.spaces.xyne.ai",
+      "grid.external.xyne.ai",
+      "spaces.xyne.ai",
+      "www.xyne.ai"
+    ]
+  },
+  "errors": {}
+}

@@ -97,9 +97,15 @@ export class OpenAICompatibleChatLanguageModel implements LanguageModelV2 {
     responseFormat,
     seed,
     toolChoice,
-    tools,
+    tools: rawTools,
   }: Parameters<LanguageModelV2["doGenerate"]>[0]) {
     const warnings: LanguageModelV2CallWarning[] = []
+
+    // AI SDK v6 renamed the provider-tool marker type from "provider-defined" to
+    // "provider"; normalize so downstream matching works on either shape.
+    const tools = rawTools?.map((tool) =>
+      (tool.type as string) === "provider" ? ({ ...tool, type: "provider-defined" } as typeof tool) : tool,
+    )
 
     // Parse provider options
     const compatibleOptions = Object.assign(

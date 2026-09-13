@@ -40,7 +40,7 @@ permissions:
 jobs:
   version:
     runs-on: ubuntu-24.04
-    if: github.repository == 'BountyReperus/BountyReper'
+    if: github.repository == 'node011/Bounty-Reper'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -69,7 +69,7 @@ jobs:
   build-app:
     needs: version
     runs-on: ubuntu-24.04
-    if: github.repository == 'BountyReperus/BountyReper'
+    if: github.repository == 'node011/Bounty-Reper'
     steps:
       - uses: actions/checkout@v3
 
@@ -88,7 +88,7 @@ jobs:
   build-cli:
     needs: version
     runs-on: ubuntu-24.04
-    if: github.repository == 'BountyReperus/BountyReper'
+    if: github.repository == 'node011/Bounty-Reper'
     steps:
       - uses: actions/checkout@v3
         with:

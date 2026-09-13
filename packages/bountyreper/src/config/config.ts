@@ -260,9 +260,12 @@ export namespace Config {
       })
     }
 
-    if (Flag.BOUNTYREPER_PERMISSION) {
+    // Read live from process.env: the CLI may set this in yargs middleware
+    // (--dangerously-skip-permissions) after Flag module init.
+    const env = process.env.BOUNTYREPER_PERMISSION
+    if (env) {
       try {
-        result.permission = mergeDeep(result.permission ?? {}, JSON.parse(Flag.BOUNTYREPER_PERMISSION))
+        result.permission = mergeDeep(result.permission ?? {}, JSON.parse(env))
       } catch {
         log.warn("BOUNTYREPER_PERMISSION contains invalid JSON, skipping")
       }

@@ -203,8 +203,13 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
 
       const skill = await Skill.get(params.name)
       if (!skill) {
-        const available = accessibleSkills.map((s) => s.name).join(", ")
-        throw new Error(`Skill "${params.name}" not found. Available: ${available || "none"}`)
+        const names = accessibleSkills.map((s) => s.name)
+        const sample = names.slice(0, 10).join(", ")
+        throw new Error(
+          `Skill "${params.name}" not found. ${names.length} skills installed.` +
+            (sample ? ` e.g. ${sample}, ...` : "") +
+            ` Use action "search" with a query instead of guessing a name.`,
+        )
       }
 
       await ctx.ask({

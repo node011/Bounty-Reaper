@@ -24,6 +24,7 @@ import { HackbrowserCommand } from "./cli/cmd/hackbrowser"
 import { TuiThreadCommand } from "./cli/cmd/tui/thread"
 import { AcpCommand } from "./cli/cmd/acp"
 import { EOL } from "os"
+import { Flag } from "./flag/flag"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
@@ -63,7 +64,13 @@ const cli = yargs(hideBin(process.argv))
     type: "string",
     choices: ["DEBUG", "INFO", "WARN", "ERROR"],
   })
+  .option("dangerously-skip-permissions", {
+    describe: "skip all permission prompts and allow every action (use only in sandboxed environments)",
+    type: "boolean",
+  })
   .middleware(async (opts) => {
+    if (opts["dangerously-skip-permissions"]) Flag.skipPermissions()
+
     await Log.init({
       print: process.argv.includes("--print-logs"),
       dev: Installation.isLocal(),

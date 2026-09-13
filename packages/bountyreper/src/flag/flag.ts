@@ -13,6 +13,16 @@ export namespace Flag {
   export const BOUNTYREPER_DISABLE_PRUNE = truthy("BOUNTYREPER_DISABLE_PRUNE")
   export const BOUNTYREPER_DISABLE_TERMINAL_TITLE = truthy("BOUNTYREPER_DISABLE_TERMINAL_TITLE")
   export const BOUNTYREPER_PERMISSION = process.env["BOUNTYREPER_PERMISSION"]
+  export function skipPermissions() {
+    let rules: Record<string, unknown> = {}
+    try {
+      const parsed: unknown = JSON.parse(process.env.BOUNTYREPER_PERMISSION ?? "{}")
+      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed))
+        rules = parsed as Record<string, unknown>
+    } catch {}
+    rules["*"] = "allow"
+    process.env.BOUNTYREPER_PERMISSION = JSON.stringify(rules)
+  }
   export const BOUNTYREPER_DISABLE_DEFAULT_PLUGINS = truthy("BOUNTYREPER_DISABLE_DEFAULT_PLUGINS")
   export const BOUNTYREPER_DISABLE_LSP_DOWNLOAD = truthy("BOUNTYREPER_DISABLE_LSP_DOWNLOAD")
   export const BOUNTYREPER_ENABLE_EXPERIMENTAL_MODELS = truthy("BOUNTYREPER_ENABLE_EXPERIMENTAL_MODELS")

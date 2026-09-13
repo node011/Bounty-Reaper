@@ -26,8 +26,9 @@ export namespace ProviderTransform {
       case "@ai-sdk/github-copilot":
         return "copilot"
       case "@ai-sdk/openai":
-      case "@ai-sdk/azure":
         return "openai"
+      case "@ai-sdk/azure":
+        return "azure"
       case "@ai-sdk/amazon-bedrock":
         return "bedrock"
       case "@ai-sdk/anthropic":
@@ -72,44 +73,63 @@ export namespace ProviderTransform {
     }
 
     if (model.api.id.includes("claude")) {
-      return msgs.map((msg) => {
-        if ((msg.role === "assistant" || msg.role === "tool") && Array.isArray(msg.content)) {
-          msg.content = msg.content.map((part) => {
-            if ((part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part) {
-              return {
-                ...part,
-                toolCallId: part.toolCallId.replace(/[^a-zA-Z0-9_-]/g, "_"),
+      const scrub = (id: string) => id.replace(/[^a-zA-Z0-9_-]/g, "_")
+      msgs = msgs.map((msg) => {
+        if (msg.role === "assistant" && Array.isArray(msg.content)) {
+          return {
+            ...msg,
+            content: msg.content.map((part) => {
+              if (part.type === "tool-call" || part.type === "tool-result") {
+                return { ...part, toolCallId: scrub(part.toolCallId) }
               }
-            }
-            return part
-          })
+              return part
+            }),
+          }
+        }
+        if (msg.role === "tool" && Array.isArray(msg.content)) {
+          return {
+            ...msg,
+            content: msg.content.map((part) => {
+              if (part.type === "tool-result") {
+                return { ...part, toolCallId: scrub(part.toolCallId) }
+              }
+              return part
+            }),
+          }
         }
         return msg
       })
     }
+    const modelID = model.api.id.toLowerCase()
     if (
       model.providerID === "mistral" ||
-      model.api.id.toLowerCase().includes("mistral") ||
-      model.api.id.toLowerCase().includes("devstral")
+      ["mistral", "devstral", "codestral", "pixtral", "mixtral"].some((family) => modelID.includes(family))
     ) {
+      const scrub = (id: string) => {
+        return (
+          id
+            .replace(/[^a-zA-Z0-9]/g, "") // Remove non-alphanumeric characters
+            .substring(0, 9) // Take first 9 characters
+            .padEnd(9, "0") // Pad with zeros if less than 9 characters
+        )
+      }
       const result: ModelMessage[] = []
       for (let i = 0; i < msgs.length; i++) {
         const msg = msgs[i]
         const nextMsg = msgs[i + 1]
 
-        if ((msg.role === "assistant" || msg.role === "tool") && Array.isArray(msg.content)) {
+        if (msg.role === "assistant" && Array.isArray(msg.content)) {
           msg.content = msg.content.map((part) => {
-            if ((part.type === "tool-call" || part.type === "tool-result") && "toolCallId" in part) {
-              // Mistral requires alphanumeric tool call IDs with exactly 9 characters
-              const normalizedId = part.toolCallId
-                .replace(/[^a-zA-Z0-9]/g, "") // Remove non-alphanumeric characters
-                .substring(0, 9) // Take first 9 characters
-                .padEnd(9, "0") // Pad with zeros if less than 9 characters
-
-              return {
-                ...part,
-                toolCallId: normalizedId,
-              }
+            if (part.type === "tool-call" || part.type === "tool-result") {
+              return { ...part, toolCallId: scrub(part.toolCallId) }
+            }
+            return part
+          })
+        }
+        if (msg.role === "tool" && Array.isArray(msg.content)) {
+          msg.content = msg.content.map((part) => {
+            if (part.type === "tool-result") {
+              return { ...part, toolCallId: scrub(part.toolCallId) }
             }
             return part
           })
@@ -194,12 +214,20 @@ export namespace ProviderTransform {
     }
 
     for (const msg of unique([...system, ...final])) {
-      const useMessageLevelOptions = model.providerID === "anthropic" || model.providerID.includes("bedrock")
+      const useMessageLevelOptions =
+        model.providerID === "anthropic" ||
+        model.providerID.includes("bedrock") ||
+        model.api.npm === "@ai-sdk/amazon-bedrock"
       const shouldUseContentOptions = !useMessageLevelOptions && Array.isArray(msg.content) && msg.content.length > 0
 
       if (shouldUseContentOptions) {
         const lastContent = msg.content[msg.content.length - 1]
-        if (lastContent && typeof lastContent === "object") {
+        if (
+          lastContent &&
+          typeof lastContent === "object" &&
+          lastContent.type !== "tool-approval-request" &&
+          lastContent.type !== "tool-approval-response"
+        ) {
           lastContent.providerOptions = mergeDeep(lastContent.providerOptions ?? {}, providerOptions)
           continue
         }
@@ -249,6 +277,24 @@ export namespace ProviderTransform {
     })
   }
 
+  function mapProviderOptions(
+    msgs: ModelMessage[],
+    transform: (options: Record<string, any> | undefined) => Record<string, any> | undefined,
+  ) {
+    return msgs.map((msg) => {
+      if (!Array.isArray(msg.content)) return { ...msg, providerOptions: transform(msg.providerOptions) }
+      return {
+        ...msg,
+        providerOptions: transform(msg.providerOptions),
+        content: msg.content.map((part) =>
+          part.type === "tool-approval-request" || part.type === "tool-approval-response"
+            ? part
+            : { ...part, providerOptions: transform(part.providerOptions) },
+        ),
+      } as typeof msg
+    })
+  }
+
   export function message(msgs: ModelMessage[], model: Provider.Model, options: Record<string, unknown>) {
     msgs = unsupportedParts(msgs, model)
     msgs = normalizeMessages(msgs, model, options)
@@ -276,24 +322,45 @@ export namespace ProviderTransform {
         return result
       }
 
-      msgs = msgs.map((msg) => {
-        if (!Array.isArray(msg.content)) return { ...msg, providerOptions: remap(msg.providerOptions) }
-        return {
-          ...msg,
-          providerOptions: remap(msg.providerOptions),
-          content: msg.content.map((part) => ({ ...part, providerOptions: remap(part.providerOptions) })),
-        } as typeof msg
+      msgs = mapProviderOptions(msgs, remap)
+    }
+
+    // Strip Responses item IDs before serialization, following Codex and keeping signed request bodies immutable.
+    if (
+      options.store !== true &&
+      key &&
+      ["@ai-sdk/openai", "@ai-sdk/azure", "@ai-sdk/amazon-bedrock/mantle", "@ai-sdk/github-copilot"].includes(
+        model.api.npm,
+      )
+    ) {
+      msgs = mapProviderOptions(msgs, (options) => {
+        if (!options?.[key] || !("itemId" in options[key])) return options
+        const metadata = { ...options[key] }
+        delete metadata.itemId
+        return { ...options, [key]: metadata }
       })
     }
 
     return msgs
   }
 
+  // Gemini models with vendor-tuned sampling defaults; blanket 1.0 temps
+  // destabilize the others, so gate by family/version patterns.
+  const GEMINI_MODELS_WITH_SAMPLING_DEFAULTS = [
+    /gemini-2[.-]5(?:[.-]|$)/,
+    /gemini-3-(?:flash|pro)(?:[.-]|$)/,
+    /gemini-3[.-]1(?:[.-]|$)/,
+    /gemini-3[.-]5-flash(?!-lite)(?:[.-]|$)/,
+  ]
+
   export function temperature(model: Provider.Model) {
     const id = model.id.toLowerCase()
     if (id.includes("qwen")) return 0.55
     if (id.includes("claude")) return undefined
-    if (id.includes("gemini")) return 1.0
+    if (id.includes("gemini") || model.api.id.toLowerCase().includes("gemini"))
+      return GEMINI_MODELS_WITH_SAMPLING_DEFAULTS.some((gemini) => gemini.test(model.api.id.toLowerCase()))
+        ? 1.0
+        : undefined
     if (id.includes("glm-4.6")) return 1.0
     if (id.includes("glm-4.7")) return 1.0
     if (id.includes("minimax-m2") || id.includes("minimax-m3")) return 1.0
@@ -310,12 +377,15 @@ export namespace ProviderTransform {
   export function topP(model: Provider.Model) {
     const id = model.id.toLowerCase()
     if (id.includes("qwen")) return 1
+    if (id.includes("gemini") || model.api.id.toLowerCase().includes("gemini"))
+      return GEMINI_MODELS_WITH_SAMPLING_DEFAULTS.some((gemini) => gemini.test(model.api.id.toLowerCase()))
+        ? 0.95
+        : undefined
     if (
       id.includes("minimax-m2") ||
       id.includes("minimax-m3") ||
       id.includes("kimi-k2.5") ||
-      id.includes("kimi-k2p5") ||
-      id.includes("gemini")
+      id.includes("kimi-k2p5")
     ) {
       return 0.95
     }
@@ -328,7 +398,10 @@ export namespace ProviderTransform {
       if (id.includes("m2.1") || id.includes("m3")) return 40
       return 20
     }
-    if (id.includes("gemini")) return 64
+    if (id.includes("gemini") || model.api.id.toLowerCase().includes("gemini"))
+      return GEMINI_MODELS_WITH_SAMPLING_DEFAULTS.some((gemini) => gemini.test(model.api.id.toLowerCase()))
+        ? 64
+        : undefined
     return undefined
   }
 
@@ -788,13 +861,13 @@ export namespace ProviderTransform {
         result["reasoningSummary"] = "auto"
       }
 
-      // Only set textVerbosity for non-chat gpt-5.x models
-      // Chat models (e.g. gpt-5.2-chat-latest) only support "medium" verbosity
+      // Generic OpenAI-compatible APIs do not necessarily support OpenAI's verbosity parameter.
+      // Only enable the default for integrations known to implement it.
       if (
         input.model.api.id.includes("gpt-5.") &&
         !input.model.api.id.includes("codex") &&
         !input.model.api.id.includes("-chat") &&
-        input.model.providerID !== "azure"
+        (input.model.api.npm === "@ai-sdk/openai" || input.model.api.npm === "@ai-sdk/amazon-bedrock/mantle")
       ) {
         result["textVerbosity"] = "low"
       }
@@ -866,6 +939,57 @@ export namespace ProviderTransform {
     amazon: "bedrock",
   }
 
+  // Default to binding controls for Claude 5.1+ as enforcement expands to later models.
+  // Mythos 5.1 explicitly does not run the conversation-prefix check.
+  // https://platform.claude.com/docs/en/build-with-claude/thinking#preserved-in-conversation
+  function anthropicBindsThinking(apiId: string) {
+    // Capture either family/version order, without reading release dates as minor versions.
+    const version = /claude-(?:([a-z]+)-)?(\d+)(?:[.-](\d{1,2}))?(?:-([a-z]+))?(?:[.@-]|$)/i.exec(apiId)
+    if (!version) return false
+    const major = Number(version[2])
+    const minor = Number(version[3] ?? 0)
+    if (major === 5 && minor === 1 && (version[1] ?? version[4])?.toLowerCase() === "mythos") return false
+    return major > 5 || (major === 5 && minor >= 1)
+  }
+
+  // Fable 5.1 binds each thinking signature to the system prompt, tool list, and
+  // messages above it, and rejects the request when any of that changes. bountyreper
+  // re-renders parts of that prefix between turns (system prompt, tools, compaction),
+  // so ask the API to drop the affected blocks instead of failing the request.
+  // Older model deployments may reject this field, even with thinking enabled.
+  // The patched AI SDK adds the thinking-binding-controls beta whenever it is set.
+  const ANTHROPIC_BLOCK_BINDING = { prefixMismatchBehavior: "drop_block" }
+
+  function anthropicBlockBinding(model: Provider.Model, options: { [x: string]: any }) {
+    const sdk = sdkKey(model.api.npm)
+    const key = sdk === "bedrock" ? "reasoningConfig" : sdk === "anthropic" ? "thinking" : undefined
+    // Consume the BountyReper-only opt-out even on models outside the default scope.
+    if (key && options[key]?.blockBinding === false) {
+      const result = { ...options, [key]: { ...options[key] } }
+      delete result[key].blockBinding
+      if (Object.keys(result[key]).length === 0) delete result[key]
+      return result
+    }
+
+    if (!anthropicBindsThinking(model.api.id)) return options
+    switch (model.api.npm) {
+      case "@ai-sdk/anthropic":
+      case "@ai-sdk/google-vertex/anthropic": {
+        const thinking = options.thinking ?? { type: "adaptive" }
+        if (thinking.type !== "adaptive" && thinking.type !== "enabled") return options
+        if (thinking.blockBinding !== undefined) return options
+        return { ...options, thinking: { ...thinking, blockBinding: ANTHROPIC_BLOCK_BINDING } }
+      }
+      case "@ai-sdk/amazon-bedrock": {
+        const reasoningConfig = options.reasoningConfig ?? { type: "adaptive" }
+        if (reasoningConfig.type !== "adaptive" && reasoningConfig.type !== "enabled") return options
+        if (reasoningConfig.blockBinding !== undefined) return options
+        return { ...options, reasoningConfig: { ...reasoningConfig, blockBinding: ANTHROPIC_BLOCK_BINDING } }
+      }
+    }
+    return options
+  }
+
   export function providerOptions(model: Provider.Model, options: { [x: string]: any }) {
     // OpenAI SDK gates reasoning behind an explicit flag. Force it on when
     // the model advertises reasoning capability or when the caller passes
@@ -878,7 +1002,7 @@ export namespace ProviderTransform {
       usesOpenAIReasoningGate &&
       (model.capabilities.reasoning || options.reasoningEffort !== undefined || options.reasoningSummary !== undefined)
         ? { ...options, forceReasoning: true }
-        : options
+        : anthropicBlockBinding(model, options)
 
     if (model.api.npm === "@ai-sdk/gateway") {
       // Gateway providerOptions are split across two namespaces:

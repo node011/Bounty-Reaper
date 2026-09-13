@@ -109,4 +109,58 @@ Use this skill.
       process.env.BOUNTYREPER_TEST_HOME = home
     }
   })
+
+  test("load of unknown skill throws a capped error (no full skill dump)", async () => {
+    await using tmp = await tmpdir({
+      git: true,
+      init: async (dir) => {
+        for (let i = 0; i < 30; i++) {
+          const skillDir = path.join(dir, ".bountyreper", "skill", `filler-skill-${i}`)
+          await Bun.write(
+            path.join(skillDir, "SKILL.md"),
+            `---
+name: filler-skill-${i}
+description: Filler skill ${i}.
+---
+
+# Filler ${i}
+`,
+          )
+        }
+      },
+    })
+
+    const home = process.env.BOUNTYREPER_TEST_HOME
+    process.env.BOUNTYREPER_TEST_HOME = tmp.path
+
+    try {
+      await Instance.provide({
+        directory: tmp.path,
+        fn: async () => {
+          const tool = await SkillTool.init()
+          const ctx: Tool.Context = {
+            ...baseCtx,
+            agent: "tool.skill.test",
+            ask: async () => {},
+          }
+
+          const err = await tool.execute({ action: "load", name: "does-not-exist" }, ctx).then(
+            () => {
+              throw new Error("expected skill load to throw")
+            },
+            (e: unknown) => e as Error,
+          )
+          expect(err.message).toContain('"does-not-exist" not found')
+          expect(err.message).toContain("30 skills installed")
+          expect(err.message).toContain('action "search"')
+          // Must not enumerate every skill — the previous message joined all
+          // names and reached 200KB+ with large skill libraries
+          expect(err.message.length).toBeLessThan(500)
+          expect([...err.message.matchAll(/filler-skill-/g)].length).toBeLessThanOrEqual(10)
+        },
+      })
+    } finally {
+      process.env.BOUNTYREPER_TEST_HOME = home
+    }
+  })
 })

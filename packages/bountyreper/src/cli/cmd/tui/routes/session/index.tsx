@@ -46,6 +46,7 @@ import type { TaskTool } from "@/tool/task"
 import type { QuestionTool } from "@/tool/question"
 import type { SkillTool } from "@/tool/skill"
 import { useKeyboard, useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
+import { nextThinkingMode, reasoningSummary, useThinkingMode } from "@tui/context/thinking"
 import { useSDK } from "@tui/context/sdk"
 import { useCommandDialog } from "@tui/component/dialog-command"
 import { useKeybind } from "@tui/context/keybind"
@@ -149,7 +150,8 @@ export function Session() {
   const [sidebar, setSidebar] = kv.signal<"auto" | "hide">("sidebar", "auto")
   const [sidebarOpen, setSidebarOpen] = createSignal(false)
   const [conceal, setConceal] = createSignal(true)
-  const [showThinking, setShowThinking] = kv.signal("thinking_visibility", true)
+  const thinking = useThinkingMode()
+  const showThinking = () => thinking.mode() === "show"
   const [timestamps, setTimestamps] = kv.signal<"hide" | "show">("timestamps", "hide")
   const [showDetails, setShowDetails] = kv.signal("tool_details_visibility", true)
   const [showAssistantMetadata, setShowAssistantMetadata] = kv.signal("assistant_metadata_visibility", true)
@@ -724,7 +726,7 @@ export function Session() {
         aliases: ["toggle-thinking"],
       },
       onSelect: (dialog) => {
-        setShowThinking((prev) => !prev)
+        thinking.set(nextThinkingMode(thinking.mode()))
         dialog.clear()
       },
     },
@@ -1567,33 +1569,93 @@ const PART_MAPPING = {
 function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: AssistantMessage }) {
   const { theme, subtleSyntax } = useTheme()
   const ctx = use()
+  // Collapsed by default in hide mode: a single line throughout, so the
+  // layout never shifts. Click to open the full markdown block, click to close.
+  const [expanded, setExpanded] = createSignal(false)
+
   const content = createMemo(() => {
-    // Filter out redacted reasoning chunks from OpenRouter
-    // OpenRouter sends encrypted reasoning data that appears as [REDACTED]
+    // OpenRouter encrypts some reasoning blocks; drop the placeholder.
     return props.part.text.replace("[REDACTED]", "").trim()
   })
+  const opaque = createMemo(() => !content() && Boolean(props.part.metadata))
+  // Reasoning is finalized when the server sets `time.end` (see processor.ts).
+  // Flips independently of the parent message completing.
+  const isDone = createMemo(() => props.part.time.end !== undefined)
+  const inMinimal = createMemo(() => !ctx.showThinking())
+  const duration = createMemo(() => {
+    const end = props.part.time.end
+    return end === undefined ? 0 : Math.max(0, end - props.part.time.start)
+  })
+  const summary = createMemo(() => reasoningSummary(content()))
+
+  const toggle = () => {
+    if (!inMinimal() || opaque()) return
+    setExpanded((prev) => !prev)
+  }
+
   return (
-    <Show when={content() && ctx.showThinking()}>
-      <box
-        id={"text-" + props.part.id}
-        paddingLeft={2}
-        marginTop={1}
-        flexDirection="column"
-        border={["left"]}
-        customBorderChars={SplitBorder.customBorderChars}
-        borderColor={theme.backgroundElement}
-      >
-        <code
-          filetype="markdown"
-          drawUnstyledText={false}
-          streaming={true}
-          syntaxStyle={subtleSyntax()}
-          content={"_Thinking:_ " + content()}
-          conceal={ctx.conceal()}
-          fg={theme.textMuted}
-        />
+    <Show when={content() || opaque()}>
+      <box paddingLeft={3} marginTop={1} flexDirection="column" flexShrink={0}>
+        <box onMouseUp={toggle}>
+          <ReasoningHeader
+            toggleable={inMinimal() && !opaque()}
+            open={!inMinimal() || expanded()}
+            done={isDone()}
+            title={summary().title}
+            duration={isDone() ? Locale.duration(duration()) : undefined}
+            encrypted={opaque()}
+          />
+        </box>
+        <Show when={!opaque() && (!inMinimal() || expanded()) && summary().body}>
+          <box paddingLeft={inMinimal() ? 2 : 0} marginTop={1}>
+            <code
+              filetype="markdown"
+              drawUnstyledText={false}
+              streaming={true}
+              syntaxStyle={subtleSyntax()}
+              content={summary().body}
+              conceal={ctx.conceal()}
+              fg={theme.textMuted}
+            />
+          </box>
+        </Show>
       </box>
     </Show>
+  )
+}
+
+function ReasoningHeader(props: {
+  toggleable: boolean
+  open: boolean
+  done: boolean
+  title: string | null
+  duration?: string
+  encrypted?: boolean
+}) {
+  const { theme } = useTheme()
+  const fg = () =>
+    props.open
+      ? RGBA.fromValues(theme.warning.r, theme.warning.g, theme.warning.b, theme.thinkingOpacity)
+      : theme.warning
+  const completed = () => {
+    if (props.encrypted) return `Thought${props.duration ? ` · ${props.duration}` : ""}`
+    const detail = [props.title, props.duration].filter(Boolean).join(" · ")
+    return `${props.toggleable ? (props.open ? "- " : "+ ") : ""}Thought${detail ? `: ${detail}` : ""}`
+  }
+
+  return (
+    <Switch>
+      <Match when={!props.done}>
+        <box flexDirection="row">
+          <Spinner color={fg()}>{props.title ? "Thinking: " + props.title : "Thinking"}</Spinner>
+        </box>
+      </Match>
+      <Match when={true}>
+        <text fg={fg()} wrapMode="none">
+          {completed()}
+        </text>
+      </Match>
+    </Switch>
   )
 }
 

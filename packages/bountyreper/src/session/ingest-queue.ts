@@ -9,6 +9,7 @@ export namespace IngestQueue {
     chain: Promise<void>
     paused: boolean
     pending: number
+    gen: number
     resumeSignal: Promise<void> | null
     resumeResolve: (() => void) | null
   }
@@ -25,6 +26,7 @@ export namespace IngestQueue {
         chain: Promise.resolve(),
         paused: false,
         pending: 0,
+        gen: 0,
         resumeSignal: null,
         resumeResolve: null,
       }
@@ -63,11 +65,15 @@ export namespace IngestQueue {
   export function enqueue(sessionID: string, task: () => Promise<unknown>) {
     const s = getOrInit(sessionID)
     s.pending++
+    const gen = s.gen
     publish(sessionID)
 
     const next = s.chain
       .then(() => waitIfPaused(sessionID))
-      .then(task)
+      .then(() => {
+        if (state()[sessionID]?.gen !== gen) return
+        return task()
+      })
       .then(
         () => {},
         (err) => log.error("ingest prompt failed", { sessionID, error: err }),
@@ -80,6 +86,17 @@ export namespace IngestQueue {
       })
 
     s.chain = next
+  }
+
+  /**
+   * Drop all queued-but-not-started tasks for a session (user abort).
+   * The in-flight task is aborted by SessionPrompt.cancel separately.
+   */
+  export function clear(sessionID: string) {
+    const s = state()[sessionID]
+    if (!s) return
+    s.gen++
+    publish(sessionID)
   }
 
   export function pause(sessionID: string) {

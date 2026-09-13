@@ -1,6 +1,9 @@
 import { Auth } from "../auth"
 import { Config } from "../config/config"
+import { Global } from "../global"
 import { Instance } from "../project/instance"
+import path from "path"
+import { applyEdits, modify, parse as parseJsonc } from "jsonc-parser"
 
 export interface DiscoveredModel {
   id: string
@@ -77,4 +80,60 @@ export async function addProvider(input: {
   await Instance.dispose()
 
   return { providerID, modelCount: input.models.length }
+}
+
+export interface LocatedProvider {
+  scope: "project" | "global"
+  filepath: string
+  models: string[]
+}
+
+function candidates(scope: "project" | "global") {
+  if (scope === "project")
+    return ["bountyreper.jsonc", "bountyreper.json"].map((file) => path.join(Instance.directory, file))
+  return ["bountyreper.jsonc", "bountyreper.json", "config.json"].map((file) =>
+    path.join(Global.Path.config, file),
+  )
+}
+
+async function scan(scope: "project" | "global", providerID: string): Promise<LocatedProvider | undefined> {
+  for (const filepath of candidates(scope)) {
+    const text = await Bun.file(filepath)
+      .text()
+      .catch(() => undefined)
+    if (!text) continue
+    const found = (parseJsonc(text) as { provider?: Record<string, { models?: Record<string, unknown> }> }).provider?.[
+      providerID
+    ]
+    if (!found) continue
+    return { scope, filepath, models: Object.keys(found.models ?? {}) }
+  }
+}
+
+export async function locateProvider(providerID: string, scope?: "project" | "global") {
+  if (scope) return scan(scope, providerID)
+  return (await scan("project", providerID)) ?? (await scan("global", providerID))
+}
+
+async function cut(filepath: string, keys: string[]) {
+  const text = await Bun.file(filepath).text()
+  await Bun.write(
+    filepath,
+    applyEdits(text, modify(text, keys, undefined, { formattingOptions: { insertSpaces: true, tabSize: 2 } })),
+  )
+  await Instance.dispose()
+}
+
+export async function removeProvider(found: LocatedProvider, providerID: string) {
+  await cut(found.filepath, ["provider", providerID])
+  await Auth.remove(providerID)
+}
+
+export async function removeModel(found: LocatedProvider, providerID: string, model: string) {
+  if (found.models.length === 1) {
+    await removeProvider(found, providerID)
+    return true
+  }
+  await cut(found.filepath, ["provider", providerID, "models", model])
+  return false
 }

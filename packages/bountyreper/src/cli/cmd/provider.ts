@@ -1,10 +1,9 @@
 import type { Argv } from "yargs"
-import path from "path"
 import { cmd } from "./cmd"
 import { UI } from "../ui"
 import { Instance } from "../../project/instance"
 import { Config } from "../../config/config"
-import { discoverModels, addProvider } from "../../provider/local"
+import { discoverModels, addProvider, locateProvider, removeProvider, removeModel } from "../../provider/local"
 import * as prompts from "@clack/prompts"
 
 export const ProviderCommand = cmd({
@@ -169,9 +168,11 @@ export const ProviderListCommand = cmd({
 
         for (const id of ids) {
           const p = providers[id]!
+          const found = await locateProvider(id)
           const modelCount = p.models ? Object.keys(p.models).length : 0
           const api = p.api ?? "n/a"
-          console.log(`  ${UI.Style.TEXT_HIGHLIGHT}${id}${UI.Style.TEXT_NORMAL}  ${p.name ?? id}`)
+          const scope = found ? ` [${found.scope}]` : ""
+          console.log(`  ${UI.Style.TEXT_HIGHLIGHT}${id}${UI.Style.TEXT_NORMAL}  ${p.name ?? id}${scope}`)
           console.log(`    api: ${api}`)
           console.log(`    models: ${modelCount}`)
           if (p.models) {
@@ -189,35 +190,67 @@ export const ProviderListCommand = cmd({
 export const ProviderRemoveCommand = cmd({
   command: "remove <id>",
   aliases: ["rm"],
-  describe: "remove a custom provider",
+  describe: "remove a custom provider or one of its models",
 
   builder: (yargs: Argv) =>
-    yargs.positional("id", {
-      type: "string",
-      describe: "provider ID to remove",
-      demandOption: true,
-    }),
+    yargs
+      .positional("id", {
+        type: "string",
+        describe: "provider ID to remove",
+        demandOption: true,
+      })
+      .option("model", {
+        type: "string",
+        describe: "remove a single model instead of the whole provider",
+      })
+      .option("scope", {
+        type: "string",
+        describe: "config scope to remove from",
+        choices: ["project", "global"] as const,
+      })
+      .option("yes", {
+        type: "boolean",
+        describe: "skip confirmation",
+        default: false,
+      }),
 
   async handler(args) {
     await Instance.provide({
       directory: process.cwd(),
       async fn() {
         const id = args.id as string
-        const filepath = path.join(Instance.directory, "bountyreper.json")
-        const raw = (await Bun.file(filepath)
-          .json()
-          .catch(() => ({}))) as Record<string, any>
+        const found = await locateProvider(id, args.scope)
 
-        if (!raw.provider?.[id]) {
-          console.log(`Provider "${id}" not found in project config.`)
+        if (!found) {
+          prompts.log.error(`Provider "${id}" not found in ${args.scope ?? "project or global"} config.`)
           process.exit(1)
         }
 
-        delete raw.provider[id]
-        await Bun.write(filepath, JSON.stringify(raw, null, 2))
-        await Instance.dispose()
+        if (args.model) {
+          if (!found.models.includes(args.model)) {
+            prompts.log.error(`Provider "${id}" has no model "${args.model}" (${found.models.length} configured).`)
+            process.exit(1)
+          }
+          const dropped = await removeModel(found, id, args.model)
+          prompts.log.success(
+            dropped
+              ? `Removed last model "${args.model}" — provider "${id}" removed from ${found.scope} config.`
+              : `Removed model "${args.model}" from provider "${id}" (${found.scope} config).`,
+          )
+          return
+        }
 
-        console.log(`Provider "${id}" removed.`)
+        if (!args.yes) {
+          const ok = await prompts.confirm({
+            message: `Remove provider "${id}" with ${found.models.length} model(s) from ${found.scope} config?`,
+          })
+          if (prompts.isCancel(ok) || !ok) throw new UI.CancelledError()
+        }
+
+        await removeProvider(found, id)
+        prompts.log.success(
+          `Provider "${id}" removed from ${found.scope} config (${found.filepath}), credentials deleted.`,
+        )
       },
     })
   },

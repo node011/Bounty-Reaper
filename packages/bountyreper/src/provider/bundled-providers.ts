@@ -12,7 +12,7 @@
 // divergent 3-branch copy of this routing, which silently sent e.g. a Gemini
 // key to OpenAI; keeping one shared map prevents that class of drift.
 
-import type { Provider as SDK } from "ai"
+import type { LanguageModelV2, LanguageModelV3 } from "@ai-sdk/provider"
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock"
 import { createAnthropic } from "@ai-sdk/anthropic"
 import { createAzure } from "@ai-sdk/azure"
@@ -37,7 +37,16 @@ import { createAlibaba } from "@ai-sdk/alibaba"
 import { createVenice } from "venice-ai-sdk-provider"
 import { createGitLab } from "@gitlab/gitlab-ai-provider"
 
-export const BUNDLED_PROVIDERS: Record<string, (options: any) => SDK> = {
+// Minimal structural contract a bundled provider factory must satisfy.
+// The strict `Provider` type from `ai` would require embedding/image/reranking
+// models; we only ever need language-model access (+ optional chat/responses).
+export type BundledSDK = {
+  languageModel(modelId: string): LanguageModelV3 | LanguageModelV2
+  chat?: (modelId: string) => LanguageModelV3 | LanguageModelV2
+  responses?: (modelId: string) => LanguageModelV3 | LanguageModelV2
+}
+
+export const BUNDLED_PROVIDERS: Record<string, (options: any) => BundledSDK> = {
   "@ai-sdk/amazon-bedrock": createAmazonBedrock,
   "@ai-sdk/anthropic": createAnthropic,
   "@ai-sdk/azure": createAzure,

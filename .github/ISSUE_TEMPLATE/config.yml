@@ -7,5 +7,5 @@ contact_links:
     url: https://bountyreper.io
     about: Read the docs, guides, and API reference
   - name: Security Disclosure
-    url: https://github.com/BountyReperus/BountyReper/security/advisories/new
+    url: https://github.com/node011/Bounty-Reper/security/advisories/new
     about: Report a security vulnerability (private)

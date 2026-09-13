@@ -40,7 +40,7 @@
       "dompurify": "3.3.1",
       "drizzle-kit": "1.0.0-beta.20",
       "drizzle-orm": "1.0.0-beta.20",
-      "ai": "5.0.124",
+      "ai": "6.0.168",
       "hono": "4.10.7",
       "hono-openapi": "1.1.2",
       "fuzzysort": "3.1.0",
@@ -101,11 +101,19 @@
     "web-tree-sitter"
   ],
   "overrides": {
+    "@ai-sdk/anthropic": "3.0.111",
     "@types/bun": "catalog:",
     "@types/node": "catalog:"
   },
   "patchedDependencies": {
     "@standard-community/standard-openapi@0.2.9": "patches/@standard-community%2Fstandard-openapi@0.2.9.patch",
-    "@openrouter/ai-sdk-provider@1.5.4": "patches/@openrouter%2Fai-sdk-provider@1.5.4.patch"
+    "@ai-sdk/xai@3.0.102": "patches/@ai-sdk%2Fxai@3.0.102.patch",
+    "@ai-sdk/mistral@3.0.51": "patches/@ai-sdk%2Fmistral@3.0.51.patch",
+    "@ai-sdk/google@3.0.73": "patches/@ai-sdk%2Fgoogle@3.0.73.patch",
+    "@ai-sdk/openai-compatible@2.0.41": "patches/@ai-sdk%2Fopenai-compatible@2.0.41.patch",
+    "@ai-sdk/groq@3.0.31": "patches/@ai-sdk%2Fgroq@3.0.31.patch",
+    "@ai-sdk/anthropic@3.0.111": "patches/@ai-sdk%2Fanthropic@3.0.111.patch",
+    "@ai-sdk/amazon-bedrock@4.0.166": "patches/@ai-sdk%2Famazon-bedrock@4.0.166.patch",
+    "@ai-sdk/openai@3.0.88": "patches/@ai-sdk%2Fopenai@3.0.88.patch"
   }
 }

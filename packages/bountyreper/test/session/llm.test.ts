@@ -443,14 +443,14 @@ describe("session.llm.stream", () => {
     })
   })
 
-  test("sends messages API payload for Anthropic models", async () => {
+  test("sends messages API payload for Anthropic Compatible models", async () => {
     const server = state.server
     if (!server) {
       throw new Error("Server not initialized")
     }
 
-    const providerID = "anthropic"
-    const modelID = "claude-3-5-sonnet-20241022"
+    const providerID = "minimax"
+    const modelID = "MiniMax-M2.1"
     const fixture = await loadFixture(providerID, modelID)
     const provider = fixture.provider
     const model = fixture.model

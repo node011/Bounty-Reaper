@@ -1,4 +1,6 @@
 const esbuild = require("esbuild")
+const fs = require("fs")
+const path = require("path")
 
 const production = process.argv.includes("--production")
 const watch = process.argv.includes("--watch")
@@ -24,6 +26,9 @@ const esbuildProblemMatcherPlugin = {
 }
 
 async function main() {
+  const wasmSource = require.resolve("ghostty-web/ghostty-vt.wasm")
+  fs.copyFileSync(wasmSource, path.join(__dirname, "dist", "ghostty-vt.wasm"))
+
   const ctx = await esbuild.context({
     entryPoints: ["src/extension.ts"],
     bundle: true,
@@ -39,6 +44,17 @@ async function main() {
       /* add to the end of plugins array */
       esbuildProblemMatcherPlugin,
     ],
+  })
+  await esbuild.build({
+    entryPoints: ["webview/main.ts"],
+    bundle: true,
+    format: "iife",
+    minify: production,
+    sourcemap: !production,
+    sourcesContent: false,
+    platform: "browser",
+    outfile: "dist/webview/main.js",
+    logLevel: "silent",
   })
   if (watch) {
     await ctx.watch()

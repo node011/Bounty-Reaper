@@ -2,6 +2,22 @@ import { APICallError } from "ai"
 import { STATUS_CODES } from "http"
 import { iife } from "@/util/iife"
 
+export class HeaderTimeoutError extends Error {
+  public override readonly name = "ProviderHeaderTimeoutError"
+
+  constructor(public readonly ms: number) {
+    super(`Provider response headers timed out after ${ms}ms`)
+  }
+}
+
+export class ResponseStreamError extends Error {
+  public override readonly name = "ProviderResponseStreamError"
+
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options)
+  }
+}
+
 export namespace ProviderError {
   // Adapted from overflow detection patterns in:
   // https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/utils/overflow.ts
