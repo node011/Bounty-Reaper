@@ -7,10 +7,6 @@ import type {
   AppAgentsResponses,
   AppLogErrors,
   AppLogResponses,
-  AssetGraphErrors,
-  AssetGraphResponses,
-  AssetListErrors,
-  AssetListResponses,
   Auth as Auth3,
   AuthRemoveErrors,
   AuthRemoveResponses,
@@ -108,10 +104,6 @@ import type {
   PermissionRespondErrors,
   PermissionRespondResponses,
   PermissionRuleset,
-  PlanListErrors,
-  PlanListResponses,
-  PlanUpdateErrors,
-  PlanUpdateResponses,
   ProjectCurrentResponses,
   ProjectListResponses,
   ProjectUpdateErrors,
@@ -139,10 +131,6 @@ import type {
   QuestionRejectResponses,
   QuestionReplyErrors,
   QuestionReplyResponses,
-  RetestHistoryErrors,
-  RetestHistoryResponses,
-  RetestRecordErrors,
-  RetestRecordResponses,
   SessionAbortErrors,
   SessionAbortResponses,
   SessionAddWebCredentialErrors,
@@ -245,8 +233,6 @@ import type {
   ToolIdsResponses,
   ToolListErrors,
   ToolListResponses,
-  TraceSearchErrors,
-  TraceSearchResponses,
   TuiAppendPromptErrors,
   TuiAppendPromptResponses,
   TuiClearPromptResponses,
@@ -2995,258 +2981,6 @@ export class Provider extends HeyApiClient {
   }
 }
 
-export class Asset extends HeyApiClient {
-  /**
-   * List assets
-   *
-   * Returns the attack-surface assets recorded for a project, optionally filtered by type or tested flag.
-   */
-  public list<ThrowOnError extends boolean = false>(
-    parameters: {
-      projectID: string
-      directory?: string
-      type?: "domain" | "subdomain" | "ip" | "service" | "app" | "endpoint"
-      tested?: string
-    },
-    options?: Options<never, ThrowOnError>,
-  ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "projectID" },
-            { in: "query", key: "directory" },
-            { in: "query", key: "type" },
-            { in: "query", key: "tested" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).get<AssetListResponses, AssetListErrors, ThrowOnError>({
-      url: "/project/{projectID}/asset",
-      ...options,
-      ...params,
-    })
-  }
-
-  /**
-   * Get asset graph
-   *
-   * Returns the asset graph: all assets as nodes, explicit parent links plus implied host links as edges.
-   */
-  public graph<ThrowOnError extends boolean = false>(
-    parameters: {
-      projectID: string
-      directory?: string
-    },
-    options?: Options<never, ThrowOnError>,
-  ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "projectID" },
-            { in: "query", key: "directory" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).get<AssetGraphResponses, AssetGraphErrors, ThrowOnError>({
-      url: "/project/{projectID}/asset/graph",
-      ...options,
-      ...params,
-    })
-  }
-}
-
-export class Plan extends HeyApiClient {
-  /**
-   * Get session plan
-   *
-   * Returns the shared methodology plan for a session (rooted, so child/agent sessions see the same plan) with derived availability flags and status counts.
-   */
-  public list<ThrowOnError extends boolean = false>(
-    parameters: {
-      sessionID: string
-      directory?: string
-    },
-    options?: Options<never, ThrowOnError>,
-  ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "sessionID" },
-            { in: "query", key: "directory" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).get<PlanListResponses, PlanListErrors, ThrowOnError>({
-      url: "/session/{sessionID}/plan",
-      ...options,
-      ...params,
-    })
-  }
-
-  /**
-   * Update a plan item
-   *
-   * Patch a single plan item's status, content, or priority. No cascade: dependents unblock implicitly via the derived `available` flag.
-   */
-  public update<ThrowOnError extends boolean = false>(
-    parameters: {
-      sessionID: string
-      itemID: string
-      directory?: string
-      status?: "pending" | "in_progress" | "completed" | "blocked" | "cancelled"
-      content?: string
-      priority?: "high" | "medium" | "low"
-    },
-    options?: Options<never, ThrowOnError>,
-  ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "sessionID" },
-            { in: "path", key: "itemID" },
-            { in: "query", key: "directory" },
-            { in: "body", key: "status" },
-            { in: "body", key: "content" },
-            { in: "body", key: "priority" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).put<PlanUpdateResponses, PlanUpdateErrors, ThrowOnError>({
-      url: "/session/{sessionID}/plan/item/{itemID}",
-      ...options,
-      ...params,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-        ...params.headers,
-      },
-    })
-  }
-}
-
-export class Retest extends HeyApiClient {
-  /**
-   * Get retest history
-   *
-   * Returns the retest verdict history for a vulnerability, newest first.
-   */
-  public history<ThrowOnError extends boolean = false>(
-    parameters: {
-      vulnID: string
-      directory?: string
-    },
-    options?: Options<never, ThrowOnError>,
-  ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "vulnID" },
-            { in: "query", key: "directory" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).get<RetestHistoryResponses, RetestHistoryErrors, ThrowOnError>({
-      url: "/vulnerability/{vulnID}/retest",
-      ...options,
-      ...params,
-    })
-  }
-
-  /**
-   * Record a retest verdict
-   *
-   * Record the outcome of re-executing a vulnerability PoC. "fixed" marks the vulnerability fixed; "still_reproducible" (re)opens it; "inconclusive" leaves its status untouched.
-   */
-  public record<ThrowOnError extends boolean = false>(
-    parameters: {
-      vulnID: string
-      directory?: string
-      sessionID: string
-      verdict: "still_reproducible" | "fixed" | "inconclusive"
-      note?: string
-    },
-    options?: Options<never, ThrowOnError>,
-  ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "vulnID" },
-            { in: "query", key: "directory" },
-            { in: "body", key: "sessionID" },
-            { in: "body", key: "verdict" },
-            { in: "body", key: "note" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).post<RetestRecordResponses, RetestRecordErrors, ThrowOnError>({
-      url: "/vulnerability/{vulnID}/retest",
-      ...options,
-      ...params,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-        ...params.headers,
-      },
-    })
-  }
-}
-
-export class Trace extends HeyApiClient {
-  /**
-   * Search agent traces
-   *
-   * Full-text search over all session message parts (text, reasoning, tool input/output) for a project. Returns matching parts with session references and a snippet.
-   */
-  public search<ThrowOnError extends boolean = false>(
-    parameters: {
-      projectID: string
-      directory?: string
-      q: string
-      sessionID?: string
-      limit?: string
-    },
-    options?: Options<never, ThrowOnError>,
-  ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "projectID" },
-            { in: "query", key: "directory" },
-            { in: "query", key: "q" },
-            { in: "query", key: "sessionID" },
-            { in: "query", key: "limit" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).get<TraceSearchResponses, TraceSearchErrors, ThrowOnError>({
-      url: "/project/{projectID}/trace/search",
-      ...options,
-      ...params,
-    })
-  }
-}
-
 export class Find extends HeyApiClient {
   /**
    * Find text
@@ -5179,26 +4913,6 @@ export class BountyreperClient extends HeyApiClient {
   private _provider?: Provider
   get provider(): Provider {
     return (this._provider ??= new Provider({ client: this.client }))
-  }
-
-  private _asset?: Asset
-  get asset(): Asset {
-    return (this._asset ??= new Asset({ client: this.client }))
-  }
-
-  private _plan?: Plan
-  get plan(): Plan {
-    return (this._plan ??= new Plan({ client: this.client }))
-  }
-
-  private _retest?: Retest
-  get retest(): Retest {
-    return (this._retest ??= new Retest({ client: this.client }))
-  }
-
-  private _trace?: Trace
-  get trace(): Trace {
-    return (this._trace ??= new Trace({ client: this.client }))
   }
 
   private _find?: Find
