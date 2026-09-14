@@ -129,23 +129,20 @@ Browser traffic → Proxy intercept → Orchestrator → 8 sub-testers (parallel
    | Linux ARM64 | `bountyreaper-linux-arm64.tar.gz` (musl: `bountyreaper-linux-arm64-musl.tar.gz`) |
    | Windows x64 | `bountyreaper-windows-x64.zip` |
 
-2. Extract and run the install script from the repo (it puts the binary on your `PATH`):
+2. Extract and install (everything comes from the zip — no repo needed):
 
    ```bash
    # macOS example
    unzip ~/Downloads/bountyreaper-darwin-arm64.zip -d bountyreaper-darwin-arm64
-   git clone https://github.com/node011/Bounty-Reaper.git && cd Bounty-Reaper
-   ./install --binary ../bountyreaper-darwin-arm64/bin/bountyreaper
-   ```
-
-   Or manually:
-
-   ```bash
-   mkdir -p ~/.bountyreaper/bin
+   mkdir -p ~/.bountyreaper/bin ~/.local/share/bountyreaper/bin
    cp bountyreaper-darwin-arm64/bin/bountyreaper ~/.bountyreaper/bin/
-   chmod +x ~/.bountyreaper/bin/bountyreaper
+   cp bountyreaper-darwin-arm64/bin/hackbrowser-worker.js ~/.local/share/bountyreaper/bin/  # mcpbrowser crawl engine
+   chmod +x ~/.bountyreaper/bin/bountyreaper ~/.local/share/bountyreaper/bin/hackbrowser-worker.js
    echo 'export PATH="$HOME/.bountyreaper/bin:$PATH"' >> ~/.zshrc   # or ~/.bashrc
+   source ~/.zshrc
    ```
+
+   If you already have the repo cloned, `./install --binary <path>` does the same copy steps for you.
 
 3. Verify:
 
