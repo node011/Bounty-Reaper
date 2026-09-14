@@ -9,7 +9,7 @@ Before testing:
 
 ## Starting Point: Discovery
 
-When given a target URL with no captured traffic yet, use **mcpbrowser** to crawl the application first.
+When given a target URL with no captured traffic yet, use **js_recon** first (passive static JS analysis — endpoints, secrets, DOM-XSS shapes), then **mcpbrowser** to crawl and capture runtime traffic. Static findings from js_recon are hypotheses — confirm them against the captured traffic.
 
 ### mcpbrowser tool
 

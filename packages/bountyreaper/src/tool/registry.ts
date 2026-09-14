@@ -47,6 +47,7 @@ import { WebUpdateCredentialClaimsTool } from "./web-update-credential-claims"
 import { WebUpdateCredentialTool } from "./web-update-credential"
 import { CsrfExtractTool } from "./csrf-extract"
 import { HackbrowserTool } from "./hackbrowser"
+import { JsReconTool } from "./js-recon"
 import { AddIntelTool } from "./intel"
 import { UpdateVrtCheckTool } from "./vrt-check"
 import { RecordCoverageNoteTool, GetCoverageNotesTool } from "./coverage-note"
@@ -190,6 +191,9 @@ export namespace ToolRegistry {
       // Hackbrowser — autonomous crawler that produces captures the
       // proxy-analyzer ingests. Upstream of the rest of the web pipeline.
       HackbrowserTool,
+      // js_recon — BundleBleed static JS analysis (passive-only): endpoints,
+      // secrets, DOM-XSS shapes; hypotheses become proof-gated candidates.
+      JsReconTool,
       // Methodology Engine Tools — intelligence, coverage, chain detection
       AddIntelTool,
       UpdateVrtCheckTool,
