@@ -476,7 +476,6 @@ export function Session() {
       category: "Session",
       slash: {
         name: "mcpbrowser",
-        aliases: ["hackbrowser"],
       },
       onSelect: async (dialog) => {
         const input = await DialogHackbrowserLaunch.show(dialog)
@@ -515,7 +514,6 @@ export function Session() {
       })(),
       slash: {
         name: "mcpbrowser-stop",
-        aliases: ["hackbrowser-stop"],
       },
       onSelect: async (dialog) => {
         try {

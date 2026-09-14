@@ -8,8 +8,7 @@ import { UI } from "../ui"
 
 export const McpbrowserCommand = cmd({
   command: "mcpbrowser <target>",
-  aliases: ["hackbrowser"],
-  describe: "crawl a web app and open TUI for live analysis (alias: hackbrowser)",
+  describe: "crawl a web app and open TUI for live analysis",
   builder: (yargs) =>
     yargs
       .positional("target", {
@@ -88,6 +87,3 @@ export const McpbrowserCommand = cmd({
     })
   },
 })
-
-// Backward compat: hackbrowser as alias
-export const HackbrowserCommand = McpbrowserCommand
