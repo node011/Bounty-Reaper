@@ -1,9 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
-    <img src="assets/hero-dark.svg" alt="BountyReper — the open-source AI agent built for offensive security" width="880">
-  </picture>
+  <img src="assets/tui-screenshot.png" alt="BountyReper TUI — Palantir theme, Proxy-Agent live teardown" width="880">
 </p>
 
 <h3 align="center">The open-source AI agent for offensive security.</h3>
@@ -30,12 +26,6 @@
 
 ---
 
-<p align="center">
-  <img src="assets/tui-screenshot.png" alt="BountyReper TUI — Proxy-Agent live analysis with MCPBrowser" width="880">
-  <br>
-  <em>Proxy-Agent live analysis — captured with Playwright</em>
-</p>
-
 ---
 
 ### Quick Start
@@ -49,7 +39,7 @@ bun dev
 
 `bootstrap.sh` checks prerequisites (bun 1.3+, uv, git), installs deps, sets up MCP servers, and fetches Chromium. `bun dev` launches the TUI — connect your LLM provider and start testing. Tell it what to test; it handles recon, discovery, exploitation, and reporting.
 
-> Already have Claude Code or OpenAI? BountyReper sits on top of your existing subscription. No extra API costs.
+> Already have an LLM subscription? BountyReper sits on top of your existing subscription. No extra API costs.
 
 Full docs: **[docs.bountyreper.io](https://docs.bountyreper.io)** • **[bountyreper.io](https://bountyreper.io)**
 
@@ -57,7 +47,7 @@ Full docs: **[docs.bountyreper.io](https://docs.bountyreper.io)** • **[bountyr
 
 ### What Is BountyReper?
 
-An intelligence layer that turns any LLM (Claude, GPT, Gemini, 200+ providers via models.dev, or local Ollama) into a security specialist. It injects OWASP WSTG methodology, vulnerability patterns, and tool orchestration into every interaction — so the model follows proven pentest frameworks instead of guessing. 13+ specialized agents, 900+ MITRE techniques, 120+ WSTG cases, 6,600+ CIS/NIST controls.
+An intelligence layer that turns any LLM (GPT, Gemini, 200+ providers via models.dev, or local Ollama) into a security specialist. It injects OWASP WSTG methodology, vulnerability patterns, and tool orchestration into every interaction — so the model follows proven pentest frameworks instead of guessing. 13+ specialized agents, 900+ MITRE techniques, 120+ WSTG cases, 6,600+ CIS/NIST controls.
 
 ---
 
