@@ -1,5 +1,5 @@
 ---
-name: howtohunt-saml
+name: attack-saml
 description: "SAML SSO attacks — XML Signature Wrapping (8 XSW variants), signature exclusion, and assertion injection for authentication bypass"
 category: "authentication"
 version: "1.0"
@@ -18,7 +18,7 @@ cwe_ids:
   - CWE-347
 chains_with:
   - wstg-athn-04
-  - howtohunt-oauth
+  - attack-oauth
 prerequisites: []
 ---
 

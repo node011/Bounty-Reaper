@@ -1,5 +1,5 @@
 ---
-name: howtohunt-oauth
+name: attack-oauth
 description: "OAuth 2.0 hunting — implicit flow auth bypass, forced profile linking, and redirect_uri hijacking for account takeover"
 category: "authentication"
 version: "1.0"

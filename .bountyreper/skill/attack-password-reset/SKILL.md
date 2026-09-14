@@ -1,5 +1,5 @@
 ---
-name: howtohunt-password-reset
+name: attack-password-reset
 description: "Password reset flaws — token leakage via referer, array injection, OTP brute force, host poisoning, and token invalidation bypass for account takeover"
 category: "authentication"
 version: "1.0"
@@ -19,11 +19,11 @@ cwe_ids:
   - CWE-613
 chains_with:
   - wstg-athn-09
-  - howtohunt-waf-bypass
+  - attack-waf-bypass
   - attack-open-redirect
 prerequisites: []
 severity_boost:
-  howtohunt-waf-bypass: "Host poisoning + password reset = token to attacker domain"
+  attack-waf-bypass: "Host poisoning + password reset = token to attacker domain"
 ---
 
 # Password Reset Functionality Hunting

@@ -1,5 +1,5 @@
 ---
-name: howtohunt-waf-bypass
+name: attack-waf-bypass
 description: "WAF bypass via header manipulation, IP spoofing, and password reset poisoning — attacker-controlled headers to evade Web Application Firewalls"
 category: "input-validation"
 version: "1.0"

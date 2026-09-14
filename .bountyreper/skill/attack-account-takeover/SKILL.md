@@ -1,5 +1,5 @@
 ---
-name: howtohunt-account-takeover
+name: attack-account-takeover
 description: "Account takeover chains — XSS + session hijacking, password reset poisoning, response manipulation, CSRF, and token leakage composites"
 category: "authentication"
 version: "1.0"
@@ -17,8 +17,8 @@ cwe_ids:
   - CWE-352
   - CWE-79
 chains_with:
-  - howtohunt-password-reset
-  - howtohunt-oauth
+  - attack-password-reset
+  - attack-oauth
   - attack-open-redirect
   - wstg-clnt-01
 prerequisites: []

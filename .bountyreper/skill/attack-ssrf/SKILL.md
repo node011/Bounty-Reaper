@@ -150,7 +150,7 @@ for hdr in "X-Forwarded-For: 169.254.169.254" "X-Real-IP: 169.254.169.254"; do
 done
 ```
 
-For blind cases, evidence is the collaborator hit or timing delta, not response body. Pair with `howtohunt-waf-bypass` headers for filter evasion.
+For blind cases, evidence is the collaborator hit or timing delta, not response body. Pair with `attack-waf-bypass` headers for filter evasion.
 
 ## References
 

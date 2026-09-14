@@ -1,5 +1,5 @@
 ---
-name: howtohunt-cms
+name: attack-cms
 description: "CMS hunting — WordPress, Drupal, AEM, Moodle enumeration, plugin exploits, and misconfiguration leading to RCE"
 category: "configuration"
 version: "1.0"

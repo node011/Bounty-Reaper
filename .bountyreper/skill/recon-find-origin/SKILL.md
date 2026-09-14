@@ -1,5 +1,5 @@
 ---
-name: howtohunt-find-origin
+name: recon-find-origin
 description: "Origin IP discovery behind WAF/CDN via DNS history, subdomain leaks, certificate transparency, and misconfigurations"
 category: "information-gathering"
 version: "1.0"

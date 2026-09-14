@@ -1,5 +1,5 @@
 ---
-name: howtohunt-403-bypass
+name: attack-403-bypass
 description: "403 Forbidden bypass via path manipulation, header spoofing, and protocol downgrade — access control evasion for restricted endpoints"
 category: "authorization"
 version: "1.0"
