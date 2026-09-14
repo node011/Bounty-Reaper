@@ -13,7 +13,7 @@ permissions:
 jobs:
   sign-cli:
     runs-on: ubuntu-24.04
-    if: github.repository == 'node011/Bounty-Reper'
+    if: github.repository == 'node011/Bounty-Reaper'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -23,14 +23,14 @@ jobs:
 
       - name: Build
         run: |
-          ./packages/bountyreper/script/build.ts
+          ./packages/bountyreaper/script/build.ts
 
       - name: Upload unsigned Windows CLI
         id: upload_unsigned_windows_cli
         uses: actions/upload-artifact@v4
         with:
-          name: unsigned-bountyreper-windows-cli
-          path: packages/bountyreper/dist/bountyreper-windows-x64/bin/bountyreper.exe
+          name: unsigned-bountyreaper-windows-cli
+          path: packages/bountyreaper/dist/bountyreaper-windows-x64/bin/bountyreaper.exe
           if-no-files-found: error
 
       - name: Submit SignPath signing request
@@ -44,11 +44,11 @@ jobs:
           artifact-configuration-slug: ${{ secrets.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
           github-artifact-id: ${{ steps.upload_unsigned_windows_cli.outputs.artifact-id }}
           wait-for-completion: true
-          output-artifact-directory: signed-bountyreper-cli
+          output-artifact-directory: signed-bountyreaper-cli
 
       - name: Upload signed Windows CLI
         uses: actions/upload-artifact@v4
         with:
-          name: signed-bountyreper-windows-cli
-          path: signed-bountyreper-cli/*.exe
+          name: signed-bountyreaper-windows-cli
+          path: signed-bountyreaper-cli/*.exe
           if-no-files-found: error

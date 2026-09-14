@@ -7,7 +7,7 @@ export const config = {
 
   // GitHub
   github: {
-    repoUrl: "https://github.com/bounty-reper/BountyReper",
+    repoUrl: "https://github.com/node011/Bounty-Reaper",
     starsFormatted: {
       compact: "100K",
       full: "100,000",
@@ -16,7 +16,7 @@ export const config = {
 
   // Social links
   social: {
-    twitter: "https://x.com/bountyreper",
+    twitter: "https://x.com/bountyreaper",
     discord: "https://discord.gg/snunAaHf6U",
   },
 

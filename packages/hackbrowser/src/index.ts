@@ -1,5 +1,5 @@
 // Standalone CLI shell. The library lives in api.ts; this file is just argv
-// parsing + a help message + an exit-code handoff. Bountyreper-internal
+// parsing + a help message + an exit-code handoff. BountyReaper-internal
 // callers go through api.ts directly (no process.exit).
 //
 // Keep this file thin. New flags belong in api.ts:parseArgsToOptions.
@@ -11,7 +11,7 @@ const argv = process.argv.slice(2)
 
 if (argv.length === 0 || argv.includes("--help")) {
   console.log(`
-BountyReper Browser Agent
+BountyReaper Browser Agent
 
 Usage: bun start <targetUrl> [options]
 
@@ -22,10 +22,10 @@ Options:
   --pass <password>          Auto-login password
   --headless                 Run browser in headless mode
   --steps <n>                Max navigation steps (default: 50)
-  --bountyreper <url>        BountyReper server URL (default: http://127.0.0.1:4096)
-  --bountyreper-username <u> BountyReper server username (default: "bountyreper")
-  --bountyreper-password <p> BountyReper server password (fallback: BOUNTYREPER_SERVER_PASSWORD env var)
-  --session-id <id>          Attach to existing BountyReper session
+  --bountyreaper <url>        BountyReaper server URL (default: http://127.0.0.1:4096)
+  --bountyreaper-username <u> BountyReaper server username (default: "bountyreaper")
+  --bountyreaper-password <p> BountyReaper server password (fallback: BOUNTYREAPER_SERVER_PASSWORD env var)
+  --session-id <id>          Attach to existing BountyReaper session
   --credential-id <id>       Credential ID to tag requests with
   --authenticated            Manual login mode: user logs in via browser, clicks button to start
   --credential <label>       Multi-credential mode: add a credential (repeat for each role)
@@ -33,11 +33,11 @@ Options:
                              (semantic match). Repeat for multiple exclusions.
   --scope <pattern>          Network scope — bare host or "*.host" wildcard. Repeatable.
                              When omitted, derived from targetUrl as "*.{eTLD+1}".
-  --dry-run                  Crawl without sending to BountyReper; print captures to console
+  --dry-run                  Crawl without sending to BountyReaper; print captures to console
   --no-panel                 Disable the live telemetry panel injected into the browser
   --debug                    Enable verbose debug logging
 
-Note: hackbrowser inside bountyreper (Tool/Slash) uses the same engine via
+Note: hackbrowser inside bountyreaper (Tool/Slash) uses the same engine via
 api.ts:runCrawl. See INTEGRATION.md for the integration architecture.
 
 Examples:

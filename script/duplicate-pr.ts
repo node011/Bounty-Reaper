@@ -2,7 +2,7 @@
 
 import path from "path"
 import { pathToFileURL } from "bun"
-import { createBountyreper } from "@bountyreper-io/sdk"
+import { createBountyReaper } from "@bountyreaper-io/sdk"
 import { parseArgs } from "util"
 
 async function main() {
@@ -35,7 +35,7 @@ Examples:
     process.exit(1)
   }
 
-  const bountyreper = await createBountyreper({ port: 0 })
+  const bountyreaper = await createBountyReaper({ port: 0 })
 
   try {
     const parts: Array<{ type: "text"; text: string } | { type: "file"; url: string; filename: string; mime: string }> =
@@ -58,8 +58,8 @@ Examples:
 
     parts.push({ type: "text", text: message })
 
-    const session = await bountyreper.client.session.create()
-    const result = await bountyreper.client.session
+    const session = await bountyreaper.client.session.create()
+    const result = await bountyreaper.client.session
       .prompt({
         path: { id: session.data!.id },
         body: {
@@ -72,7 +72,7 @@ Examples:
 
     console.log(result.trim())
   } finally {
-    bountyreper.server.close()
+    bountyreaper.server.close()
   }
 }
 

@@ -843,7 +843,19 @@ export type Vulnerability = {
   poc?: string
   endpoint?: string
   attack_vector?: string
-  status?: "new" | "approved" | "duplicate" | "open" | "fixed" | "ignored"
+  status?:
+    | "new"
+    | "approved"
+    | "duplicate"
+    | "open"
+    | "fixed"
+    | "ignored"
+    | "candidate"
+    | "observed"
+    | "verified"
+    | "reportable"
+    | "rejected"
+    | "stale"
   candidate?: "critical" | "high" | "medium" | "low" | "info"
   duplicate_of?: string
   message_id?: string
@@ -1718,7 +1730,7 @@ export type KeybindsConfig = {
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR"
 
 /**
- * Server configuration for bountyreper serve and web commands
+ * Server configuration for bountyreaper serve and web commands
  */
 export type ServerConfig = {
   /**
@@ -1734,7 +1746,7 @@ export type ServerConfig = {
    */
   mdns?: boolean
   /**
-   * Custom domain name for mDNS service (default: bountyreper.local)
+   * Custom domain name for mDNS service (default: bountyreaper.local)
    */
   mdnsDomain?: string
   /**
@@ -2131,7 +2143,7 @@ export type Config = {
    */
   small_model?: ModelSchemaModel
   /**
-   * Default agent to use when none is specified. Must be a primary agent. Falls back to 'bountyreper' if not set or if the specified agent is invalid.
+   * Default agent to use when none is specified. Must be a primary agent. Falls back to 'bountyreaper' if not set or if the specified agent is invalid.
    */
   default_agent?: string
   /**
@@ -2142,14 +2154,14 @@ export type Config = {
    * @deprecated Use `agent` field instead.
    */
   mode?: {
-    bountyreper?: AgentConfig
+    bountyreaper?: AgentConfig
     [key: string]: AgentConfig | undefined
   }
   /**
    * Agent configuration, see https://bountyreper.io/docs/agents
    */
   agent?: {
-    bountyreper?: AgentConfig
+    bountyreaper?: AgentConfig
     general?: AgentConfig
     explore?: AgentConfig
     title?: AgentConfig

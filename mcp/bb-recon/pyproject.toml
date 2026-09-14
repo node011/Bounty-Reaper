@@ -1,7 +1,7 @@
 [project]
 name = "bb-recon"
 version = "0.1.0"
-description = "BountyReper bug bounty recon MCP - passive subdomain enumeration, DNS resolution, HTTP probing"
+description = "BountyReaper bug bounty recon MCP - passive subdomain enumeration, DNS resolution, HTTP probing"
 requires-python = ">=3.10"
 dependencies = [
     "mcp>=1.2.0,<2",

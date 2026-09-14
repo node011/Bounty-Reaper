@@ -4,7 +4,7 @@ import { nitro } from "nitro/vite"
 import tailwindcss from "@tailwindcss/vite"
 
 const nitroConfig: any = (() => {
-  const target = process.env.BOUNTYREPER_DEPLOYMENT_TARGET
+  const target = process.env.BOUNTYREAPER_DEPLOYMENT_TARGET
   if (target === "cloudflare") {
     return {
       compatibilityDate: "2024-09-19",
@@ -23,7 +23,7 @@ export default defineConfig({
     solidStart() as PluginOption,
     nitro({
       ...nitroConfig,
-      baseURL: process.env.BOUNTYREPER_BASE_URL,
+      baseURL: process.env.BOUNTYREAPER_BASE_URL,
     }),
   ],
   server: {

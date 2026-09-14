@@ -1154,7 +1154,7 @@ class Event extends _HeyApiClient {
   }
 }
 
-export class BountyreperClient extends _HeyApiClient {
+export class BountyReaperClient extends _HeyApiClient {
   /**
    * Respond to a permission request
    */

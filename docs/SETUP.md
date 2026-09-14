@@ -1,11 +1,11 @@
 # Setup
 
-Everything BountyReper needs is either in this repo or installed by one script.
+Everything BountyReaper needs is either in this repo or installed by one script.
 A fresh clone should reach a working state with:
 
 ```bash
-git clone https://github.com/bounty-reper/BountyReper
-cd BountyReper
+git clone https://github.com/node011/Bounty-Reaper
+cd BountyReaper
 ./script/bootstrap.sh
 bun dev
 ```
@@ -36,7 +36,7 @@ need to create any virtualenv by hand.
 3. `playwright install chromium chromium-headless-shell` for the workspace (the
    `hackbrowser` crawler). Both targets are needed: `chromium.launch()` defaults
    to headless, which runs the separate `chrome-headless-shell` binary.
-4. `script/install-mcp.ts` — registers the bundled MCP servers with BountyReper
+4. `script/install-mcp.ts` — registers the bundled MCP servers with BountyReaper
    **globally** (see below).
 5. Copies `.env.example` to `.env` if you don't have one yet.
 
@@ -49,9 +49,9 @@ There are two separate configs, and mixing them up is the usual reason a server
 
 - [`.mcp.json`](../.mcp.json) is **Claude Code's** config, read when your working
   directory is this repo.
-- `~/.config/bountyreper/bountyreper.json` is **BountyReper's global** config,
-  read in every folder. `.bountyreper/bountyreper.jsonc` in this repo is
-  BountyReper's _project_ config — it only applies inside the repo, so servers
+- `~/.config/bountyreaper/bountyreaper.json` is **BountyReaper's global** config,
+  read in every folder. `.bountyreaper/bountyreaper.jsonc` in this repo is
+  BountyReaper's _project_ config — it only applies inside the repo, so servers
   declared there are missing everywhere else.
 
 Global config needs absolute paths (MCP servers inherit the app's working
@@ -79,7 +79,7 @@ agent, the tools, and every other server keep working.
 | Variable                 | Enables                                             | Where to get it                   |
 | ------------------------ | --------------------------------------------------- | --------------------------------- |
 | `CAIDO_PAT`, `CAIDO_URL` | Caido MCP (proxy history, replay, fuzzing)          | Caido → Settings → Authentication |
-| `BOUNTYREPER_ROOT`       | Only if you launch the agent from outside this repo | absolute path to your clone       |
+| `BOUNTYREAPER_ROOT`       | Only if you launch the agent from outside this repo | absolute path to your clone       |
 
 `.env` is gitignored. Never commit it, and never put a key in `.mcp.json` —
 that file is committed and is read by everyone who clones the repo.
@@ -129,7 +129,7 @@ out to:
 These are **not** required to start. Bootstrap reports which are present and
 which are missing; a missing binary disables only the tools that call it.
 
-Install them with your package manager, or from inside BountyReper run the
+Install them with your package manager, or from inside BountyReaper run the
 `ensure_tools` tool — every version it installs is pinned, so two people on the
 same engagement get the same scanners.
 
@@ -146,14 +146,14 @@ bun turbo test         # all packages, including hackbrowser
 
 ## Troubleshooting
 
-**A server is missing when you open BountyReper in another folder.** Project
+**A server is missing when you open BountyReaper in another folder.** Project
 config doesn't travel. Run `bun run script/install-mcp.ts` to register the
-bundled servers globally, then restart BountyReper. Check what's registered with
+bundled servers globally, then restart BountyReaper. Check what's registered with
 `--dry-run`.
 
 **An MCP server won't start under Claude Code.** `.mcp.json` paths resolve
 relative to your current directory. Launch from the repo root, or set
-`BOUNTYREPER_ROOT` to an absolute path in `.env`.
+`BOUNTYREAPER_ROOT` to an absolute path in `.env`.
 
 **`uv: command not found` when a server starts.** Your editor or agent may not
 inherit your shell `PATH`. Launch it from a terminal where `which uv` works.

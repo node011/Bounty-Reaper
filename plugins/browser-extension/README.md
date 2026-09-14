@@ -1,7 +1,7 @@
-# BountyReper Browser Extension
+# BountyReaper Browser Extension
 
 Chromium DevTools extension: capture the traffic **you** generate while browsing,
-pick a request, and hand it to BountyReper for AI-assisted testing.
+pick a request, and hand it to BountyReaper for AI-assisted testing.
 
 This is the human-driven capture path. It complements
 [`hackbrowser`](../../packages/hackbrowser), which crawls autonomously:
@@ -21,8 +21,8 @@ for that case: you were going to drive the browser anyway.
 
 1. `chrome://extensions/` → enable **Developer mode** → **Load unpacked**
 2. Select this directory (`plugins/browser-extension/`)
-3. Start a server: `bountyreper serve` (defaults to `http://127.0.0.1:4096`)
-4. Open the target → **F12** → **BountyReper** tab → **Validate**
+3. Start a server: `bountyreaper serve` (defaults to `http://127.0.0.1:4096`)
+4. Open the target → **F12** → **BountyReaper** tab → **Validate**
 
 ## Use
 
@@ -36,10 +36,10 @@ endpoints on the same target.
 
 ## Server connection
 
-Local servers need no credentials — BountyReper trusts loopback and only demands
+Local servers need no credentials — BountyReaper trusts loopback and only demands
 Basic auth for requests arriving proxied (through a Cloudflare tunnel, say). Fill
 the password field only when pointing at a remote server; it's the value of
-`BOUNTYREPER_SERVER_PASSWORD`.
+`BOUNTYREAPER_SERVER_PASSWORD`.
 
 ## What gets sent
 

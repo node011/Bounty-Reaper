@@ -1,12 +1,12 @@
-# BountyReper Code Owners
+# BountyReaper Code Owners
 
 # Core CLI & agents
-packages/bountyreper/            @badchars
-packages/bountyreper/src/agent/  @badchars
+packages/bountyreaper/            @badchars
+packages/bountyreaper/src/agent/  @badchars
 
 # Security knowledge base & skills
 knowledge/                       @badchars
-.bountyreper/skill/              @badchars
+.bountyreaper/skill/              @badchars
 
 # Web & Desktop
 packages/app/                    @badchars

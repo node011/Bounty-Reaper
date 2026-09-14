@@ -1,7 +1,7 @@
 import type { APIEvent } from "@solidjs/start/server"
 import { json } from "@solidjs/router"
-import { Database } from "@bountyreper-io/console-core/drizzle/index.js"
-import { UserTable } from "@bountyreper-io/console-core/schema/user.sql.js"
+import { Database } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { UserTable } from "@bountyreaper-io/console-core/schema/user.sql.js"
 
 export async function GET(evt: APIEvent) {
   return json({

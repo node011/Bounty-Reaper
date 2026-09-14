@@ -1,16 +1,16 @@
 import { Router } from "@solidjs/router"
 import { FileRoutes } from "@solidjs/start/router"
-import { Font } from "@bountyreper-io/ui/font"
+import { Font } from "@bountyreaper-io/ui/font"
 import { MetaProvider } from "@solidjs/meta"
-import { MarkedProvider } from "@bountyreper-io/ui/context/marked"
-import { DialogProvider } from "@bountyreper-io/ui/context/dialog"
-import { I18nProvider, type UiI18nParams } from "@bountyreper-io/ui/context"
-import { dict as uiEn } from "@bountyreper-io/ui/i18n/en"
-import { dict as uiZh } from "@bountyreper-io/ui/i18n/zh"
+import { MarkedProvider } from "@bountyreaper-io/ui/context/marked"
+import { DialogProvider } from "@bountyreaper-io/ui/context/dialog"
+import { I18nProvider, type UiI18nParams } from "@bountyreaper-io/ui/context"
+import { dict as uiEn } from "@bountyreaper-io/ui/i18n/en"
+import { dict as uiZh } from "@bountyreaper-io/ui/i18n/zh"
 import { createEffect, createMemo, Suspense, type ParentProps } from "solid-js"
 import { getRequestEvent } from "solid-js/web"
 import "./app.css"
-import { Favicon } from "@bountyreper-io/ui/favicon"
+import { Favicon } from "@bountyreaper-io/ui/favicon"
 
 function resolveTemplate(text: string, params?: UiI18nParams) {
   if (!params) return text

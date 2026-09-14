@@ -2,21 +2,21 @@ import { Popover as Kobalte } from "@kobalte/core/popover"
 import { Component, ComponentProps, createMemo, JSX, Show, ValidComponent } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useLocal } from "@/context/local"
-import { useDialog } from "@bountyreper-io/ui/context/dialog"
+import { useDialog } from "@bountyreaper-io/ui/context/dialog"
 import { popularProviders } from "@/hooks/use-providers"
-import { Button } from "@bountyreper-io/ui/button"
-import { IconButton } from "@bountyreper-io/ui/icon-button"
-import { Tag } from "@bountyreper-io/ui/tag"
-import { Dialog } from "@bountyreper-io/ui/dialog"
-import { List } from "@bountyreper-io/ui/list"
-import { Tooltip } from "@bountyreper-io/ui/tooltip"
+import { Button } from "@bountyreaper-io/ui/button"
+import { IconButton } from "@bountyreaper-io/ui/icon-button"
+import { Tag } from "@bountyreaper-io/ui/tag"
+import { Dialog } from "@bountyreaper-io/ui/dialog"
+import { List } from "@bountyreaper-io/ui/list"
+import { Tooltip } from "@bountyreaper-io/ui/tooltip"
 import { DialogSelectProvider } from "./dialog-select-provider"
 import { DialogManageModels } from "./dialog-manage-models"
 import { ModelTooltip } from "./model-tooltip"
 import { useLanguage } from "@/context/language"
 
 const isFree = (provider: string, cost: { input: number } | undefined) =>
-  provider === "bountyreper" && (!cost || cost.input === 0)
+  provider === "bountyreaper" && (!cost || cost.input === 0)
 
 const ModelList: Component<{
   provider?: string

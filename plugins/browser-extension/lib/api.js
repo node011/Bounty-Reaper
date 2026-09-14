@@ -1,5 +1,5 @@
 /**
- * BountyReper server client.
+ * BountyReaper server client.
  *
  * Two calls carry the whole integration:
  *   POST /session/ingest  — hand over a captured request, get a sessionID back
@@ -24,11 +24,11 @@ function brJoin(base, path) {
  */
 function brAuth(password, username) {
   if (!password) return {}
-  const user = username || "bountyreper"
+  const user = username || "bountyreaper"
   return { Authorization: "Basic " + btoa(`${user}:${password}`) }
 }
 
-/** Is a BountyReper server listening, and which version? */
+/** Is a BountyReaper server listening, and which version? */
 async function brProbe(serverUrl, { password, username, timeoutMs = 5000 } = {}) {
   const ctl = new AbortController()
   const timer = setTimeout(() => ctl.abort(), timeoutMs)

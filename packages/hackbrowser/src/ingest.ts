@@ -10,7 +10,7 @@ export function initAuth(username?: string, password?: string): void {
     authHeader = ""
     return
   }
-  authHeader = btoa(`${username ?? "bountyreper"}:${password}`)
+  authHeader = btoa(`${username ?? "bountyreaper"}:${password}`)
   authHeader = `Basic ${authHeader}`
 }
 
@@ -55,7 +55,7 @@ export async function initSession(
 }
 
 // ============================================================
-// Send captured request to BountyReper /session/ingest
+// Send captured request to BountyReaper /session/ingest
 // ============================================================
 
 export function buildIngestPayload(
@@ -169,7 +169,7 @@ export function headersChanged(oldHeaders: Record<string, string>, newHeaders: R
   return false
 }
 
-/** Register a credential with BountyReper. Returns the credential ID. */
+/** Register a credential with BountyReaper. Returns the credential ID. */
 export async function registerCredential(serverUrl: string, sessionID: string, label: string): Promise<string | null> {
   try {
     const res = await fetch(`${serverUrl}/session/${sessionID}/web/credentials`, {
@@ -190,7 +190,7 @@ export async function registerCredential(serverUrl: string, sessionID: string, l
   }
 }
 
-/** Sync credential auth headers with BountyReper (PATCH). */
+/** Sync credential auth headers with BountyReaper (PATCH). */
 export async function syncCredentialHeaders(
   serverUrl: string,
   sessionID: string,
@@ -214,7 +214,7 @@ export async function syncCredentialHeaders(
 }
 
 // ============================================================
-// Page-diff: send element availability to BountyReper (Aşama 12)
+// Page-diff: send element availability to BountyReaper (Aşama 12)
 // ============================================================
 
 export async function sendPageDiff(

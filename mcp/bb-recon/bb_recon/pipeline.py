@@ -34,7 +34,7 @@ def artifact_dir(domain: str) -> Path:
     base = Path(
         os.environ.get(
             "BB_RECON_OUTPUT_DIR",
-            str(Path.cwd() / ".bountyreper" / "recon"),
+            str(Path.cwd() / ".bountyreaper" / "recon"),
         )
     ) / domain.replace("/", "_")
     base.mkdir(parents=True, exist_ok=True)

@@ -1,6 +1,6 @@
 export async function GET() {
   const response = await fetch(
-    "https://raw.githubusercontent.com/bounty-reper/BountyReper/refs/heads/dev/packages/sdk/openapi.json",
+    "https://raw.githubusercontent.com/node011/Bounty-Reaper/refs/heads/dev/packages/sdk/openapi.json",
   )
   const json = await response.json()
   return json

@@ -36,7 +36,7 @@ export const dict = {
   "email.subscribe": "Suscribirse",
   "email.success": "Casi listo, revisa tu bandeja de entrada y confirma tu correo",
 
-  "notFound.title": "No encontrado | bountyreper",
+  "notFound.title": "No encontrado | bountyreaper",
   "notFound.heading": "404 - Página no encontrada",
   "notFound.home": "Inicio",
   "notFound.docs": "Documentación",
@@ -76,21 +76,21 @@ export const dict = {
   "error.reloadAmountMin": "La cantidad de recarga debe ser al menos ${{amount}}",
   "error.reloadTriggerMin": "El disparador de saldo debe ser al menos ${{amount}}",
 
-  "home.title": "BountyReper | El agente de codificación IA de código abierto",
+  "home.title": "BountyReaper | El agente de codificación IA de código abierto",
 
-  "temp.title": "bountyreper | Agente de codificación IA creado para la terminal",
+  "temp.title": "bountyreaper | Agente de codificación IA creado para la terminal",
   "temp.hero.title": "El agente de codificación IA creado para la terminal",
-  "temp.zen": "bountyreper zen",
+  "temp.zen": "bountyreaper zen",
   "temp.getStarted": "Empezar",
   "temp.feature.native.title": "TUI Nativa",
   "temp.feature.native.body": "Una interfaz de terminal responsiva, nativa y personalizable",
   "temp.feature.zen.beforeLink": "Una lista",
   "temp.feature.zen.link": "seleccionada de modelos",
-  "temp.feature.zen.afterLink": "proporcionada por bountyreper",
+  "temp.feature.zen.afterLink": "proporcionada por bountyreaper",
   "temp.feature.models.beforeLink": "Soporta más de 75 proveedores de LLM a través de",
   "temp.feature.models.afterLink": ", incluyendo modelos locales",
-  "temp.screenshot.caption": "bountyreper TUI con el tema tokyonight",
-  "temp.screenshot.alt": "bountyreper TUI con tema tokyonight",
+  "temp.screenshot.caption": "bountyreaper TUI con el tema tokyonight",
+  "temp.screenshot.alt": "bountyreaper TUI con tema tokyonight",
 
   "home.banner.badge": "Nuevo",
   "home.banner.text": "Aplicación de escritorio disponible en beta",
@@ -104,9 +104,9 @@ export const dict = {
 
   "home.install.ariaLabel": "Opciones de instalación",
 
-  "home.what.title": "¿Qué es BountyReper?",
+  "home.what.title": "¿Qué es BountyReaper?",
   "home.what.body":
-    "BountyReper es un agente de código abierto que te ayuda a escribir código en tu terminal, IDE o escritorio.",
+    "BountyReaper es un agente de código abierto que te ayuda a escribir código en tu terminal, IDE o escritorio.",
   "home.what.lsp.title": "LSP habilitado",
   "home.what.lsp.body": "Carga automáticamente los LSPs correctos para el LLM",
   "home.what.multiSession.title": "Multi-sesión",
@@ -125,44 +125,44 @@ export const dict = {
 
   "home.growth.title": "El agente de codificación IA de código abierto",
   "home.growth.body":
-    "Con más de <strong>{{stars}}</strong> estrellas en GitHub, <strong>{{contributors}}</strong> colaboradores y más de <strong>{{commits}}</strong> commits, BountyReper es usado y confiado por más de <strong>{{monthlyUsers}}</strong> desarrolladores cada mes.",
+    "Con más de <strong>{{stars}}</strong> estrellas en GitHub, <strong>{{contributors}}</strong> colaboradores y más de <strong>{{commits}}</strong> commits, BountyReaper es usado y confiado por más de <strong>{{monthlyUsers}}</strong> desarrolladores cada mes.",
   "home.growth.githubStars": "Estrellas en GitHub",
   "home.growth.contributors": "Colaboradores",
   "home.growth.monthlyDevs": "Desarrolladores Mensuales",
 
   "home.privacy.title": "Creado pensando en la privacidad",
   "home.privacy.body":
-    "BountyReper no almacena tu código ni datos de contexto, para que pueda operar en entornos sensibles a la privacidad.",
+    "BountyReaper no almacena tu código ni datos de contexto, para que pueda operar en entornos sensibles a la privacidad.",
   "home.privacy.learnMore": "Más información sobre",
   "home.privacy.link": "privacidad",
 
-  "home.faq.q1": "¿Qué es BountyReper?",
+  "home.faq.q1": "¿Qué es BountyReaper?",
   "home.faq.a1":
-    "BountyReper es un agente de código abierto que te ayuda a escribir y ejecutar código con cualquier modelo de IA. Está disponible como interfaz de terminal, aplicación de escritorio o extensión de IDE.",
-  "home.faq.q2": "¿Cómo uso BountyReper?",
+    "BountyReaper es un agente de código abierto que te ayuda a escribir y ejecutar código con cualquier modelo de IA. Está disponible como interfaz de terminal, aplicación de escritorio o extensión de IDE.",
+  "home.faq.q2": "¿Cómo uso BountyReaper?",
   "home.faq.a2.before": "La forma más fácil de empezar es leer la",
   "home.faq.a2.link": "introducción",
-  "home.faq.q3": "¿Necesito suscripciones extra de IA para usar BountyReper?",
+  "home.faq.q3": "¿Necesito suscripciones extra de IA para usar BountyReaper?",
   "home.faq.a3.p1":
-    "No necesariamente, BountyReper viene con un conjunto de modelos gratuitos que puedes usar sin crear una cuenta.",
+    "No necesariamente, BountyReaper viene con un conjunto de modelos gratuitos que puedes usar sin crear una cuenta.",
   "home.faq.a3.p2.beforeZen":
     "Aparte de estos, puedes usar cualquiera de los modelos de codificación populares creando una cuenta de",
   "home.faq.a3.p2.afterZen": ".",
   "home.faq.a3.p3":
-    "Aunque animamos a los usuarios a usar Zen, BountyReper también funciona con todos los proveedores populares como OpenAI, Anthropic, xAI, etc.",
+    "Aunque animamos a los usuarios a usar Zen, BountyReaper también funciona con todos los proveedores populares como OpenAI, Anthropic, xAI, etc.",
   "home.faq.a3.p4.beforeLocal": "Incluso puedes conectar tus",
   "home.faq.a3.p4.localLink": "modelos locales",
-  "home.faq.q4": "¿Puedo usar mis suscripciones de IA existentes con BountyReper?",
+  "home.faq.q4": "¿Puedo usar mis suscripciones de IA existentes con BountyReaper?",
   "home.faq.a4.p1":
-    "Sí, BountyReper soporta planes de suscripción de los principales proveedores. Puedes usar tus suscripciones de Claude Pro/Max, ChatGPT Plus/Pro o GitHub Copilot.",
-  "home.faq.q5": "¿Solo puedo usar BountyReper en la terminal?",
-  "home.faq.a5.beforeDesktop": "¡Ya no! BountyReper ahora está disponible como una aplicación para tu",
+    "Sí, BountyReaper soporta planes de suscripción de los principales proveedores. Puedes usar tus suscripciones de Claude Pro/Max, ChatGPT Plus/Pro o GitHub Copilot.",
+  "home.faq.q5": "¿Solo puedo usar BountyReaper en la terminal?",
+  "home.faq.a5.beforeDesktop": "¡Ya no! BountyReaper ahora está disponible como una aplicación para tu",
   "home.faq.a5.desktop": "escritorio",
   "home.faq.a5.and": "y",
   "home.faq.a5.web": "web",
-  "home.faq.q6": "¿Cuánto cuesta BountyReper?",
+  "home.faq.q6": "¿Cuánto cuesta BountyReaper?",
   "home.faq.a6":
-    "BountyReper es 100% gratuito de usar. También viene con un conjunto de modelos gratuitos. Puede haber costos adicionales si conectas cualquier otro proveedor.",
+    "BountyReaper es 100% gratuito de usar. También viene con un conjunto de modelos gratuitos. Puede haber costos adicionales si conectas cualquier otro proveedor.",
   "home.faq.q7": "¿Qué hay sobre datos y privacidad?",
   "home.faq.a7.p1":
     "Tus datos e información solo se almacenan cuando usas nuestros modelos gratuitos o creas enlaces compartibles.",
@@ -170,8 +170,8 @@ export const dict = {
   "home.faq.a7.p2.modelsLink": "nuestros modelos",
   "home.faq.a7.p2.and": "y",
   "home.faq.a7.p2.shareLink": "páginas compartidas",
-  "home.faq.q8": "¿Es BountyReper de código abierto?",
-  "home.faq.a8.p1": "Sí, BountyReper es totalmente de código abierto. El código fuente es público en",
+  "home.faq.q8": "¿Es BountyReaper de código abierto?",
+  "home.faq.a8.p1": "Sí, BountyReaper es totalmente de código abierto. El código fuente es público en",
   "home.faq.a8.p2": "bajo la",
   "home.faq.a8.mitLicense": "Licencia MIT",
   "home.faq.a8.p3":
@@ -179,24 +179,24 @@ export const dict = {
 
   "home.zenCta.title": "Accede a modelos optimizados y confiables para agentes de codificación",
   "home.zenCta.body":
-    "Zen te da acceso a un conjunto seleccionado de modelos de IA que BountyReper ha probado y evaluado específicamente para agentes de codificación. No necesitas preocuparte por el rendimiento y la calidad inconsistentes entre proveedores, usa modelos validados que funcionan.",
+    "Zen te da acceso a un conjunto seleccionado de modelos de IA que BountyReaper ha probado y evaluado específicamente para agentes de codificación. No necesitas preocuparte por el rendimiento y la calidad inconsistentes entre proveedores, usa modelos validados que funcionan.",
   "home.zenCta.link": "Aprende sobre Zen",
 
   "zen.title":
-    "BountyReper Zen | Un conjunto seleccionado de modelos optimizados y confiables para agentes de codificación",
+    "BountyReaper Zen | Un conjunto seleccionado de modelos optimizados y confiables para agentes de codificación",
   "zen.hero.title": "Modelos optimizados y confiables para agentes de codificación",
   "zen.hero.body":
-    "Zen te da acceso a un conjunto seleccionado de modelos de IA que BountyReper ha probado y evaluado específicamente para agentes de codificación. No necesitas preocuparte por el rendimiento y la calidad inconsistentes, usa modelos validados que funcionan.",
+    "Zen te da acceso a un conjunto seleccionado de modelos de IA que BountyReaper ha probado y evaluado específicamente para agentes de codificación. No necesitas preocuparte por el rendimiento y la calidad inconsistentes, usa modelos validados que funcionan.",
 
-  "zen.faq.q1": "¿Qué es BountyReper Zen?",
+  "zen.faq.q1": "¿Qué es BountyReaper Zen?",
   "zen.faq.a1":
-    "Zen es un conjunto seleccionado de modelos de IA probados y evaluados para agentes de codificación, creado por el equipo detrás de BountyReper.",
+    "Zen es un conjunto seleccionado de modelos de IA probados y evaluados para agentes de codificación, creado por el equipo detrás de BountyReaper.",
   "zen.faq.q2": "¿Qué hace a Zen más preciso?",
   "zen.faq.a2":
     "Zen solo proporciona modelos que han sido específicamente probados y evaluados para agentes de codificación. No usarías un cuchillo de mantequilla para cortar carne, no uses modelos pobres para codificar.",
   "zen.faq.q3": "¿Es Zen más barato?",
   "zen.faq.a3":
-    "Zen no tiene fines de lucro. Zen te transfiere los costos de los proveedores de modelos. Cuanto mayor sea el uso de Zen, más podrá BountyReper negociar mejores tarifas y transferírtelas.",
+    "Zen no tiene fines de lucro. Zen te transfiere los costos de los proveedores de modelos. Cuanto mayor sea el uso de Zen, más podrá BountyReaper negociar mejores tarifas y transferírtelas.",
   "zen.faq.q4": "¿Cuánto cuesta Zen?",
   "zen.faq.a4.p1.beforePricing": "Zen",
   "zen.faq.a4.p1.pricingLink": "cobra por solicitud",
@@ -204,7 +204,7 @@ export const dict = {
   "zen.faq.a4.p2.beforeAccount": "Tu costo total depende del uso, y puedes establecer límites de gasto mensuales en tu",
   "zen.faq.a4.p2.accountLink": "cuenta",
   "zen.faq.a4.p3":
-    "Para cubrir costos, BountyReper añade solo una pequeña tarifa de procesamiento de pagos de $1.23 por cada recarga de saldo de $20.",
+    "Para cubrir costos, BountyReaper añade solo una pequeña tarifa de procesamiento de pagos de $1.23 por cada recarga de saldo de $20.",
   "zen.faq.q5": "¿Qué hay sobre datos y privacidad?",
   "zen.faq.a5.beforeExceptions":
     "Todos los modelos Zen están alojados en EE. UU. Los proveedores siguen una política de cero retención y no usan tus datos para entrenamiento de modelos, con las",
@@ -215,7 +215,7 @@ export const dict = {
   "zen.faq.a7": "Sí, puedes deshabilitar la facturación en cualquier momento y usar tu saldo restante.",
   "zen.faq.q8": "¿Puedo usar Zen con otros agentes de codificación?",
   "zen.faq.a8":
-    "Aunque Zen funciona genial con BountyReper, puedes usar Zen con cualquier agente. Sigue las instrucciones de configuración en tu agente de codificación preferido.",
+    "Aunque Zen funciona genial con BountyReaper, puedes usar Zen con cualquier agente. Sigue las instrucciones de configuración en tu agente de codificación preferido.",
 
   "zen.cta.start": "Empieza con Zen",
   "zen.pricing.title": "Añade $20 de saldo prepago",
@@ -224,12 +224,12 @@ export const dict = {
   "zen.problem.title": "¿Qué problema está resolviendo Zen?",
   "zen.problem.body":
     "Hay muchos modelos disponibles, pero solo unos pocos funcionan bien con agentes de codificación. La mayoría de los proveedores los configuran de manera diferente con resultados variables.",
-  "zen.problem.subtitle": "Estamos arreglando esto para todos, no solo para usuarios de BountyReper.",
+  "zen.problem.subtitle": "Estamos arreglando esto para todos, no solo para usuarios de BountyReaper.",
   "zen.problem.item1": "Probando modelos seleccionados y consultando a sus equipos",
   "zen.problem.item2": "Trabajando con proveedores para asegurar que se entreguen correctamente",
   "zen.problem.item3": "Evaluando todas las combinaciones modelo-proveedor que recomendamos",
   "zen.how.title": "Cómo funciona Zen",
-  "zen.how.body": "Aunque sugerimos usar Zen con BountyReper, puedes usar Zen con cualquier agente.",
+  "zen.how.body": "Aunque sugerimos usar Zen con BountyReaper, puedes usar Zen con cualquier agente.",
   "zen.how.step1.title": "Regístrate y añade $20 de saldo",
   "zen.how.step1.beforeLink": "sigue las",
   "zen.how.step1.link": "instrucciones de configuración",
@@ -243,12 +243,12 @@ export const dict = {
     "Todos los modelos Zen están alojados en EE. UU. Los proveedores siguen una política de cero retención y no usan tus datos para entrenamiento de modelos, con las",
   "zen.privacy.exceptionsLink": "siguientes excepciones",
 
-  "black.meta.title": "BountyReper Black | Accede a los mejores modelos de codificación del mundo",
+  "black.meta.title": "BountyReaper Black | Accede a los mejores modelos de codificación del mundo",
   "black.meta.description":
-    "Obtén acceso a Claude, GPT, Gemini y más con los planes de suscripción de BountyReper Black.",
+    "Obtén acceso a Claude, GPT, Gemini y más con los planes de suscripción de BountyReaper Black.",
   "black.hero.title": "Accede a los mejores modelos de codificación del mundo",
   "black.hero.subtitle": "Incluyendo Claude, GPT, Gemini y más",
-  "black.title": "BountyReper Black | Precios",
+  "black.title": "BountyReaper Black | Precios",
   "black.plan.icon20": "Plan Black 20",
   "black.plan.icon100": "Plan Black 100",
   "black.plan.icon200": "Plan Black 200",
@@ -266,10 +266,10 @@ export const dict = {
   "black.action.continue": "Continuar",
   "black.finePrint.beforeTerms": "Los precios mostrados no incluyen impuestos aplicables",
   "black.finePrint.terms": "Términos de Servicio",
-  "black.workspace.title": "BountyReper Black | Seleccionar Espacio de Trabajo",
+  "black.workspace.title": "BountyReaper Black | Seleccionar Espacio de Trabajo",
   "black.workspace.selectPlan": "Selecciona un espacio de trabajo para este plan",
   "black.workspace.name": "Espacio de trabajo {{n}}",
-  "black.subscribe.title": "Suscribirse a BountyReper Black",
+  "black.subscribe.title": "Suscribirse a BountyReaper Black",
   "black.subscribe.paymentMethod": "Método de pago",
   "black.subscribe.loadingPaymentForm": "Cargando formulario de pago...",
   "black.subscribe.selectWorkspaceToContinue": "Selecciona un espacio de trabajo para continuar",
@@ -281,9 +281,9 @@ export const dict = {
   "black.subscribe.processing": "Procesando...",
   "black.subscribe.submit": "Suscribirse ${{plan}}",
   "black.subscribe.form.chargeNotice": "Solo se te cobrará cuando tu suscripción se active",
-  "black.subscribe.success.title": "Estás en la lista de espera de BountyReper Black",
+  "black.subscribe.success.title": "Estás en la lista de espera de BountyReaper Black",
   "black.subscribe.success.subscriptionPlan": "Plan de suscripción",
-  "black.subscribe.success.planName": "BountyReper Black {{plan}}",
+  "black.subscribe.success.planName": "BountyReaper Black {{plan}}",
   "black.subscribe.success.amount": "Cantidad",
   "black.subscribe.success.amountValue": "${{plan}} al mes",
   "black.subscribe.success.paymentMethod": "Método de pago",
@@ -309,15 +309,15 @@ export const dict = {
     "Accede a modelos configurados para un rendimiento óptimo - sin degradaciones ni enrutamiento a proveedores más baratos.",
   "workspace.newUser.feature.lockin.title": "Sin Bloqueo",
   "workspace.newUser.feature.lockin.body":
-    "Usa Zen con cualquier agente de codificación, y continúa usando otros proveedores con bountyreper cuando quieras.",
+    "Usa Zen con cualquier agente de codificación, y continúa usando otros proveedores con bountyreaper cuando quieras.",
   "workspace.newUser.copyApiKey": "Copiar clave API",
   "workspace.newUser.copyKey": "Copiar Clave",
   "workspace.newUser.copied": "¡Copiada!",
   "workspace.newUser.step.enableBilling": "Habilitar facturación",
   "workspace.newUser.step.login.before": "Ejecuta",
-  "workspace.newUser.step.login.after": "y selecciona bountyreper",
+  "workspace.newUser.step.login.after": "y selecciona bountyreaper",
   "workspace.newUser.step.pasteKey": "Pega tu clave API",
-  "workspace.newUser.step.models.before": "Inicia bountyreper y ejecuta",
+  "workspace.newUser.step.models.before": "Inicia bountyreaper y ejecuta",
   "workspace.newUser.step.models.after": "para seleccionar un modelo",
 
   "workspace.models.title": "Modelos",
@@ -360,10 +360,10 @@ export const dict = {
   "workspace.cost.subscriptionShort": "sub",
 
   "workspace.keys.title": "Claves API",
-  "workspace.keys.subtitle": "Gestiona tus claves API para acceder a los servicios de bountyreper.",
+  "workspace.keys.subtitle": "Gestiona tus claves API para acceder a los servicios de bountyreaper.",
   "workspace.keys.create": "Crear Clave API",
   "workspace.keys.placeholder": "Introduce nombre de la clave",
-  "workspace.keys.empty": "Crea una clave API de bountyreper Gateway",
+  "workspace.keys.empty": "Crea una clave API de bountyreaper Gateway",
   "workspace.keys.table.name": "Nombre",
   "workspace.keys.table.key": "Clave",
   "workspace.keys.table.createdBy": "Creado Por",
@@ -468,15 +468,15 @@ export const dict = {
   "workspace.black.time.minutes": "minutos",
   "workspace.black.time.fewSeconds": "unos pocos segundos",
   "workspace.black.subscription.title": "Suscripción",
-  "workspace.black.subscription.message": "Estás suscrito a BountyReper Black por ${{plan}} al mes.",
+  "workspace.black.subscription.message": "Estás suscrito a BountyReaper Black por ${{plan}} al mes.",
   "workspace.black.subscription.manage": "Gestionar Suscripción",
   "workspace.black.subscription.rollingUsage": "Uso de 5 horas",
   "workspace.black.subscription.weeklyUsage": "Uso Semanal",
   "workspace.black.subscription.resetsIn": "Se reinicia en",
   "workspace.black.subscription.useBalance": "Usa tu saldo disponible después de alcanzar los límites de uso",
   "workspace.black.waitlist.title": "Lista de Espera",
-  "workspace.black.waitlist.joined": "Estás en la lista de espera para el plan BountyReper Black de ${{plan}} al mes.",
-  "workspace.black.waitlist.ready": "Estamos listos para inscribirte en el plan BountyReper Black de ${{plan}} al mes.",
+  "workspace.black.waitlist.joined": "Estás en la lista de espera para el plan BountyReaper Black de ${{plan}} al mes.",
+  "workspace.black.waitlist.ready": "Estamos listos para inscribirte en el plan BountyReaper Black de ${{plan}} al mes.",
   "workspace.black.waitlist.leave": "Abandonar Lista de Espera",
   "workspace.black.waitlist.leaving": "Abandonando...",
   "workspace.black.waitlist.left": "Abandonada",
@@ -486,15 +486,15 @@ export const dict = {
   "workspace.black.waitlist.enrollNote":
     "Cuando haces clic en Inscribirse, tu suscripción comienza inmediatamente y se cargará a tu tarjeta.",
 
-  "download.title": "BountyReper | Descargar",
-  "download.meta.description": "Descarga BountyReper para macOS, Windows y Linux",
-  "download.hero.title": "Descargar BountyReper",
+  "download.title": "BountyReaper | Descargar",
+  "download.meta.description": "Descarga BountyReaper para macOS, Windows y Linux",
+  "download.hero.title": "Descargar BountyReaper",
   "download.hero.subtitle": "Disponible en Beta para macOS, Windows y Linux",
   "download.hero.button": "Descargar para {{os}}",
-  "download.section.terminal": "BountyReper Terminal",
-  "download.section.desktop": "BountyReper Desktop (Beta)",
-  "download.section.extensions": "Extensiones BountyReper",
-  "download.section.integrations": "Integraciones BountyReper",
+  "download.section.terminal": "BountyReaper Terminal",
+  "download.section.desktop": "BountyReaper Desktop (Beta)",
+  "download.section.extensions": "Extensiones BountyReaper",
+  "download.section.integrations": "Integraciones BountyReaper",
   "download.action.download": "Descargar",
   "download.action.install": "Instalar",
 
@@ -505,26 +505,26 @@ export const dict = {
   "download.platform.linuxRpm": "Linux (.rpm)",
 
   "download.faq.a3.beforeLocal":
-    "No necesariamente, pero probablemente. Necesitarás una suscripción de IA si quieres conectar BountyReper a un proveedor de pago, aunque puedes trabajar con",
+    "No necesariamente, pero probablemente. Necesitarás una suscripción de IA si quieres conectar BountyReaper a un proveedor de pago, aunque puedes trabajar con",
   "download.faq.a3.localLink": "modelos locales",
   "download.faq.a3.afterLocal.beforeZen": "gratis. Aunque animamos a los usuarios a usar",
   "download.faq.a3.afterZen":
-    ", BountyReper funciona con todos los proveedores populares como OpenAI, Anthropic, xAI, etc.",
+    ", BountyReaper funciona con todos los proveedores populares como OpenAI, Anthropic, xAI, etc.",
 
-  "download.faq.a5.p1": "BountyReper es 100% gratuito de usar.",
+  "download.faq.a5.p1": "BountyReaper es 100% gratuito de usar.",
   "download.faq.a5.p2.beforeZen":
-    "Cualquier costo adicional vendrá de tu suscripción a un proveedor de modelos. Aunque BountyReper funciona con cualquier proveedor de modelos, recomendamos usar",
+    "Cualquier costo adicional vendrá de tu suscripción a un proveedor de modelos. Aunque BountyReaper funciona con cualquier proveedor de modelos, recomendamos usar",
   "download.faq.a5.p2.afterZen": ".",
 
-  "download.faq.a6.p1": "Tus datos e información solo se almacenan cuando creas enlaces compartibles en BountyReper.",
+  "download.faq.a6.p1": "Tus datos e información solo se almacenan cuando creas enlaces compartibles en BountyReaper.",
   "download.faq.a6.p2.beforeShare": "Más información sobre",
   "download.faq.a6.shareLink": "páginas compartidas",
 
-  "enterprise.title": "BountyReper | Soluciones empresariales para tu organización",
-  "enterprise.meta.description": "Contacta a BountyReper para soluciones empresariales",
+  "enterprise.title": "BountyReaper | Soluciones empresariales para tu organización",
+  "enterprise.meta.description": "Contacta a BountyReaper para soluciones empresariales",
   "enterprise.hero.title": "Tu código es tuyo",
   "enterprise.hero.body1":
-    "BountyReper opera de forma segura dentro de tu organización sin almacenar datos ni contexto, y sin restricciones de licencia ni reclamaciones de propiedad. Inicia una prueba con tu equipo, luego despliégalo en toda tu organización integrándolo con tu SSO y pasarela de IA interna.",
+    "BountyReaper opera de forma segura dentro de tu organización sin almacenar datos ni contexto, y sin restricciones de licencia ni reclamaciones de propiedad. Inicia una prueba con tu equipo, luego despliégalo en toda tu organización integrándolo con tu SSO y pasarela de IA interna.",
   "enterprise.hero.body2": "Déjanos saber cómo podemos ayudar.",
   "enterprise.form.name.label": "Nombre completo",
   "enterprise.form.name.placeholder": "Jeff Bezos",
@@ -538,29 +538,29 @@ export const dict = {
   "enterprise.form.sending": "Enviando...",
   "enterprise.form.success": "Mensaje enviado, estaremos en contacto pronto.",
   "enterprise.faq.title": "FAQ",
-  "enterprise.faq.q1": "¿Qué es BountyReper Enterprise?",
+  "enterprise.faq.q1": "¿Qué es BountyReaper Enterprise?",
   "enterprise.faq.a1":
-    "BountyReper Enterprise es para organizaciones que quieren asegurar que su código y datos nunca salgan de su infraestructura. Puede hacer esto usando una configuración centralizada que se integra con tu SSO y pasarela de IA interna.",
-  "enterprise.faq.q2": "¿Cómo empiezo con BountyReper Enterprise?",
+    "BountyReaper Enterprise es para organizaciones que quieren asegurar que su código y datos nunca salgan de su infraestructura. Puede hacer esto usando una configuración centralizada que se integra con tu SSO y pasarela de IA interna.",
+  "enterprise.faq.q2": "¿Cómo empiezo con BountyReaper Enterprise?",
   "enterprise.faq.a2":
-    "Simplemente empieza con una prueba interna con tu equipo. BountyReper por defecto no almacena tu código ni datos de contexto, haciendo fácil empezar. Luego contáctanos para discutir precios y opciones de implementación.",
+    "Simplemente empieza con una prueba interna con tu equipo. BountyReaper por defecto no almacena tu código ni datos de contexto, haciendo fácil empezar. Luego contáctanos para discutir precios y opciones de implementación.",
   "enterprise.faq.q3": "¿Cómo funciona el precio para empresas?",
   "enterprise.faq.a3":
     "Ofrecemos precios empresariales por asiento. Si tienes tu propia pasarela de LLM, no cobramos por los tokens usados. Para más detalles, contáctanos para una cotización personalizada basada en las necesidades de tu organización.",
-  "enterprise.faq.q4": "¿Están mis datos seguros con BountyReper Enterprise?",
+  "enterprise.faq.q4": "¿Están mis datos seguros con BountyReaper Enterprise?",
   "enterprise.faq.a4":
-    "Sí. BountyReper no almacena tu código ni datos de contexto. Todo el procesamiento ocurre localmente o a través de llamadas directas a la API de tu proveedor de IA. Con configuración central y integración SSO, tus datos permanecen seguros dentro de la infraestructura de tu organización.",
+    "Sí. BountyReaper no almacena tu código ni datos de contexto. Todo el procesamiento ocurre localmente o a través de llamadas directas a la API de tu proveedor de IA. Con configuración central y integración SSO, tus datos permanecen seguros dentro de la infraestructura de tu organización.",
 
-  "brand.title": "BountyReper | Marca",
-  "brand.meta.description": "Guías de marca de BountyReper",
+  "brand.title": "BountyReaper | Marca",
+  "brand.meta.description": "Guías de marca de BountyReaper",
   "brand.heading": "Guías de marca",
-  "brand.subtitle": "Recursos y activos para ayudarte a trabajar con la marca BountyReper.",
+  "brand.subtitle": "Recursos y activos para ayudarte a trabajar con la marca BountyReaper.",
   "brand.downloadAll": "Descargar todos los activos",
 
-  "changelog.title": "BountyReper | Registro de cambios",
-  "changelog.meta.description": "Notas de versión y registro de cambios de BountyReper",
+  "changelog.title": "BountyReaper | Registro de cambios",
+  "changelog.meta.description": "Notas de versión y registro de cambios de BountyReaper",
   "changelog.hero.title": "Registro de cambios",
-  "changelog.hero.subtitle": "Nuevas actualizaciones y mejoras para BountyReper",
+  "changelog.hero.subtitle": "Nuevas actualizaciones y mejoras para BountyReaper",
   "changelog.empty": "No se encontraron entradas en el registro de cambios.",
   "changelog.viewJson": "Ver JSON",
 

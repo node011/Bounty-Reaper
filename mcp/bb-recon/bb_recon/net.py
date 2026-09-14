@@ -10,7 +10,7 @@ import os
 
 import httpx
 
-UA = os.environ.get("BB_RECON_UA", "bb-recon/0.2 (BountyReper recon; +https://bountyreper.io)")
+UA = os.environ.get("BB_RECON_UA", "bb-recon/0.2 (BountyReaper recon; +https://bountyreper.io)")
 
 # Concurrency is per-process, not per-host. Deliberately modest: recon runs
 # against production estates, and a bug bounty program that rate-limits you is a

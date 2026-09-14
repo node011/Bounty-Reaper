@@ -1,5 +1,5 @@
 import { createStore, produce, reconcile } from "solid-js/store"
-import type { FileNode } from "@bountyreper-io/sdk/v2"
+import type { FileNode } from "@bountyreaper-io/sdk/v2"
 
 type DirectoryState = {
   expanded: boolean

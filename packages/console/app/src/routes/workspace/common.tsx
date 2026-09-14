@@ -1,11 +1,11 @@
-import { Resource } from "@bountyreper-io/console-resource"
-import { Actor } from "@bountyreper-io/console-core/actor.js"
+import { Resource } from "@bountyreaper-io/console-resource"
+import { Actor } from "@bountyreaper-io/console-core/actor.js"
 import { action, json, query } from "@solidjs/router"
 import { withActor } from "~/context/auth.withActor"
-import { Billing } from "@bountyreper-io/console-core/billing.js"
-import { and, Database, desc, eq, isNull } from "@bountyreper-io/console-core/drizzle/index.js"
-import { WorkspaceTable } from "@bountyreper-io/console-core/schema/workspace.sql.js"
-import { UserTable } from "@bountyreper-io/console-core/schema/user.sql.js"
+import { Billing } from "@bountyreaper-io/console-core/billing.js"
+import { and, Database, desc, eq, isNull } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { WorkspaceTable } from "@bountyreaper-io/console-core/schema/workspace.sql.js"
+import { UserTable } from "@bountyreaper-io/console-core/schema/user.sql.js"
 
 export function formatDateForTable(date: Date) {
   const options: Intl.DateTimeFormatOptions = {

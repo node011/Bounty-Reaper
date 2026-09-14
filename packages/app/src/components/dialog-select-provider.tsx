@@ -1,11 +1,11 @@
 import { Component, Show } from "solid-js"
-import { useDialog } from "@bountyreper-io/ui/context/dialog"
+import { useDialog } from "@bountyreaper-io/ui/context/dialog"
 import { popularProviders, useProviders } from "@/hooks/use-providers"
-import { Dialog } from "@bountyreper-io/ui/dialog"
-import { List } from "@bountyreper-io/ui/list"
-import { Tag } from "@bountyreper-io/ui/tag"
-import { ProviderIcon } from "@bountyreper-io/ui/provider-icon"
-import { iconNames, type IconName } from "@bountyreper-io/ui/icons/provider"
+import { Dialog } from "@bountyreaper-io/ui/dialog"
+import { List } from "@bountyreaper-io/ui/list"
+import { Tag } from "@bountyreaper-io/ui/tag"
+import { ProviderIcon } from "@bountyreaper-io/ui/provider-icon"
+import { iconNames, type IconName } from "@bountyreaper-io/ui/icons/provider"
 import { DialogConnectProvider } from "./dialog-connect-provider"
 import { useLanguage } from "@/context/language"
 import { DialogCustomProvider } from "./dialog-custom-provider"
@@ -73,7 +73,7 @@ export const DialogSelectProvider: Component = () => {
             <Show when={i.id === CUSTOM_ID}>
               <Tag>{language.t("settings.providers.tag.custom")}</Tag>
             </Show>
-            <Show when={i.id === "bountyreper"}>
+            <Show when={i.id === "bountyreaper"}>
               <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
             </Show>
             <Show when={note(i.id)}>{(value) => <div class="text-14-regular text-text-weak">{value()}</div>}</Show>

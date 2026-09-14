@@ -1,4 +1,4 @@
-# BountyReper Browser Agent — Panel UI Brief
+# BountyReaper Browser Agent — Panel UI Brief
 
 > Hackbrowser (Playwright + LLM pentest crawler) tarayıcı pencerelerinde
 > hedef sayfanın **üstüne** live telemetry gösteren bir panel enjekte eder.
@@ -118,7 +118,7 @@ Panel host div'i **Shadow DOM** kullanır. Target sayfanın CSS'i ile çakışma
 ```html
 <div
   id="__cs-host"
-  data-bountyreper-ui="panel"
+  data-bountyreaper-ui="panel"
   style="all:initial;position:fixed;bottom:16px;right:16px;z-index:2147483647"
 ></div>
 <script>
@@ -128,7 +128,7 @@ Panel host div'i **Shadow DOM** kullanır. Target sayfanın CSS'i ile çakışma
 </script>
 ```
 
-- `data-bountyreper-ui="panel"` attribute scanner tarafından filter edilir (§6)
+- `data-bountyreaper-ui="panel"` attribute scanner tarafından filter edilir (§6)
 - `z-index: 2147483647` (max) — her zaman üstte
 - `all: initial` host div için — inherited styles izole
 
@@ -143,7 +143,7 @@ export const PANEL_INIT_SCRIPT = `
     if (document.getElementById('__cs-host')) return;
     const host = document.createElement('div');
     host.id = '__cs-host';
-    host.setAttribute('data-bountyreper-ui', 'panel');
+    host.setAttribute('data-bountyreaper-ui', 'panel');
     host.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:2147483647;pointer-events:none';
     document.documentElement.appendChild(host);
     const shadow = host.attachShadow({ mode: 'closed' });
@@ -293,12 +293,12 @@ Hackbrowser `scanner.ts` DOM'u tarayıp element listesi üretir. Panel host div 
 - LLM panel butonlarını plan etmeye kalkabilir (plan gürültüsü)
 - Dedup key'ler karışır
 
-**Zorunlu filter:** Scanner'daki `INTERACTIVE_SELECTORS` aramasında `[data-bountyreper-ui]` alt ağacı ignore edilmeli.
+**Zorunlu filter:** Scanner'daki `INTERACTIVE_SELECTORS` aramasında `[data-bountyreaper-ui]` alt ağacı ignore edilmeli.
 
 ```ts
 // scanner.ts — içeride page.evaluate'da
 for (const el of document.querySelectorAll(INTERACTIVE_SELECTORS)) {
-  if (el.closest("[data-bountyreper-ui]")) continue // ← EKLENECEK
+  if (el.closest("[data-bountyreaper-ui]")) continue // ← EKLENECEK
   // ... mevcut mantık
 }
 ```
@@ -391,11 +391,11 @@ UI agent tüm panel kodunu bu dosyaya string olarak koyacak (inline). IIFE patte
 
 ### 8.3 `src/scanner.ts` dokunuşu (~1 satır)
 
-`collectInteractiveElements` evaluate içinde her element için `el.closest("[data-bountyreper-ui]")` kontrolü → skip.
+`collectInteractiveElements` evaluate içinde her element için `el.closest("[data-bountyreaper-ui]")` kontrolü → skip.
 
 ### 8.4 `src/capture.ts` dokunuşu (~1 satır, defansif)
 
-`snapshotPageUI` içinde input selector'a `:not([data-bountyreper-ui] *)` eklenebilir. Panel content area Shadow DOM olduğu için normalde ulaşılmaz, ama zararsız savunma.
+`snapshotPageUI` içinde input selector'a `:not([data-bountyreaper-ui] *)` eklenebilir. Panel content area Shadow DOM olduğu için normalde ulaşılmaz, ama zararsız savunma.
 
 ---
 

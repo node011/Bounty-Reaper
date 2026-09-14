@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalEnv": ["CI", "BOUNTYREPER_DISABLE_SHARE"],
-  "globalPassThroughEnv": ["CI", "BOUNTYREPER_DISABLE_SHARE"],
+  "globalEnv": ["CI", "BOUNTYREAPER_DISABLE_SHARE"],
+  "globalPassThroughEnv": ["CI", "BOUNTYREAPER_DISABLE_SHARE"],
   "tasks": {
     "typecheck": {},
     "test": {},
@@ -9,11 +9,11 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "bountyreper#test": {
+    "bountyreaper#test": {
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "@bountyreper-io/app#test": {
+    "@bountyreaper-io/app#test": {
       "dependsOn": ["^build"],
       "outputs": []
     }

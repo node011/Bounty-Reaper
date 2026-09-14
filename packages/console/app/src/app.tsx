@@ -2,8 +2,8 @@ import { MetaProvider, Title, Meta } from "@solidjs/meta"
 import { Router } from "@solidjs/router"
 import { FileRoutes } from "@solidjs/start/router"
 import { Suspense } from "solid-js"
-import { Favicon } from "@bountyreper-io/ui/favicon"
-import { Font } from "@bountyreper-io/ui/font"
+import { Favicon } from "@bountyreaper-io/ui/favicon"
+import { Font } from "@bountyreaper-io/ui/font"
 import "@ibm/plex/css/ibm-plex.css"
 import "./app.css"
 import { LanguageProvider } from "~/context/language"
@@ -19,8 +19,8 @@ export default function App() {
         <LanguageProvider>
           <I18nProvider>
             <MetaProvider>
-              <Title>bountyreper</Title>
-              <Meta name="description" content="BountyReper - The open source coding agent." />
+              <Title>bountyreaper</Title>
+              <Meta name="description" content="BountyReaper - The open source coding agent." />
               <Favicon />
               <Font />
               <Suspense>{props.children}</Suspense>

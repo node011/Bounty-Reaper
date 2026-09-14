@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package",
-  "name": "@bountyreper-io/script",
+  "name": "@bountyreaper-io/script",
   "license": "MIT",
   "devDependencies": {
     "@types/bun": "catalog:"

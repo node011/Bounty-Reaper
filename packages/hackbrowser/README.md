@@ -1,6 +1,6 @@
-# BountyReper Browser Agent
+# BountyReaper Browser Agent
 
-AI-driven browser agent that automatically navigates web applications, captures HTTP requests with UI context, and sends them to BountyReper for security analysis.
+AI-driven browser agent that automatically navigates web applications, captures HTTP requests with UI context, and sends them to BountyReaper for security analysis.
 
 ## How It Works
 
@@ -9,10 +9,10 @@ Playwright browser
     ├── AI navigation (Claude → accessibility tree → actions)
     ├── Request capture (all HTTP traffic to target)
     ├── UI context snapshot (form fields, readonly/disabled/hidden states)
-    └── → POST /session/ingest to BountyReper (with ui_context field)
+    └── → POST /session/ingest to BountyReaper (with ui_context field)
 ```
 
-The key addition over the Firefox extension: every captured request is enriched with `ui_context` — a snapshot of the page's form fields at the time the request was made. This tells BountyReper:
+The key addition over the Firefox extension: every captured request is enriched with `ui_context` — a snapshot of the page's form fields at the time the request was made. This tells BountyReaper:
 
 - Which fields were `readonly` or `disabled` in the UI (but still sent in the request)
 - Which values were display-only (`span`/`div`, not `input`) but appear in the request body
@@ -45,7 +45,7 @@ bun start https://app.example.com --session ./session.json
 # Auto-login
 bun start https://app.example.com --user admin@example.com --pass secret
 
-# Attach to existing BountyReper session
+# Attach to existing BountyReaper session
 bun start https://app.example.com --session-id abc123
 
 # Headless, more steps
@@ -70,7 +70,7 @@ src/
 ├── agent.ts      # Main loop: navigation + request pipeline
 ├── navigator.ts  # LLM-guided navigation (accessibility tree → Claude → action)
 ├── capture.ts    # UI context snapshot + request builder
-├── ingest.ts     # Send to BountyReper /session/ingest
+├── ingest.ts     # Send to BountyReaper /session/ingest
 ├── auth.ts       # Session load/save, auto-login, 2FA pause
 └── types.ts      # Shared types
 ```
@@ -99,7 +99,7 @@ Each ingested request includes a `ui_context` field:
 }
 ```
 
-BountyReper's proxy-analyzer and mass-assignment agents will use this to identify:
+BountyReaper's proxy-analyzer and mass-assignment agents will use this to identify:
 
 - `email` is readonly in UI but sent in request → test if it can be changed
 - `role` is a hidden field → test mass assignment

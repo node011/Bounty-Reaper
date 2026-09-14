@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { $ } from "bun"
-import { Script } from "@bountyreper-io/script"
+import { Script } from "@bountyreaper-io/script"
 
 const highlightsTemplate = `
 <!--
@@ -67,7 +67,7 @@ if (Script.release) {
 }
 
 console.log("\n=== cli ===\n")
-await import(`../packages/bountyreper/script/publish.ts`)
+await import(`../packages/bountyreaper/script/publish.ts`)
 
 console.log("\n=== sdk ===\n")
 await import(`../packages/sdk/js/script/publish.ts`)

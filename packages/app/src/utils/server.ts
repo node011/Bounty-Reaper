@@ -1,4 +1,4 @@
-import { createBountyreperClient } from "@bountyreper-io/sdk/v2/client"
+import { createBountyReaperClient } from "@bountyreaper-io/sdk/v2/client"
 import type { ServerConnection } from "@/context/server"
 
 export function basicAuth(username: string, password: string): string {
@@ -12,17 +12,17 @@ export function basicAuth(username: string, password: string): string {
 export function createSdkForServer({
   server,
   ...config
-}: Omit<NonNullable<Parameters<typeof createBountyreperClient>[0]>, "baseUrl"> & {
+}: Omit<NonNullable<Parameters<typeof createBountyReaperClient>[0]>, "baseUrl"> & {
   server: ServerConnection.HttpBase
 }) {
   const auth = (() => {
     if (!server.password) return
     return {
-      Authorization: basicAuth(server.username ?? "bountyreper", server.password),
+      Authorization: basicAuth(server.username ?? "bountyreaper", server.password),
     }
   })()
 
-  return createBountyreperClient({
+  return createBountyReaperClient({
     ...config,
     headers: { ...config.headers, ...auth },
     baseUrl: server.url,

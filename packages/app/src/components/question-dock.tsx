@@ -1,9 +1,9 @@
 import { For, Show, createMemo, type Component } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Button } from "@bountyreper-io/ui/button"
-import { Icon } from "@bountyreper-io/ui/icon"
-import { showToast } from "@bountyreper-io/ui/toast"
-import type { QuestionAnswer, QuestionRequest } from "@bountyreper-io/sdk/v2"
+import { Button } from "@bountyreaper-io/ui/button"
+import { Icon } from "@bountyreaper-io/ui/icon"
+import { showToast } from "@bountyreaper-io/ui/toast"
+import type { QuestionAnswer, QuestionRequest } from "@bountyreaper-io/sdk/v2"
 import { useLanguage } from "@/context/language"
 import { useSDK } from "@/context/sdk"
 

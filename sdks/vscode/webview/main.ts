@@ -8,11 +8,11 @@ interface Config {
 
 declare global {
   interface Window {
-    BOUNTYREPER: Config
+    BOUNTYREAPER: Config
   }
 }
 
-const config = window.BOUNTYREPER
+const config = window.BOUNTYREAPER
 
 const container = document.getElementById("terminal")!
 

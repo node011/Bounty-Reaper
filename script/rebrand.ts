@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 /**
- * BountyReper Rebrand Script
+ * BountyReaper Rebrand Script
  *
- * Automates find-replace across the monorepo for the OpenCode → BountyReper rebrand.
+ * Automates find-replace across the monorepo for the OpenCode → BountyReaper rebrand.
  * Applies replacements in specificity order (most specific first) to avoid double-replacement.
  *
  * Usage:
@@ -19,35 +19,35 @@ const DRY_RUN = process.argv.includes("--dry-run")
 // Replacements in specificity order (most specific first)
 const REPLACEMENTS: [string, string][] = [
   // Scope and package names (most specific)
-  ["@opencode-ai/", "@bountyreperus/"],
-  ["opencode-ai", "bountyreper"],
+  ["@opencode-ai/", "@bountyreaperus/"],
+  ["opencode-ai", "bountyreaper"],
 
   // GitHub references
-  ["anomalyco/tap/opencode", "bounty-reper/tap/bountyreper"],
-  ["anomalyco/opencode", "bounty-reper/BountyReper"],
+  ["anomalyco/tap/opencode", "bounty-reper/tap/bountyreaper"],
+  ["anomalyco/opencode", "node011/Bounty-Reaper"],
 
   // Domain
   ["opencode.ai", "bountyreper.io"],
   ["opncd.ai", "cybrstk.us"],
 
   // Desktop app identifier
-  ["ai.opencode.desktop", "us.bountyreper.desktop"],
+  ["ai.opencode.desktop", "us.bountyreaper.desktop"],
 
   // Env variable prefix (before bare "OPENCODE")
-  ["OPENCODE_", "BOUNTYREPER_"],
-  ['"OPENCODE"', '"BOUNTYREPER"'],
-  ["'OPENCODE'", "'BOUNTYREPER'"],
-  [".OPENCODE", ".BOUNTYREPER"],
-  ["OPENCODE", "BOUNTYREPER"],
+  ["OPENCODE_", "BOUNTYREAPER_"],
+  ['"OPENCODE"', '"BOUNTYREAPER"'],
+  ["'OPENCODE'", "'BOUNTYREAPER'"],
+  [".OPENCODE", ".BOUNTYREAPER"],
+  ["OPENCODE", "BOUNTYREAPER"],
 
   // Title case product name
-  ["OpenCode", "BountyReper"],
+  ["OpenCode", "BountyReaper"],
 
   // PascalCase (e.g. createOpencodeClient, OpencodeClient)
-  ["Opencode", "Bountyreper"],
+  ["Opencode", "BountyReaper"],
 
   // Bare lowercase (least specific - applied last)
-  ["opencode", "bountyreper"],
+  ["opencode", "bountyreaper"],
 ]
 
 // Patterns that should NOT be replaced (3rd-party packages)
@@ -185,7 +185,7 @@ function applyReplacements(content: string): { result: string; count: number; pa
 }
 
 async function main() {
-  console.log(`\n🔄 BountyReper Rebrand Script`)
+  console.log(`\n🔄 BountyReaper Rebrand Script`)
   console.log(`   Mode: ${DRY_RUN ? "DRY RUN (no files will be modified)" : "LIVE"}`)
   console.log(`   Root: ${ROOT}\n`)
 

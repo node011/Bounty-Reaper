@@ -1,9 +1,9 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { and, Database, eq, isNull } from "@bountyreper-io/console-core/drizzle/index.js"
-import { KeyTable } from "@bountyreper-io/console-core/schema/key.sql.js"
-import { WorkspaceTable } from "@bountyreper-io/console-core/schema/workspace.sql.js"
-import { ModelTable } from "@bountyreper-io/console-core/schema/model.sql.js"
-import { ZenData } from "@bountyreper-io/console-core/model.js"
+import { and, Database, eq, isNull } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { KeyTable } from "@bountyreaper-io/console-core/schema/key.sql.js"
+import { WorkspaceTable } from "@bountyreaper-io/console-core/schema/workspace.sql.js"
+import { ModelTable } from "@bountyreaper-io/console-core/schema/model.sql.js"
+import { ZenData } from "@bountyreaper-io/console-core/model.js"
 
 export async function OPTIONS(input: APIEvent) {
   return new Response(null, {
@@ -29,7 +29,7 @@ export async function GET(input: APIEvent) {
           id,
           object: "model",
           created: Math.floor(Date.now() / 1000),
-          owned_by: "bountyreper",
+          owned_by: "bountyreaper",
         })),
     }),
     {

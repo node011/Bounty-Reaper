@@ -1,11 +1,11 @@
 import { createEffect, createMemo, createSignal, For, onCleanup, Show, type Accessor, type JSXElement } from "solid-js"
 import { createStore, reconcile } from "solid-js/store"
 import { useNavigate } from "@solidjs/router"
-import { useDialog } from "@bountyreper-io/ui/context/dialog"
-import { Popover } from "@bountyreper-io/ui/popover"
-import { Tabs } from "@bountyreper-io/ui/tabs"
-import { Button } from "@bountyreper-io/ui/button"
-import { Icon } from "@bountyreper-io/ui/icon"
+import { useDialog } from "@bountyreaper-io/ui/context/dialog"
+import { Popover } from "@bountyreaper-io/ui/popover"
+import { Tabs } from "@bountyreaper-io/ui/tabs"
+import { Button } from "@bountyreaper-io/ui/button"
+import { Icon } from "@bountyreaper-io/ui/icon"
 import { useSync } from "@/context/sync"
 import { useSDK } from "@/context/sdk"
 import { normalizeServerUrl, ServerConnection, useServer } from "@/context/server"
@@ -149,7 +149,7 @@ export function StatusPopover() {
   const lspCount = createMemo(() => lspItems().length)
   const plugins = createMemo(() => sync.data.config.plugin ?? [])
   const pluginCount = createMemo(() => plugins().length)
-  const pluginEmpty = createMemo(() => pluginEmptyMessage(language.t("dialog.plugins.empty"), "bountyreper.json"))
+  const pluginEmpty = createMemo(() => pluginEmptyMessage(language.t("dialog.plugins.empty"), "bountyreaper.json"))
   const skillItems = createMemo(() => sync.data.skill ?? [])
   const skillCount = createMemo(() => skillItems().length)
   const [disabledSkills, setDisabledSkills] = createSignal<Set<string>>(new Set())

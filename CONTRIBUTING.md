@@ -1,6 +1,6 @@
-# Contributing to BountyReper
+# Contributing to BountyReaper
 
-BountyReper is an AI-powered offensive security platform. We welcome contributions that make it a more powerful, reliable, and comprehensive security testing tool.
+BountyReaper is an AI-powered offensive security platform. We welcome contributions that make it a more powerful, reliable, and comprehensive security testing tool.
 
 ## What We're Looking For
 
@@ -20,10 +20,10 @@ UI changes, core architecture modifications, and new agent types must go through
 
 If you're unsure whether a PR would be accepted, look for issues labeled:
 
-- [`help wanted`](https://github.com/bounty-reper/BountyReper/issues?q=is%3Aissue+state%3Aopen+label%3Ahelp-wanted)
-- [`good first issue`](https://github.com/bounty-reper/BountyReper/issues?q=is%3Aissue+state%3Aopen+label%3A%22good+first+issue%22)
-- [`bug`](https://github.com/bounty-reper/BountyReper/issues?q=is%3Aissue+state%3Aopen+label%3Abug)
-- [`security-tool`](https://github.com/bounty-reper/BountyReper/issues?q=is%3Aissue+state%3Aopen+label%3Asecurity-tool)
+- [`help wanted`](https://github.com/node011/Bounty-Reaper/issues?q=is%3Aissue+state%3Aopen+label%3Ahelp-wanted)
+- [`good first issue`](https://github.com/node011/Bounty-Reaper/issues?q=is%3Aissue+state%3Aopen+label%3A%22good+first+issue%22)
+- [`bug`](https://github.com/node011/Bounty-Reaper/issues?q=is%3Aissue+state%3Aopen+label%3Abug)
+- [`security-tool`](https://github.com/node011/Bounty-Reaper/issues?q=is%3Aissue+state%3Aopen+label%3Asecurity-tool)
 
 > [!NOTE]
 > PRs that ignore these guardrails will likely be closed.
@@ -39,8 +39,8 @@ If you're unsure whether a PR would be accepted, look for issues labeled:
 ### Setup
 
 ```bash
-git clone https://github.com/bounty-reper/BountyReper.git
-cd BountyReper
+git clone https://github.com/node011/Bounty-Reaper.git
+cd BountyReaper
 ./script/bootstrap.sh
 bun dev
 ```
@@ -62,8 +62,8 @@ bun dev .              # Run in the repo root
 ### Building a Standalone Binary
 
 ```bash
-bun run --cwd packages/bountyreper build --single
-./packages/bountyreper/dist/bountyreper-<platform>/bin/bountyreper
+bun run --cwd packages/bountyreaper build --single
+./packages/bountyreaper/dist/bountyreaper-<platform>/bin/bountyreaper
 ```
 
 Replace `<platform>` with your platform (e.g., `darwin-arm64`, `linux-x64`).
@@ -72,11 +72,11 @@ Replace `<platform>` with your platform (e.g., `darwin-arm64`, `linux-x64`).
 
 | Package                | Description                                       |
 | ---------------------- | ------------------------------------------------- |
-| `packages/bountyreper` | Core CLI — agents, tools, session, provider logic |
+| `packages/bountyreaper` | Core CLI — agents, tools, session, provider logic |
 | `packages/app`         | Web UI components (SolidJS)                       |
-| `packages/plugin`      | Plugin SDK (`@bountyreper-io/plugin`)             |
+| `packages/plugin`      | Plugin SDK (`@bountyreaper-io/plugin`)             |
 | `knowledge/`           | Security knowledge base (WSTG test cases)         |
-| `.bountyreper/skill/`  | Security skills (methodology guides)              |
+| `.bountyreaper/skill/`  | Security skills (methodology guides)              |
 
 ### MCP Ecosystem (separate repos)
 
@@ -91,14 +91,14 @@ Replace `<platform>` with your platform (e.g., `darwin-arm64`, `linux-x64`).
 
 ### Adding a Security Skill
 
-Skills are markdown files that provide domain knowledge to agents. Create a new directory under `.bountyreper/skill/`:
+Skills are markdown files that provide domain knowledge to agents. Create a new directory under `.bountyreaper/skill/`:
 
 ```
-.bountyreper/skill/your-skill-name/
+.bountyreaper/skill/your-skill-name/
   SKILL.md    # Methodology, checklists, tool commands
 ```
 
-Reference it in an agent's `skills` array in `packages/bountyreper/src/agent/agent.ts`.
+Reference it in an agent's `skills` array in `packages/bountyreaper/src/agent/agent.ts`.
 
 ### Adding Knowledge Base Content
 
@@ -112,8 +112,8 @@ Each file should include: objective, test description, tools, commands, and reme
 
 ### Adding a Security Agent
 
-1. Create a system prompt: `packages/bountyreper/src/agent/prompt/your-agent.txt`
-2. Register in `packages/bountyreper/src/agent/agent.ts` as a native agent
+1. Create a system prompt: `packages/bountyreaper/src/agent/prompt/your-agent.txt`
+2. Register in `packages/bountyreaper/src/agent/agent.ts` as a native agent
 3. Configure permissions (bash, browser, read, grep, etc.)
 4. Add associated skills if applicable
 
@@ -130,7 +130,7 @@ To contribute to an MCP server, open a PR in the relevant repo.
 ## Development Commands
 
 ```bash
-bun dev                    # Start BountyReper TUI (development)
+bun dev                    # Start BountyReaper TUI (development)
 bun dev serve              # Start headless API server
 bun dev web                # Start server + web interface
 bun turbo typecheck        # Run type checking across all packages
@@ -146,7 +146,7 @@ bun turbo typecheck        # Run type checking across all packages
 Run with Bun's inspector:
 
 ```bash
-bun run --inspect=ws://localhost:6499/ --cwd packages/bountyreper ./src/index.ts serve --port 4096
+bun run --inspect=ws://localhost:6499/ --cwd packages/bountyreaper ./src/index.ts serve --port 4096
 ```
 
 Or set `export BUN_OPTIONS=--inspect=ws://localhost:6499/` for all invocations.
@@ -192,7 +192,7 @@ Long, AI-generated PR descriptions will be ignored. Write short, focused descrip
 
 ## Ethical Use Policy
 
-BountyReper is designed for **authorized security testing only**. All contributions must:
+BountyReaper is designed for **authorized security testing only**. All contributions must:
 
 - Support legitimate penetration testing and security research
 - Not enable unauthorized access to systems
@@ -213,10 +213,10 @@ Maintainers can manage the list by commenting `vouch`, `denounce`, or `unvouch` 
 
 ## Feature Requests
 
-For new functionality, start with a design conversation. Open an issue describing the problem, your proposed approach, and why it belongs in BountyReper. Wait for core team approval before opening a PR.
+For new functionality, start with a design conversation. Open an issue describing the problem, your proposed approach, and why it belongs in BountyReaper. Wait for core team approval before opening a PR.
 
 ## Community
 
 - **Discord:** [Join the community](https://discord.gg/snunAaHf6U)
-- **X:** [@bountyreper](https://x.com/bountyreper)
+- **X:** [@bountyreaper](https://x.com/bountyreaper)
 - **Website:** [bountyreper.io](https://bountyreper.io)

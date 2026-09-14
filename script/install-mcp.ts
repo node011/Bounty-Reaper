@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
 /**
- * Register the bundled MCP servers with BountyReper globally.
+ * Register the bundled MCP servers with BountyReaper globally.
  *
- * Why this exists: `.bountyreper/bountyreper.jsonc` in this repo is a *project*
- * config — BountyReper only reads it when the working directory is inside the
- * repo. Open BountyReper anywhere else and the bundled servers are simply not
- * configured. Global config lives at `~/.config/bountyreper/bountyreper.json`
+ * Why this exists: `.bountyreaper/bountyreaper.jsonc` in this repo is a *project*
+ * config — BountyReaper only reads it when the working directory is inside the
+ * repo. Open BountyReaper anywhere else and the bundled servers are simply not
+ * configured. Global config lives at `~/.config/bountyreaper/bountyreaper.json`
  * and applies everywhere.
  *
  * Global config needs absolute paths (MCP servers inherit the app's cwd, and
@@ -25,15 +25,15 @@ const root = path.resolve(import.meta.dir, "..")
 const dry = process.argv.includes("--dry-run")
 const remove = process.argv.includes("--remove")
 
-const configDir = path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"), "bountyreper")
+const configDir = path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"), "bountyreaper")
 
-// jsonc wins over json in BountyReper's load order, so an existing .jsonc would
+// jsonc wins over json in BountyReaper's load order, so an existing .jsonc would
 // silently shadow anything written to .json. Extend whichever one is there.
-const existing = ["bountyreper.jsonc", "bountyreper.json"]
+const existing = ["bountyreaper.jsonc", "bountyreaper.json"]
   .map((f) => path.join(configDir, f))
   .find((p) => Bun.file(p).size > 0)
 
-const target = existing ?? path.join(configDir, "bountyreper.json")
+const target = existing ?? path.join(configDir, "bountyreaper.json")
 
 const uv = Bun.which("uv")
 if (!uv && !remove) {

@@ -3,7 +3,7 @@
 export default $config({
   app(input) {
     return {
-      name: "bountyreper",
+      name: "bountyreaper",
       removal: input?.stage === "production" ? "retain" : "remove",
       protect: ["production"].includes(input?.stage),
       home: "cloudflare",
@@ -16,6 +16,6 @@ export default $config({
   async run() {
     await import("./infra/app.js")
     if (process.env.STRIPE_SECRET_KEY && process.env.PLANETSCALE_SERVICE_TOKEN) await import("./infra/console.js")
-    if (process.env.BOUNTYREPER_ENTERPRISE) await import("./infra/enterprise.js")
+    if (process.env.BOUNTYREAPER_ENTERPRISE) await import("./infra/enterprise.js")
   },
 })

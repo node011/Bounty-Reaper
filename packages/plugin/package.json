@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@bountyreper-io/plugin",
+  "name": "@bountyreaper-io/plugin",
   "version": "1.2.1",
   "type": "module",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "dist"
   ],
   "dependencies": {
-    "@bountyreper-io/sdk": "workspace:*",
+    "@bountyreaper-io/sdk": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -73,7 +73,7 @@ async function fetchReleases(): Promise<Release[]> {
   const per = 100
 
   while (true) {
-    const url = `https://api.github.com/repos/node011/Bounty-Reper/releases?page=${page}&per_page=${per}`
+    const url = `https://api.github.com/repos/node011/Bounty-Reaper/releases?page=${page}&per_page=${per}`
 
     const response = await fetch(url)
     if (!response.ok) {
@@ -188,15 +188,15 @@ async function save(githubTotal: number, npmDownloads: number) {
   )
 }
 
-console.log("Fetching GitHub releases for node011/Bounty-Reper...\n")
+console.log("Fetching GitHub releases for node011/Bounty-Reaper...\n")
 
 const releases = await fetchReleases()
 console.log(`\nFetched ${releases.length} releases total\n`)
 
 const { total: githubTotal, stats } = calculate(releases)
 
-console.log("Fetching npm all-time downloads for bountyreper...\n")
-const npmDownloads = await fetchNpmDownloads("bountyreper")
+console.log("Fetching npm all-time downloads for bountyreaper...\n")
+const npmDownloads = await fetchNpmDownloads("bountyreaper")
 console.log(`Fetched npm all-time downloads: ${npmDownloads.toLocaleString()}\n`)
 
 await save(githubTotal, npmDownloads)

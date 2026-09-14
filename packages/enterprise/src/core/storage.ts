@@ -1,5 +1,5 @@
 import { AwsClient } from "aws4fetch"
-import { lazy } from "@bountyreper-io/util/lazy"
+import { lazy } from "@bountyreaper-io/util/lazy"
 
 export namespace Storage {
   export interface Adapter {
@@ -64,31 +64,31 @@ export namespace Storage {
   }
 
   function s3(): Adapter {
-    const bucket = process.env.BOUNTYREPER_STORAGE_BUCKET!
-    const region = process.env.BOUNTYREPER_STORAGE_REGION || "us-east-1"
+    const bucket = process.env.BOUNTYREAPER_STORAGE_BUCKET!
+    const region = process.env.BOUNTYREAPER_STORAGE_REGION || "us-east-1"
     const client = new AwsClient({
       region,
-      accessKeyId: process.env.BOUNTYREPER_STORAGE_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.BOUNTYREPER_STORAGE_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.BOUNTYREAPER_STORAGE_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.BOUNTYREAPER_STORAGE_SECRET_ACCESS_KEY!,
     })
     return createAdapter(client, `https://s3.${region}.amazonaws.com`, bucket)
   }
 
   function r2() {
-    const accountId = process.env.BOUNTYREPER_STORAGE_ACCOUNT_ID!
+    const accountId = process.env.BOUNTYREAPER_STORAGE_ACCOUNT_ID!
     const client = new AwsClient({
-      accessKeyId: process.env.BOUNTYREPER_STORAGE_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.BOUNTYREPER_STORAGE_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.BOUNTYREAPER_STORAGE_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.BOUNTYREAPER_STORAGE_SECRET_ACCESS_KEY!,
     })
     return createAdapter(
       client,
       `https://${accountId}.r2.cloudflarestorage.com`,
-      process.env.BOUNTYREPER_STORAGE_BUCKET!,
+      process.env.BOUNTYREAPER_STORAGE_BUCKET!,
     )
   }
 
   const adapter = lazy(() => {
-    const type = process.env.BOUNTYREPER_STORAGE_ADAPTER
+    const type = process.env.BOUNTYREAPER_STORAGE_ADAPTER
     if (type === "r2") return r2()
     if (type === "s3") return s3()
     throw new Error("No storage adapter configured")

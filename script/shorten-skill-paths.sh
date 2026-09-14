@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shorten over-long directory SEGMENTS under .bountyreper/skill/** so paths fit
+# Shorten over-long directory SEGMENTS under .bountyreaper/skill/** so paths fit
 # Windows MAX_PATH. Handles both long leaf skill names (NIST) and long
 # intermediate dirs (CIS benchmark folders). Skill identity is the SKILL.md
 # frontmatter `name`, not the path, so `git mv` on directories is safe.
@@ -27,12 +27,12 @@ slug() {
 }
 
 # All files (NUL-safe), then derive every unique ancestor dir under the skill root.
-mapfile -d '' -t FILES < <(git ls-files -z -- '.bountyreper/skill/')
+mapfile -d '' -t FILES < <(git ls-files -z -- '.bountyreaper/skill/')
 declare -A DSET=()
 for f in "${FILES[@]}"; do
   d=${f%/*}
   while :; do
-    case "$d" in .bountyreper/skill|.bountyreper|"" ) break;; esac
+    case "$d" in .bountyreaper/skill|.bountyreaper|"" ) break;; esac
     DSET["$d"]=1
     d=${d%/*}
   done

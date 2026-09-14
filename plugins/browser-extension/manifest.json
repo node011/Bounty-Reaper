@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "BountyReper",
+  "name": "BountyReaper",
   "version": "1.0.0",
-  "description": "Capture browser HTTP traffic and send it to BountyReper for AI-assisted security testing.",
+  "description": "Capture browser HTTP traffic and send it to BountyReaper for AI-assisted security testing.",
   "devtools_page": "devtools.html",
   "permissions": ["storage"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
@@ -11,7 +11,7 @@
   },
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "BountyReper"
+    "default_title": "BountyReaper"
   },
   "icons": {
     "16": "icons/icon16.png",

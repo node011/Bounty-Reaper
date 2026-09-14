@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { Script } from "@bountyreper-io/script"
+import { Script } from "@bountyreaper-io/script"
 import { $ } from "bun"
 import { buildNotes, getLatestRelease } from "./changelog"
 
@@ -17,7 +17,7 @@ if (!Script.preview) {
     : ["## Highlights", "", `First tagged release: v${Script.version}.`, "", "See the commit history for the full set of changes."]
   const body = notes.join("\n") || "No notable changes"
   const dir = process.env.RUNNER_TEMP ?? "/tmp"
-  const file = `${dir}/bountyreper-release-notes.txt`
+  const file = `${dir}/bountyreaper-release-notes.txt`
   await Bun.write(file, body)
   await $`gh release create v${Script.version} -d --title "v${Script.version}" --notes-file ${file}`
   const release = await $`gh release view v${Script.version} --json tagName,databaseId`.json()

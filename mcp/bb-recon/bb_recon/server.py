@@ -309,7 +309,7 @@ async def recon_pipeline(
     exposed config/CORS/GraphQL -> JS secrets -> cloud buckets.
 
     Returns a severity-ranked report with a copyable PoC per finding, and writes
-    artifacts under <project>/.bountyreper/recon/<domain>/ (override with
+    artifacts under <project>/.bountyreaper/recon/<domain>/ (override with
     BB_RECON_OUTPUT_DIR).
     """
     domain = domain.strip().lower().removeprefix("http://").removeprefix("https://").rstrip("/")

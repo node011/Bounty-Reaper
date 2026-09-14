@@ -7,7 +7,7 @@ import { fileURLToPath } from "url"
  */
 export default [
   {
-    name: "bountyreper-desktop:config",
+    name: "bountyreaper-desktop:config",
     config() {
       return {
         resolve: {

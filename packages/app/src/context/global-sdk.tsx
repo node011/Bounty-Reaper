@@ -1,5 +1,5 @@
-import type { Event, BountyreperClient } from "@bountyreper-io/sdk/v2/client"
-import { createSimpleContext } from "@bountyreper-io/ui/context"
+import type { Event, BountyReaperClient } from "@bountyreaper-io/sdk/v2/client"
+import { createSimpleContext } from "@bountyreaper-io/ui/context"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
 import type { GlobalEmitter } from "@solid-primitives/event-bus"
 import { batch, onCleanup } from "solid-js"
@@ -11,9 +11,9 @@ export type CreateClientOpts = Omit<Parameters<typeof createSdkForServer>[0], "s
 
 export type GlobalSDKValue = {
   url: string
-  client: BountyreperClient
+  client: BountyReaperClient
   event: GlobalEmitter<{ [key: string]: Event }>
-  createClient: (opts: CreateClientOpts) => BountyreperClient
+  createClient: (opts: CreateClientOpts) => BountyReaperClient
   // Authed raw fetch against the server (for endpoints not on the typed client yet).
   fetch: (path: string, init?: RequestInit) => Promise<Response>
 }
@@ -125,7 +125,7 @@ export const { use: useGlobalSDK, provider: GlobalSDKProvider } = createSimpleCo
         const headers: Record<string, string> = {}
         if (currentServer.http.password)
           headers["Authorization"] = basicAuth(
-            currentServer.http.username ?? "bountyreper",
+            currentServer.http.username ?? "bountyreaper",
             currentServer.http.password!,
           )
         return headers
@@ -310,7 +310,7 @@ export const { use: useGlobalSDK, provider: GlobalSDKProvider } = createSimpleCo
       url: currentServer.http.url,
       client: sdk,
       event: emitter,
-      createClient(opts: CreateClientOpts): BountyreperClient {
+      createClient(opts: CreateClientOpts): BountyReaperClient {
         const s = server.current
         if (!s) throw new Error("Server not available")
         return createSdkForServer({
@@ -323,7 +323,7 @@ export const { use: useGlobalSDK, provider: GlobalSDKProvider } = createSimpleCo
         const headers: Record<string, string> = { ...((init?.headers as Record<string, string>) ?? {}) }
         if (currentServer.http.password)
           headers["Authorization"] = basicAuth(
-            currentServer.http.username ?? "bountyreper",
+            currentServer.http.username ?? "bountyreaper",
             currentServer.http.password,
           )
         const f = platform.fetch ?? fetch

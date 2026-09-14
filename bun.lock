@@ -6,9 +6,9 @@
       "name": "bountyreper",
       "dependencies": {
         "@aws-sdk/client-s3": "3.933.0",
-        "@bountyreper-io/plugin": "workspace:*",
-        "@bountyreper-io/script": "workspace:*",
-        "@bountyreper-io/sdk": "workspace:*",
+        "@bountyreaper-io/plugin": "workspace:*",
+        "@bountyreaper-io/script": "workspace:*",
+        "@bountyreaper-io/sdk": "workspace:*",
         "@opentui/core": "0.1.88",
         "@opentui/solid": "0.1.88",
         "playwright": "1.58.2",
@@ -26,12 +26,12 @@
       },
     },
     "packages/app": {
-      "name": "@bountyreper-io/app",
+      "name": "@bountyreaper-io/app",
       "version": "1.2.1",
       "dependencies": {
-        "@bountyreper-io/sdk": "workspace:*",
-        "@bountyreper-io/ui": "workspace:*",
-        "@bountyreper-io/util": "workspace:*",
+        "@bountyreaper-io/sdk": "workspace:*",
+        "@bountyreaper-io/ui": "workspace:*",
+        "@bountyreaper-io/util": "workspace:*",
         "@kobalte/core": "catalog:",
         "@shikijs/transformers": "3.9.2",
         "@solid-primitives/active-element": "2.1.3",
@@ -76,11 +76,11 @@
         "vite-plugin-solid": "catalog:",
       },
     },
-    "packages/bountyreper": {
-      "name": "bountyreper",
+    "packages/bountyreaper": {
+      "name": "bountyreaper",
       "version": "1.2.1",
       "bin": {
-        "bountyreper": "./bin/bountyreper",
+        "bountyreaper": "./bin/bountyreaper",
       },
       "dependencies": {
         "@actions/core": "1.11.1",
@@ -107,11 +107,11 @@
         "@ai-sdk/vercel": "2.0.39",
         "@ai-sdk/xai": "3.0.102",
         "@anthropic-ai/sdk": "0.91.1",
-        "@bountyreper-io/hackbrowser": "workspace:*",
-        "@bountyreper-io/plugin": "workspace:*",
-        "@bountyreper-io/script": "workspace:*",
-        "@bountyreper-io/sdk": "workspace:*",
-        "@bountyreper-io/util": "workspace:*",
+        "@bountyreaper-io/hackbrowser": "workspace:*",
+        "@bountyreaper-io/plugin": "workspace:*",
+        "@bountyreaper-io/script": "workspace:*",
+        "@bountyreaper-io/sdk": "workspace:*",
+        "@bountyreaper-io/util": "workspace:*",
         "@clack/prompts": "1.0.0-alpha.1",
         "@gitlab/gitlab-ai-provider": "3.5.0",
         "@gitlab/opencode-gitlab-auth": "1.3.2",
@@ -167,7 +167,7 @@
       },
       "devDependencies": {
         "@babel/core": "7.29.6",
-        "@bountyreper-io/script": "workspace:*",
+        "@bountyreaper-io/script": "workspace:*",
         "@octokit/webhooks-types": "7.6.1",
         "@parcel/watcher-darwin-arm64": "2.5.1",
         "@parcel/watcher-darwin-x64": "2.5.1",
@@ -192,13 +192,13 @@
       },
     },
     "packages/console/app": {
-      "name": "@bountyreper-io/console-app",
+      "name": "@bountyreaper-io/console-app",
       "version": "1.2.1",
       "dependencies": {
-        "@bountyreper-io/console-core": "workspace:*",
-        "@bountyreper-io/console-mail": "workspace:*",
-        "@bountyreper-io/console-resource": "workspace:*",
-        "@bountyreper-io/ui": "workspace:*",
+        "@bountyreaper-io/console-core": "workspace:*",
+        "@bountyreaper-io/console-mail": "workspace:*",
+        "@bountyreaper-io/console-resource": "workspace:*",
+        "@bountyreaper-io/ui": "workspace:*",
         "@cloudflare/vite-plugin": "1.15.2",
         "@ibm/plex": "6.4.1",
         "@jsx-email/render": "1.1.1",
@@ -226,12 +226,12 @@
       },
     },
     "packages/console/core": {
-      "name": "@bountyreper-io/console-core",
+      "name": "@bountyreaper-io/console-core",
       "version": "1.2.1",
       "dependencies": {
         "@aws-sdk/client-sts": "3.782.0",
-        "@bountyreper-io/console-mail": "workspace:*",
-        "@bountyreper-io/console-resource": "workspace:*",
+        "@bountyreaper-io/console-mail": "workspace:*",
+        "@bountyreaper-io/console-resource": "workspace:*",
         "@jsx-email/render": "1.1.1",
         "@planetscale/database": "1.19.0",
         "aws4fetch": "1.0.20",
@@ -253,14 +253,14 @@
       },
     },
     "packages/console/function": {
-      "name": "@bountyreper-io/console-function",
+      "name": "@bountyreaper-io/console-function",
       "version": "1.2.1",
       "dependencies": {
         "@ai-sdk/anthropic": "2.0.0",
         "@ai-sdk/openai": "2.0.2",
         "@ai-sdk/openai-compatible": "1.0.1",
-        "@bountyreper-io/console-core": "workspace:*",
-        "@bountyreper-io/console-resource": "workspace:*",
+        "@bountyreaper-io/console-core": "workspace:*",
+        "@bountyreaper-io/console-resource": "workspace:*",
         "@hono/zod-validator": "catalog:",
         "@openauthjs/openauth": "0.0.0-20250322224806",
         "ai": "catalog:",
@@ -277,7 +277,7 @@
       },
     },
     "packages/console/mail": {
-      "name": "@bountyreper-io/console-mail",
+      "name": "@bountyreaper-io/console-mail",
       "version": "1.2.1",
       "dependencies": {
         "@jsx-email/all": "2.2.3",
@@ -289,7 +289,7 @@
       },
     },
     "packages/console/resource": {
-      "name": "@bountyreper-io/console-resource",
+      "name": "@bountyreaper-io/console-resource",
       "dependencies": {
         "@cloudflare/workers-types": "catalog:",
       },
@@ -301,11 +301,11 @@
       },
     },
     "packages/enterprise": {
-      "name": "@bountyreper-io/enterprise",
+      "name": "@bountyreaper-io/enterprise",
       "version": "1.2.1",
       "dependencies": {
-        "@bountyreper-io/ui": "workspace:*",
-        "@bountyreper-io/util": "workspace:*",
+        "@bountyreaper-io/ui": "workspace:*",
+        "@bountyreaper-io/util": "workspace:*",
         "@pierre/diffs": "catalog:",
         "@solidjs/meta": "catalog:",
         "@solidjs/router": "catalog:",
@@ -330,7 +330,7 @@
       },
     },
     "packages/function": {
-      "name": "@bountyreper-io/function",
+      "name": "@bountyreaper-io/function",
       "version": "1.2.1",
       "dependencies": {
         "@octokit/auth-app": "8.0.1",
@@ -346,7 +346,7 @@
       },
     },
     "packages/hackbrowser": {
-      "name": "@bountyreper-io/hackbrowser",
+      "name": "@bountyreaper-io/hackbrowser",
       "version": "1.2.1",
       "dependencies": {
         "@ai-sdk/anthropic": "2.0.0",
@@ -363,10 +363,10 @@
       },
     },
     "packages/plugin": {
-      "name": "@bountyreper-io/plugin",
+      "name": "@bountyreaper-io/plugin",
       "version": "1.2.1",
       "dependencies": {
-        "@bountyreper-io/sdk": "workspace:*",
+        "@bountyreaper-io/sdk": "workspace:*",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -377,13 +377,13 @@
       },
     },
     "packages/script": {
-      "name": "@bountyreper-io/script",
+      "name": "@bountyreaper-io/script",
       "devDependencies": {
         "@types/bun": "catalog:",
       },
     },
     "packages/sdk/js": {
-      "name": "@bountyreper-io/sdk",
+      "name": "@bountyreaper-io/sdk",
       "version": "1.2.1",
       "devDependencies": {
         "@hey-api/openapi-ts": "0.97.3",
@@ -394,10 +394,10 @@
       },
     },
     "packages/slack": {
-      "name": "@bountyreper-io/slack",
+      "name": "@bountyreaper-io/slack",
       "version": "1.2.1",
       "dependencies": {
-        "@bountyreper-io/sdk": "workspace:*",
+        "@bountyreaper-io/sdk": "workspace:*",
         "@slack/bolt": "^3.17.1",
       },
       "devDependencies": {
@@ -407,11 +407,11 @@
       },
     },
     "packages/ui": {
-      "name": "@bountyreper-io/ui",
+      "name": "@bountyreaper-io/ui",
       "version": "1.2.1",
       "dependencies": {
-        "@bountyreper-io/sdk": "workspace:*",
-        "@bountyreper-io/util": "workspace:*",
+        "@bountyreaper-io/sdk": "workspace:*",
+        "@bountyreaper-io/util": "workspace:*",
         "@kobalte/core": "catalog:",
         "@pierre/diffs": "catalog:",
         "@shikijs/transformers": "3.9.2",
@@ -449,7 +449,7 @@
       },
     },
     "packages/util": {
-      "name": "@bountyreper-io/util",
+      "name": "@bountyreaper-io/util",
       "version": "1.2.1",
       "dependencies": {
         "zod": "catalog:",
@@ -780,35 +780,35 @@
 
     "@babel/types": ["@babel/types@7.29.8", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg=="],
 
-    "@bountyreper-io/app": ["@bountyreper-io/app@workspace:packages/app"],
+    "@bountyreaper-io/app": ["@bountyreaper-io/app@workspace:packages/app"],
 
-    "@bountyreper-io/console-app": ["@bountyreper-io/console-app@workspace:packages/console/app"],
+    "@bountyreaper-io/console-app": ["@bountyreaper-io/console-app@workspace:packages/console/app"],
 
-    "@bountyreper-io/console-core": ["@bountyreper-io/console-core@workspace:packages/console/core"],
+    "@bountyreaper-io/console-core": ["@bountyreaper-io/console-core@workspace:packages/console/core"],
 
-    "@bountyreper-io/console-function": ["@bountyreper-io/console-function@workspace:packages/console/function"],
+    "@bountyreaper-io/console-function": ["@bountyreaper-io/console-function@workspace:packages/console/function"],
 
-    "@bountyreper-io/console-mail": ["@bountyreper-io/console-mail@workspace:packages/console/mail"],
+    "@bountyreaper-io/console-mail": ["@bountyreaper-io/console-mail@workspace:packages/console/mail"],
 
-    "@bountyreper-io/console-resource": ["@bountyreper-io/console-resource@workspace:packages/console/resource"],
+    "@bountyreaper-io/console-resource": ["@bountyreaper-io/console-resource@workspace:packages/console/resource"],
 
-    "@bountyreper-io/enterprise": ["@bountyreper-io/enterprise@workspace:packages/enterprise"],
+    "@bountyreaper-io/enterprise": ["@bountyreaper-io/enterprise@workspace:packages/enterprise"],
 
-    "@bountyreper-io/function": ["@bountyreper-io/function@workspace:packages/function"],
+    "@bountyreaper-io/function": ["@bountyreaper-io/function@workspace:packages/function"],
 
-    "@bountyreper-io/hackbrowser": ["@bountyreper-io/hackbrowser@workspace:packages/hackbrowser"],
+    "@bountyreaper-io/hackbrowser": ["@bountyreaper-io/hackbrowser@workspace:packages/hackbrowser"],
 
-    "@bountyreper-io/plugin": ["@bountyreper-io/plugin@workspace:packages/plugin"],
+    "@bountyreaper-io/plugin": ["@bountyreaper-io/plugin@workspace:packages/plugin"],
 
-    "@bountyreper-io/script": ["@bountyreper-io/script@workspace:packages/script"],
+    "@bountyreaper-io/script": ["@bountyreaper-io/script@workspace:packages/script"],
 
-    "@bountyreper-io/sdk": ["@bountyreper-io/sdk@workspace:packages/sdk/js"],
+    "@bountyreaper-io/sdk": ["@bountyreaper-io/sdk@workspace:packages/sdk/js"],
 
-    "@bountyreper-io/slack": ["@bountyreper-io/slack@workspace:packages/slack"],
+    "@bountyreaper-io/slack": ["@bountyreaper-io/slack@workspace:packages/slack"],
 
-    "@bountyreper-io/ui": ["@bountyreper-io/ui@workspace:packages/ui"],
+    "@bountyreaper-io/ui": ["@bountyreaper-io/ui@workspace:packages/ui"],
 
-    "@bountyreper-io/util": ["@bountyreper-io/util@workspace:packages/util"],
+    "@bountyreaper-io/util": ["@bountyreaper-io/util@workspace:packages/util"],
 
     "@bufbuild/protobuf": ["@bufbuild/protobuf@2.15.0", "", {}, "sha512-DAheWUkVr/SJTWCc+lg9dhY0eN4SaWlf4+bG1KzHeXbnqt0AfB/NX0Z+VunGlM1ki1B4zVvye27MpKh/svySUA=="],
 
@@ -1964,7 +1964,7 @@
 
     "bottleneck": ["bottleneck@2.19.5", "", {}, "sha512-VHiNCbI1lKdl44tGrhNfU3lup0Tj/ZBMJB5/2ZbNXRCPuRCO7ed2mgcK4r17y+KB2EfuYuRaVlwNbAeaWGSpbw=="],
 
-    "bountyreper": ["bountyreper@workspace:packages/bountyreper"],
+    "bountyreaper": ["bountyreaper@workspace:packages/bountyreaper"],
 
     "bowser": ["bowser@2.14.1", "", {}, "sha512-tzPjzCxygAKWFOJP011oxFHs57HzIhOEracIgAePE4pqB3LikALKnSzUyU4MGs9/iCEUuHlAJTjTc5M+u7YEGg=="],
 
@@ -3958,9 +3958,9 @@
 
     "body-parser/iconv-lite": ["iconv-lite@0.4.24", "", { "dependencies": { "safer-buffer": ">= 2.1.2 < 3" } }, "sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA=="],
 
-    "bountyreper/@ai-sdk/openai": ["@ai-sdk/openai@3.0.88", "", { "dependencies": { "@ai-sdk/provider": "3.0.14", "@ai-sdk/provider-utils": "4.0.40" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-6M4+bxK/UMijDYK2ia1hCKYma1iajFYxHDlhbinFUdhH2WbFsjoZRMpSjEMlTOBptqmh2J1JclKnprGulF8WwQ=="],
+    "bountyreaper/@ai-sdk/openai": ["@ai-sdk/openai@3.0.88", "", { "dependencies": { "@ai-sdk/provider": "3.0.14", "@ai-sdk/provider-utils": "4.0.40" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-6M4+bxK/UMijDYK2ia1hCKYma1iajFYxHDlhbinFUdhH2WbFsjoZRMpSjEMlTOBptqmh2J1JclKnprGulF8WwQ=="],
 
-    "bountyreper/@ai-sdk/openai-compatible": ["@ai-sdk/openai-compatible@2.0.41", "", { "dependencies": { "@ai-sdk/provider": "3.0.8", "@ai-sdk/provider-utils": "4.0.23" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-kNAGINk71AlOXx10Dq/PXw4t/9XjdK8uxfpVElRwtSFMdeSiLVt58p9TPx4/FJD+hxZuVhvxYj9r42osxWq79g=="],
+    "bountyreaper/@ai-sdk/openai-compatible": ["@ai-sdk/openai-compatible@2.0.41", "", { "dependencies": { "@ai-sdk/provider": "3.0.8", "@ai-sdk/provider-utils": "4.0.23" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-kNAGINk71AlOXx10Dq/PXw4t/9XjdK8uxfpVElRwtSFMdeSiLVt58p9TPx4/FJD+hxZuVhvxYj9r42osxWq79g=="],
 
     "bun-webgpu/@webgpu/types": ["@webgpu/types@0.1.72", "", {}, "sha512-0cF7RFM2edNoiIS1ODJp0/Gzv4/xSXhwoR0YCza+OWpJWtn4wmo9DvK91aLlH9+uUnwIriP7ZiC3WitmyhuzBw=="],
 
@@ -4532,9 +4532,9 @@
 
     "body-parser/debug/ms": ["ms@2.0.0", "", {}, "sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A=="],
 
-    "bountyreper/@ai-sdk/openai/@ai-sdk/provider": ["@ai-sdk/provider@3.0.14", "", { "dependencies": { "json-schema": "^0.4.0" } }, "sha512-5X1k57JBJ4H7H1QjX7CnJYAB1I19r/trVZTMcSms7/kLNZ8RaU4Nt2agcwZzv82Hfx6Q7/TOLU7agAKeFfc8cA=="],
+    "bountyreaper/@ai-sdk/openai/@ai-sdk/provider": ["@ai-sdk/provider@3.0.14", "", { "dependencies": { "json-schema": "^0.4.0" } }, "sha512-5X1k57JBJ4H7H1QjX7CnJYAB1I19r/trVZTMcSms7/kLNZ8RaU4Nt2agcwZzv82Hfx6Q7/TOLU7agAKeFfc8cA=="],
 
-    "bountyreper/@ai-sdk/openai/@ai-sdk/provider-utils": ["@ai-sdk/provider-utils@4.0.40", "", { "dependencies": { "@ai-sdk/provider": "3.0.14", "@standard-schema/spec": "^1.1.0", "eventsource-parser": "^3.0.8" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-OL5IrpUm9Y8Dwy+w/vvFwPotS6m52O9W0op2oXgXdCROMJIBalBI0oro6OIBYkPxvm5Xg02GSkoQN25RlR0bnw=="],
+    "bountyreaper/@ai-sdk/openai/@ai-sdk/provider-utils": ["@ai-sdk/provider-utils@4.0.40", "", { "dependencies": { "@ai-sdk/provider": "3.0.14", "@standard-schema/spec": "^1.1.0", "eventsource-parser": "^3.0.8" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-OL5IrpUm9Y8Dwy+w/vvFwPotS6m52O9W0op2oXgXdCROMJIBalBI0oro6OIBYkPxvm5Xg02GSkoQN25RlR0bnw=="],
 
     "c12/chokidar/readdirp": ["readdirp@5.1.1", "", {}, "sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA=="],
 
@@ -4916,7 +4916,7 @@
 
     "babel-plugin-module-resolver/glob/path-scurry/minipass": ["minipass@7.1.3", "", {}, "sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A=="],
 
-    "bountyreper/@ai-sdk/openai/@ai-sdk/provider-utils/@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
+    "bountyreaper/@ai-sdk/openai/@ai-sdk/provider-utils/@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
     "editorconfig/minimatch/brace-expansion/balanced-match": ["balanced-match@1.0.2", "", {}, "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="],
 

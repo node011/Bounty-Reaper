@@ -4,17 +4,17 @@
 
 ### Overview
 
-BountyReper is an AI-powered offensive security agent that runs locally on your machine. It provides specialized security testing agents with access to powerful tools including shell execution, file operations, browser automation, and security tool integration.
+BountyReaper is an AI-powered offensive security agent that runs locally on your machine. It provides specialized security testing agents with access to powerful tools including shell execution, file operations, browser automation, and security tool integration.
 
 ### No Sandbox
 
-BountyReper does **not** sandbox the agent. The permission system exists as a UX feature to help users stay aware of what actions the agent is taking — it prompts for confirmation before executing commands, writing files, etc. However, it is not designed to provide security isolation.
+BountyReaper does **not** sandbox the agent. The permission system exists as a UX feature to help users stay aware of what actions the agent is taking — it prompts for confirmation before executing commands, writing files, etc. However, it is not designed to provide security isolation.
 
-If you need true isolation, run BountyReper inside a Docker container or VM. The Bolt system runs security tools on remote servers by design.
+If you need true isolation, run BountyReaper inside a Docker container or VM. The Bolt system runs security tools on remote servers by design.
 
 ### Server Mode
 
-Server mode is opt-in only. When enabled, set `BOUNTYREPER_SERVER_PASSWORD` to require HTTP Basic Auth. Without this, the server runs unauthenticated (with a warning). It is the end user's responsibility to secure the server.
+Server mode is opt-in only. When enabled, set `BOUNTYREAPER_SERVER_PASSWORD` to require HTTP Basic Auth. Without this, the server runs unauthenticated (with a warning). It is the end user's responsibility to secure the server.
 
 ### Bolt Remote Tool Server
 
@@ -22,7 +22,7 @@ Bolt connections are authenticated with Ed25519 key pairs. All tool execution ha
 
 ### MCP Servers
 
-BountyReper connects to external MCP servers (cloud-audit-mcp, etc.) that you explicitly configure. These servers run with whatever permissions you grant them. Review MCP server code before adding it to your configuration.
+BountyReaper connects to external MCP servers (cloud-audit-mcp, etc.) that you explicitly configure. These servers run with whatever permissions you grant them. Review MCP server code before adding it to your configuration.
 
 ### Out of Scope
 
@@ -53,7 +53,7 @@ We recommend always running the latest version.
 
 We appreciate your efforts to responsibly disclose your findings, and will make every effort to acknowledge your contributions.
 
-To report a security issue, please use the GitHub Security Advisory ["Report a Vulnerability"](https://github.com/bounty-reper/BountyReper/security/advisories/new) tab.
+To report a security issue, please use the GitHub Security Advisory ["Report a Vulnerability"](https://github.com/node011/Bounty-Reaper/security/advisories/new) tab.
 
 The team will send a response indicating the next steps in handling your report. After the initial reply, we will keep you informed of progress towards a fix and full announcement, and may ask for additional information.
 

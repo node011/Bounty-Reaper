@@ -85,7 +85,7 @@ if [ ! -f .env ]; then
 else
   ok ".env already exists (left untouched)"
 fi
-mkdir -p .bountyreper/recon
+mkdir -p .bountyreaper/recon
 ok "artifact directories"
 
 if [ "${1:-}" != "--no-cli" ]; then
@@ -97,7 +97,7 @@ if [ "${1:-}" != "--no-cli" ]; then
     if command -v "$t" >/dev/null 2>&1; then ok "$t"; else warn "$t missing"; fi
   done
   echo
-  echo "  Install them with your package manager, or inside BountyReper run:"
+  echo "  Install them with your package manager, or inside BountyReaper run:"
   echo "    ensure_tools"
 fi
 

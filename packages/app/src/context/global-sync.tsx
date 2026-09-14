@@ -4,8 +4,8 @@ import {
   type Project,
   type ProviderAuthResponse,
   type ProviderListResponse,
-  createBountyreperClient,
-} from "@bountyreper-io/sdk/v2/client"
+  createBountyReaperClient,
+} from "@bountyreaper-io/sdk/v2/client"
 import { createStore, produce, reconcile } from "solid-js/store"
 import { useGlobalSDK } from "./global-sdk"
 import type { InitError } from "../pages/error"
@@ -21,8 +21,8 @@ import {
   Switch,
   Match,
 } from "solid-js"
-import { showToast } from "@bountyreper-io/ui/toast"
-import { getFilename } from "@bountyreper-io/util/path"
+import { showToast } from "@bountyreaper-io/ui/toast"
+import { getFilename } from "@bountyreaper-io/util/path"
 import { usePlatform } from "./platform"
 import { useLanguage } from "@/context/language"
 import { Persist, persisted } from "@/utils/persist"
@@ -58,7 +58,7 @@ function setDevStats(value: {
   evictions: number
   loadSessionsFullFetchFallback: number
 }) {
-  ;(globalThis as { __BOUNTYREPER_GLOBAL_SYNC_STATS?: typeof value }).__BOUNTYREPER_GLOBAL_SYNC_STATS = value
+  ;(globalThis as { __BOUNTYREAPER_GLOBAL_SYNC_STATS?: typeof value }).__BOUNTYREAPER_GLOBAL_SYNC_STATS = value
 }
 
 function createGlobalSync() {
@@ -73,7 +73,7 @@ function createGlobalSync() {
     loadSessionsFallback: 0,
   }
 
-  const sdkCache = new Map<string, ReturnType<typeof createBountyreperClient>>()
+  const sdkCache = new Map<string, ReturnType<typeof createBountyReaperClient>>()
   const booting = new Map<string, Promise<void>>()
   const sessionLoads = new Map<string, Promise<void>>()
   const sessionMeta = new Map<string, { limit: number }>()

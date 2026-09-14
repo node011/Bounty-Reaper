@@ -9,7 +9,7 @@ beforeAll(async () => {
     useNavigate: () => () => undefined,
     useParams: () => ({}),
   }))
-  mock.module("@bountyreper-io/ui/context", () => ({
+  mock.module("@bountyreaper-io/ui/context", () => ({
     createSimpleContext: () => ({
       use: () => undefined,
       provider: () => undefined,

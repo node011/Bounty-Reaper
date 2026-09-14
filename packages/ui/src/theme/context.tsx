@@ -8,10 +8,10 @@ import { createSimpleContext } from "../context/helper"
 export type ColorScheme = "light" | "dark" | "system"
 
 const STORAGE_KEYS = {
-  THEME_ID: "bountyreper-theme-id",
-  COLOR_SCHEME: "bountyreper-color-scheme",
-  THEME_CSS_LIGHT: "bountyreper-theme-css-light",
-  THEME_CSS_DARK: "bountyreper-theme-css-dark",
+  THEME_ID: "bountyreaper-theme-id",
+  COLOR_SCHEME: "bountyreaper-color-scheme",
+  THEME_CSS_LIGHT: "bountyreaper-theme-css-light",
+  THEME_CSS_DARK: "bountyreaper-theme-css-dark",
 } as const
 
 const THEME_STYLE_ID = "cs-theme"

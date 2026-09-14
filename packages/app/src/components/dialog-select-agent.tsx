@@ -1,9 +1,9 @@
 import { createMemo, createSignal } from "solid-js"
 import { useSync } from "@/context/sync"
 import { useLocal } from "@/context/local"
-import { Dialog } from "@bountyreper-io/ui/dialog"
-import { List } from "@bountyreper-io/ui/list"
-import { useDialog } from "@bountyreper-io/ui/context/dialog"
+import { Dialog } from "@bountyreaper-io/ui/dialog"
+import { List } from "@bountyreaper-io/ui/list"
+import { useDialog } from "@bountyreaper-io/ui/context/dialog"
 import { useLanguage } from "@/context/language"
 import { agentColor } from "@/utils/agent"
 

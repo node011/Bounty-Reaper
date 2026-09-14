@@ -40,7 +40,7 @@ permissions:
 jobs:
   version:
     runs-on: ubuntu-24.04
-    if: github.repository == 'node011/Bounty-Reper'
+    if: github.repository == 'node011/Bounty-Reaper'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -48,19 +48,19 @@ jobs:
 
       - uses: ./.github/actions/setup-bun
 
-      - name: Install BountyReper
+      - name: Install BountyReaper
         if: inputs.bump || inputs.version
         continue-on-error: true
-        run: bun i -g @bountyreper-io/bountyreper
+        run: bun i -g @bountyreaper-io/bountyreaper
 
       - id: version
         run: |
           ./script/version.ts
         env:
           GH_TOKEN: ${{ github.token }}
-          BOUNTYREPER_BUMP: ${{ inputs.bump }}
-          BOUNTYREPER_VERSION: ${{ inputs.version }}
-          BOUNTYREPER_API_KEY: ${{ secrets.BOUNTYREPER_API_KEY }}
+          BOUNTYREAPER_BUMP: ${{ inputs.bump }}
+          BOUNTYREAPER_VERSION: ${{ inputs.version }}
+          BOUNTYREAPER_API_KEY: ${{ secrets.BOUNTYREAPER_API_KEY }}
     outputs:
       version: ${{ steps.version.outputs.version }}
       release: ${{ steps.version.outputs.release }}
@@ -69,26 +69,26 @@ jobs:
   build-app:
     needs: version
     runs-on: ubuntu-24.04
-    if: github.repository == 'node011/Bounty-Reper'
+    if: github.repository == 'node011/Bounty-Reaper'
     steps:
       - uses: actions/checkout@v3
 
       - uses: ./.github/actions/setup-bun
 
       - name: Build Web UI
-        run: bun install && bun turbo build --filter=@bountyreper-io/app
+        run: bun install && bun turbo build --filter=@bountyreaper-io/app
         env:
-          BOUNTYREPER_VERSION: ${{ needs.version.outputs.version }}
+          BOUNTYREAPER_VERSION: ${{ needs.version.outputs.version }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: bountyreper-web
+          name: bountyreaper-web
           path: packages/app/dist
 
   build-cli:
     needs: version
     runs-on: ubuntu-24.04
-    if: github.repository == 'node011/Bounty-Reper'
+    if: github.repository == 'node011/Bounty-Reaper'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -99,17 +99,17 @@ jobs:
       - name: Build
         id: build
         run: |
-          ./packages/bountyreper/script/build.ts
+          ./packages/bountyreaper/script/build.ts
         env:
-          BOUNTYREPER_VERSION: ${{ needs.version.outputs.version }}
-          BOUNTYREPER_RELEASE: ${{ needs.version.outputs.release }}
-          BOUNTYREPER_BUILD_OS: ${{ inputs.platform }}
+          BOUNTYREAPER_VERSION: ${{ needs.version.outputs.version }}
+          BOUNTYREAPER_RELEASE: ${{ needs.version.outputs.release }}
+          BOUNTYREAPER_BUILD_OS: ${{ inputs.platform }}
           GH_TOKEN: ${{ github.token }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: bountyreper-cli
-          path: packages/bountyreper/dist
+          name: bountyreaper-cli
+          path: packages/bountyreaper/dist
 
     outputs:
       version: ${{ needs.version.outputs.version }}
@@ -136,30 +136,30 @@ jobs:
         continue-on-error: true
         uses: ./.github/actions/setup-git-committer
         with:
-          bountyreper-app-id: ${{ vars.BOUNTYREPER_APP_ID }}
-          bountyreper-app-secret: ${{ secrets.BOUNTYREPER_APP_SECRET }}
+          bountyreaper-app-id: ${{ vars.BOUNTYREAPER_APP_ID }}
+          bountyreaper-app-secret: ${{ secrets.BOUNTYREAPER_APP_SECRET }}
 
       - name: Fallback git config
         if: steps.committer.outcome == 'failure'
         run: |
-          git config --global user.name "bountyreper[bot]"
-          git config --global user.email "bountyreper[bot]@users.noreply.github.com"
+          git config --global user.name "bountyreaper[bot]"
+          git config --global user.email "bountyreaper[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${{ secrets.PUBLISH_TOKEN }}@github.com/${{ github.repository }}"
 
       - uses: actions/download-artifact@v4
         with:
-          name: bountyreper-cli
-          path: packages/bountyreper/dist
+          name: bountyreaper-cli
+          path: packages/bountyreaper/dist
 
       - uses: actions/download-artifact@v4
         with:
-          name: bountyreper-web
+          name: bountyreaper-web
           path: packages/app/dist
 
       - run: ./script/publish.ts
         env:
-          BOUNTYREPER_VERSION: ${{ needs.version.outputs.version }}
-          BOUNTYREPER_RELEASE: ${{ needs.version.outputs.release }}
+          BOUNTYREAPER_VERSION: ${{ needs.version.outputs.version }}
+          BOUNTYREAPER_RELEASE: ${{ needs.version.outputs.release }}
           GITHUB_TOKEN: ${{ steps.committer.outputs.token || secrets.PUBLISH_TOKEN || github.token }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: false

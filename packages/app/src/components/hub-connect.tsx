@@ -1,8 +1,8 @@
 import { Show } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Button } from "@bountyreper-io/ui/button"
-import { TextField } from "@bountyreper-io/ui/text-field"
-import { Logo } from "@bountyreper-io/ui/logo"
+import { Button } from "@bountyreaper-io/ui/button"
+import { TextField } from "@bountyreaper-io/ui/text-field"
+import { Logo } from "@bountyreaper-io/ui/logo"
 import { normalizeServerUrl, ServerConnection, useServer } from "@/context/server"
 import { useCheckServerHealth } from "@/utils/server-health"
 import { useLanguage } from "@/context/language"
@@ -15,7 +15,7 @@ export function HubConnectScreen() {
   const [state, setState] = createStore({
     mode: "choose" as "choose" | "remote",
     url: "",
-    username: "bountyreper",
+    username: "bountyreaper",
     password: "",
     busy: false,
     error: "",
@@ -92,7 +92,7 @@ export function HubConnectScreen() {
               <TextField
                 type="text"
                 label={language.t("hub.connect.username")}
-                placeholder="bountyreper"
+                placeholder="bountyreaper"
                 value={state.username}
                 disabled={state.busy}
                 onChange={(v: string) => setState({ username: v })}

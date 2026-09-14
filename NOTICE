@@ -1,12 +1,12 @@
-BountyReper
-Copyright (c) 2026 BountyReper
+BountyReaper
+Copyright (c) 2026 BountyReaper
 
 This product includes software and content developed by third parties.
 Their notices and terms follow.
 
 IMPORTANT -- NOT ALL OF THIS REPOSITORY IS MIT LICENSED.
 
-  .bountyreper/skill/CIS_benchmarks/  is CC BY-NC-SA 4.0 (NonCommercial).
+  .bountyreaper/skill/CIS_benchmarks/  is CC BY-NC-SA 4.0 (NonCommercial).
 
 Everything else is MIT. See the CIS Benchmarks section below, and that
 directory's own LICENSE file, for what that means and how to remove the
@@ -16,9 +16,9 @@ restriction.
 opencode
 ================================================================================
 
-BountyReper is derived from opencode (https://github.com/anomalyco/opencode),
+BountyReaper is derived from opencode (https://github.com/anomalyco/opencode),
 an open source AI coding agent. The agent framework, TUI, provider layer, server,
-SDK and plugin system originate there; BountyReper adds the offensive-security
+SDK and plugin system originate there; BountyReaper adds the offensive-security
 tooling on top.
 
 MIT License
@@ -47,12 +47,12 @@ SOFTWARE.
 CIS Benchmarks  --  NOT MIT LICENSED
 ================================================================================
 
-.bountyreper/skill/CIS_benchmarks/ is derived from the CIS Benchmarks, (C) the
+.bountyreaper/skill/CIS_benchmarks/ is derived from the CIS Benchmarks, (C) the
 Center for Internet Security, Inc., and is licensed under CC BY-NC-SA 4.0. It is
 excluded from this project's MIT license.
 
 NonCommercial: using those specific skills on a paid engagement requires prior
-approval from CIS. The rest of BountyReper carries no such restriction.
+approval from CIS. The rest of BountyReaper carries no such restriction.
 
 This is a derivative work and is not a CIS Benchmark. Not endorsed by or
 affiliated with CIS.
@@ -61,14 +61,14 @@ https://www.cisecurity.org/cis-benchmarks
 https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 Nothing in the codebase depends on this directory and no entry in
-.bountyreper/skill/index.json references it -- deleting it removes the
+.bountyreaper/skill/index.json references it -- deleting it removes the
 restriction entirely.
 
 ================================================================================
 MITRE ATT&CK(R)
 ================================================================================
 
-Skill content under .bountyreper/skill/mitre_attack/, mitre_attack_mobile/ and
+Skill content under .bountyreaper/skill/mitre_attack/, mitre_attack_mobile/ and
 mitre_attack_ics/ is derived from MITRE ATT&CK.
 
 (C) 2026 The MITRE Corporation. This work is reproduced and distributed with the
@@ -83,7 +83,7 @@ https://attack.mitre.org/resources/legal-and-branding/terms-of-use/
 NIST
 ================================================================================
 
-Skill content under .bountyreper/skill/NIST/ is derived from publications of the
+Skill content under .bountyreaper/skill/NIST/ is derived from publications of the
 National Institute of Standards and Technology, a U.S. Government agency. NIST
 publications are not subject to copyright protection in the United States.
 

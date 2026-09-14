@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { Script } from "@bountyreper-io/script"
+import { Script } from "@bountyreaper-io/script"
 import { $ } from "bun"
 
 const dir = new URL("..", import.meta.url).pathname

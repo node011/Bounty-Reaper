@@ -1,5 +1,5 @@
-import { getFilename } from "@bountyreper-io/util/path"
-import { type AgentPartInput, type FilePartInput, type Part, type TextPartInput } from "@bountyreper-io/sdk/v2/client"
+import { getFilename } from "@bountyreaper-io/util/path"
+import { type AgentPartInput, type FilePartInput, type Part, type TextPartInput } from "@bountyreaper-io/sdk/v2/client"
 import type { FileSelection } from "@/context/file"
 import { encodeFilePath } from "@/context/file/path"
 import type { AgentPart, FileAttachmentPart, ImageAttachmentPart, Prompt } from "@/context/prompt"

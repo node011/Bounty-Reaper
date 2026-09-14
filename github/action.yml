@@ -1,5 +1,5 @@
-name: "bountyreper GitHub Action"
-description: "Run bountyreper in GitHub Actions workflows"
+name: "bountyreaper GitHub Action"
+description: "Run bountyreaper in GitHub Actions workflows"
 branding:
   icon: "code"
   color: "orange"
@@ -14,7 +14,7 @@ inputs:
     required: false
 
   share:
-    description: "Share the bountyreper session (defaults to true for public repos)"
+    description: "Share the bountyreaper session (defaults to true for public repos)"
     required: false
 
   prompt:
@@ -22,12 +22,12 @@ inputs:
     required: false
 
   use_github_token:
-    description: "Use GITHUB_TOKEN directly instead of BountyReper App token exchange. When true, skips OIDC and uses the GITHUB_TOKEN env var."
+    description: "Use GITHUB_TOKEN directly instead of BountyReaper App token exchange. When true, skips OIDC and uses the GITHUB_TOKEN env var."
     required: false
     default: "false"
 
   mentions:
-    description: "Comma-separated list of trigger phrases (case-insensitive). Defaults to '/bountyreper,/oc'"
+    description: "Comma-separated list of trigger phrases (case-insensitive). Defaults to '/bountyreaper,/oc'"
     required: false
 
   oidc_base_url:
@@ -37,33 +37,33 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Get bountyreper version
+    - name: Get bountyreaper version
       id: version
       shell: bash
       run: |
-        VERSION=$(curl -sf https://api.github.com/repos/bounty-reper/BountyReper/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
+        VERSION=$(curl -sf https://api.github.com/repos/node011/Bounty-Reaper/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
         echo "version=${VERSION:-latest}" >> $GITHUB_OUTPUT
 
-    - name: Cache bountyreper
+    - name: Cache bountyreaper
       id: cache
       uses: actions/cache@v4
       with:
-        path: ~/.bountyreper/bin
-        key: bountyreper-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
+        path: ~/.bountyreaper/bin
+        key: bountyreaper-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
 
-    - name: Install bountyreper
+    - name: Install bountyreaper
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: curl -fsSL https://bountyreper.io/install | bash
 
-    - name: Add bountyreper to PATH
+    - name: Add bountyreaper to PATH
       shell: bash
-      run: echo "$HOME/.bountyreper/bin" >> $GITHUB_PATH
+      run: echo "$HOME/.bountyreaper/bin" >> $GITHUB_PATH
 
-    - name: Run bountyreper
+    - name: Run bountyreaper
       shell: bash
-      id: run_bountyreper
-      run: bountyreper github run
+      id: run_bountyreaper
+      run: bountyreaper github run
       env:
         MODEL: ${{ inputs.model }}
         AGENT: ${{ inputs.agent }}

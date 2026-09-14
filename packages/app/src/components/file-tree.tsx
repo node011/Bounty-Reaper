@@ -1,9 +1,9 @@
 import { useFile } from "@/context/file"
 import { encodeFilePath } from "@/context/file/path"
-import { Collapsible } from "@bountyreper-io/ui/collapsible"
-import { FileIcon } from "@bountyreper-io/ui/file-icon"
-import { Icon } from "@bountyreper-io/ui/icon"
-import { Tooltip } from "@bountyreper-io/ui/tooltip"
+import { Collapsible } from "@bountyreaper-io/ui/collapsible"
+import { FileIcon } from "@bountyreaper-io/ui/file-icon"
+import { Icon } from "@bountyreaper-io/ui/icon"
+import { Tooltip } from "@bountyreaper-io/ui/tooltip"
 import {
   createEffect,
   createMemo,
@@ -19,7 +19,7 @@ import {
   type ParentProps,
 } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import type { FileNode } from "@bountyreper-io/sdk/v2"
+import type { FileNode } from "@bountyreaper-io/sdk/v2"
 
 function pathToFileUrl(filepath: string): string {
   return `file://${encodeFilePath(filepath)}`

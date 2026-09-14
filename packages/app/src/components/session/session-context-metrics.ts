@@ -1,4 +1,4 @@
-import type { AssistantMessage, Message } from "@bountyreper-io/sdk/v2/client"
+import type { AssistantMessage, Message } from "@bountyreaper-io/sdk/v2/client"
 
 type Provider = {
   id: string

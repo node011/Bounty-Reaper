@@ -1,5 +1,5 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { AWS } from "@bountyreper-io/console-core/aws.js"
+import { AWS } from "@bountyreaper-io/console-core/aws.js"
 
 interface EnterpriseFormData {
   name: string

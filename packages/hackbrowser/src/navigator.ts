@@ -49,20 +49,20 @@ let cachedModel: LanguageModel | null = null
 /**
  * Resolve a LanguageModel.
  *
- * Hackbrowser is intentionally decoupled from bountyreper's Provider system
+ * Hackbrowser is intentionally decoupled from bountyreaper's Provider system
  * (Karar 2 — Dependency Inversion, INTEGRATION.md §5). Resolution order:
- *   1. `override` parameter — used by bountyreper launcher which resolves
+ *   1. `override` parameter — used by bountyreaper launcher which resolves
  *      via Provider and passes the result through `runCrawl({ model })`.
  *   2. ANTHROPIC_API_KEY env var
  *   3. OPENAI_API_KEY env var
  *
- * Standalone (`bun src/index.ts`) only sees env vars — `bountyreper auth
+ * Standalone (`bun src/index.ts`) only sees env vars — `bountyreaper auth
  * login` providers are not available here (Karar 3, INTEGRATION.md §10.2).
  */
 export async function resolveModel(override?: LanguageModel): Promise<LanguageModel> {
   if (override) {
     cachedModel = override
-    log.info("model resolved via opts.model (bountyreper injection)")
+    log.info("model resolved via opts.model (bountyreaper injection)")
     return cachedModel
   }
   if (cachedModel) return cachedModel

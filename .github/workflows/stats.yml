@@ -9,7 +9,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   stats:
-    if: github.repository == 'node011/Bounty-Reper'
+    if: github.repository == 'node011/Bounty-Reaper'
     runs-on: ubuntu-24.04
     permissions:
       contents: write

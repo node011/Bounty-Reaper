@@ -5,7 +5,7 @@ import { spawn, type ChildProcess } from "child_process"
 import { randomUUID } from "node:crypto"
 import * as vscode from "vscode"
 
-const TERMINAL_NAME = "bountyreper"
+const TERMINAL_NAME = "bountyreaper"
 
 let extensionRoot: vscode.Uri
 
@@ -21,17 +21,17 @@ class SidebarProvider implements vscode.WebviewViewProvider {
       enableScripts: true,
       localResourceRoots: [vscode.Uri.joinPath(extensionRoot, "dist")],
     }
-    view.webview.html = `<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:gray">Starting bountyreper...</body></html>`
+    view.webview.html = `<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:gray">Starting bountyreaper...</body></html>`
 
     const port = await startSidebarServer()
     if (!port) {
-      view.webview.html = `<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:gray">Failed to start bountyreper. Is it installed and on your PATH?</body></html>`
+      view.webview.html = `<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:gray">Failed to start bountyreaper. Is it installed and on your PATH?</body></html>`
       return
     }
 
     const pty = sidebarPty ?? (await createTuiPty(port))
     if (!pty) {
-      view.webview.html = `<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:gray">Failed to start the bountyreper TUI.</body></html>`
+      view.webview.html = `<html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:gray">Failed to start the bountyreaper TUI.</body></html>`
       return
     }
     sidebarPty = pty
@@ -46,7 +46,7 @@ class SidebarProvider implements vscode.WebviewViewProvider {
 </head>
 <body>
 <div id="terminal"></div>
-<script>window.BOUNTYREPER = { port: ${port}, ptyID: "${pty}", wasm: "${wasm}" };</script>
+<script>window.BOUNTYREAPER = { port: ${port}, ptyID: "${pty}", wasm: "${wasm}" };</script>
 <script src="${script}"></script>
 </body>
 </html>`
@@ -65,18 +65,18 @@ async function startSidebarServer(): Promise<number | undefined> {
 
 async function spawnSidebarServer(noOpen: boolean): Promise<number | undefined> {
   const port = Math.floor(Math.random() * (65535 - 16384 + 1)) + 16384
-  // Login shell so `bountyreper` resolves via the user's interactive PATH,
+  // Login shell so `bountyreaper` resolves via the user's interactive PATH,
   // matching the terminal-based flow. detached on POSIX so the whole process
   // group (shell + server) can be killed on dispose.
-  const command = `bountyreper web --port ${port} --hostname 127.0.0.1${noOpen ? " --no-open" : ""}`
+  const command = `bountyreaper web --port ${port} --hostname 127.0.0.1${noOpen ? " --no-open" : ""}`
   sidebarChild =
     process.platform === "win32"
       ? spawn("cmd.exe", ["/c", command], {
-          env: { ...process.env, BOUNTYREPER_SERVER_PASSWORD: randomUUID(), BOUNTYREPER_CALLER: "vscode" },
+          env: { ...process.env, BOUNTYREAPER_SERVER_PASSWORD: randomUUID(), BOUNTYREAPER_CALLER: "vscode" },
           stdio: "ignore",
         })
       : spawn(process.env.SHELL || "/bin/zsh", ["-lc", command], {
-          env: { ...process.env, BOUNTYREPER_SERVER_PASSWORD: randomUUID(), BOUNTYREPER_CALLER: "vscode" },
+          env: { ...process.env, BOUNTYREAPER_SERVER_PASSWORD: randomUUID(), BOUNTYREAPER_CALLER: "vscode" },
           stdio: "ignore",
           detached: true,
         })
@@ -129,7 +129,7 @@ async function waitForServer(port: number, tries = 10) {
   return false
 }
 
-// Runs the real bountyreper TUI (attach) inside a PTY owned by the headless
+// Runs the real bountyreaper TUI (attach) inside a PTY owned by the headless
 // server, so the webview terminal can stream it over the /pty websocket
 async function createTuiPty(port: number): Promise<string | undefined> {
   const workspace = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
@@ -146,7 +146,7 @@ async function createTuiPty(port: number): Promise<string | undefined> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      command: "bountyreper",
+      command: "bountyreaper",
       args: ["attach", `http://127.0.0.1:${port}`],
       cwd: workspace ?? process.env.HOME,
       title: TERMINAL_NAME,
@@ -163,12 +163,12 @@ async function createTuiPty(port: number): Promise<string | undefined> {
 export function activate(context: vscode.ExtensionContext) {
   extensionRoot = context.extensionUri
 
-  let openNewTerminalDisposable = vscode.commands.registerCommand("bountyreper.openNewTerminal", async () => {
+  let openNewTerminalDisposable = vscode.commands.registerCommand("bountyreaper.openNewTerminal", async () => {
     await openTerminal(true)
   })
 
-  let openTerminalDisposable = vscode.commands.registerCommand("bountyreper.openTerminal", async () => {
-    // An bountyreper terminal already exists => focus it
+  let openTerminalDisposable = vscode.commands.registerCommand("bountyreaper.openTerminal", async () => {
+    // An bountyreaper terminal already exists => focus it
     const existingTerminal = vscode.window.terminals.find((t) => t.name === TERMINAL_NAME)
     if (existingTerminal) {
       existingTerminal.show()
@@ -178,7 +178,7 @@ export function activate(context: vscode.ExtensionContext) {
     await openTerminal()
   })
 
-  let addFilepathDisposable = vscode.commands.registerCommand("bountyreper.addFilepathToTerminal", async () => {
+  let addFilepathDisposable = vscode.commands.registerCommand("bountyreaper.addFilepathToTerminal", async () => {
     const fileRef = getActiveFile()
     if (!fileRef) {
       return
@@ -187,7 +187,7 @@ export function activate(context: vscode.ExtensionContext) {
     const terminal = vscode.window.activeTerminal
     if (terminal?.name === TERMINAL_NAME) {
       // @ts-ignore
-      const port = terminal.creationOptions.env?.["_EXTENSION_BOUNTYREPER_PORT"]
+      const port = terminal.creationOptions.env?.["_EXTENSION_BOUNTYREAPER_PORT"]
       port ? await appendPrompt(parseInt(port), fileRef) : terminal.sendText(fileRef, false)
       terminal.show()
       return
@@ -196,15 +196,15 @@ export function activate(context: vscode.ExtensionContext) {
     // The sidebar TUI subscribes to the same prompt-append event
     if (sidebarPort && sidebarChild?.exitCode === null) {
       await appendPrompt(sidebarPort, fileRef)
-      await vscode.commands.executeCommand("bountyreper.chat.focus")
+      await vscode.commands.executeCommand("bountyreaper.chat.focus")
     }
   })
 
-  let openSidebarDisposable = vscode.commands.registerCommand("bountyreper.openSidebar", async () => {
-    await vscode.commands.executeCommand("bountyreper.chat.focus")
+  let openSidebarDisposable = vscode.commands.registerCommand("bountyreaper.openSidebar", async () => {
+    await vscode.commands.executeCommand("bountyreaper.chat.focus")
   })
 
-  const sidebarProvider = vscode.window.registerWebviewViewProvider("bountyreper.chat", new SidebarProvider(), {
+  const sidebarProvider = vscode.window.registerWebviewViewProvider("bountyreaper.chat", new SidebarProvider(), {
     webviewOptions: { retainContextWhenHidden: true },
   })
 
@@ -233,13 +233,13 @@ export function activate(context: vscode.ExtensionContext) {
           }
         : vscode.TerminalLocation.Panel,
       env: {
-        _EXTENSION_BOUNTYREPER_PORT: port.toString(),
-        BOUNTYREPER_CALLER: "vscode",
+        _EXTENSION_BOUNTYREAPER_PORT: port.toString(),
+        BOUNTYREAPER_CALLER: "vscode",
       },
     })
 
     terminal.show()
-    terminal.sendText(`bountyreper --port ${port}`)
+    terminal.sendText(`bountyreaper --port ${port}`)
 
     const fileRef = getActiveFile()
     if (!fileRef) {

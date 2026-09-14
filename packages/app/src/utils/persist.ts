@@ -1,6 +1,6 @@
 import { Platform, usePlatform } from "@/context/platform"
 import { makePersisted, type AsyncStorage, type SyncStorage } from "@solid-primitives/storage"
-import { checksum } from "@bountyreper-io/util/encode"
+import { checksum } from "@bountyreaper-io/util/encode"
 import { createResource, type Accessor } from "solid-js"
 import type { SetStoreFunction, Store } from "solid-js/store"
 
@@ -15,8 +15,8 @@ type PersistTarget = {
 }
 
 const LEGACY_STORAGE = "default.dat"
-const GLOBAL_STORAGE = "bountyreper.global.dat"
-const LOCAL_PREFIX = "bountyreper."
+const GLOBAL_STORAGE = "bountyreaper.global.dat"
+const LOCAL_PREFIX = "bountyreaper."
 const fallback = new Map<string, boolean>()
 
 const CACHE_MAX_ENTRIES = 500
@@ -206,7 +206,7 @@ function normalize(defaults: unknown, raw: string, migrate?: (value: unknown) =>
 function workspaceStorage(dir: string) {
   const head = dir.slice(0, 12) || "workspace"
   const sum = checksum(dir) ?? "0"
-  return `bountyreper.workspace.${head}.${sum}.dat`
+  return `bountyreaper.workspace.${head}.${sum}.dat`
 }
 
 function localStorageWithPrefix(prefix: string): SyncStorage {

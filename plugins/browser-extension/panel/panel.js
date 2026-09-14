@@ -72,7 +72,7 @@ async function validate() {
   save({ serverUrl: url, serverPassword: ui.password.value })
   setStatus("checking…", "")
   const res = await brProbe(url, creds())
-  if (res.ok) setStatus(`connected — BountyReper ${res.version}`, "ok")
+  if (res.ok) setStatus(`connected — BountyReaper ${res.version}`, "ok")
   else setStatus(`not reachable: ${res.error}`, "err")
 }
 

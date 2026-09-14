@@ -23,8 +23,8 @@ jobs:
         continue-on-error: true
         uses: ./.github/actions/setup-git-committer
         with:
-          bountyreper-app-id: ${{ vars.BOUNTYREPER_APP_ID }}
-          bountyreper-app-secret: ${{ secrets.BOUNTYREPER_APP_SECRET }}
+          bountyreaper-app-id: ${{ vars.BOUNTYREAPER_APP_ID }}
+          bountyreaper-app-secret: ${{ secrets.BOUNTYREAPER_APP_SECRET }}
 
       - name: Fallback git config
         if: steps.committer.outcome == 'failure'

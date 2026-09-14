@@ -1,8 +1,8 @@
 import { getRequestEvent } from "solid-js/web"
-import { and, Database, eq, inArray, isNull, sql } from "@bountyreper-io/console-core/drizzle/index.js"
-import { UserTable } from "@bountyreper-io/console-core/schema/user.sql.js"
+import { and, Database, eq, inArray, isNull, sql } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { UserTable } from "@bountyreaper-io/console-core/schema/user.sql.js"
 import { redirect } from "@solidjs/router"
-import { Actor } from "@bountyreper-io/console-core/actor.js"
+import { Actor } from "@bountyreaper-io/console-core/actor.js"
 
 import { createClient } from "@openauthjs/openauth/client"
 
@@ -12,7 +12,7 @@ export const AuthClient = createClient({
 })
 
 import { useSession } from "@solidjs/start/http"
-import { Resource } from "@bountyreper-io/console-resource"
+import { Resource } from "@bountyreaper-io/console-resource"
 
 export interface AuthSession {
   account?: Record<

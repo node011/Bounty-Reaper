@@ -1,11 +1,11 @@
-import { TextField } from "@bountyreper-io/ui/text-field"
-import { Logo } from "@bountyreper-io/ui/logo"
-import { Button } from "@bountyreper-io/ui/button"
+import { TextField } from "@bountyreaper-io/ui/text-field"
+import { Logo } from "@bountyreaper-io/ui/logo"
+import { Button } from "@bountyreaper-io/ui/button"
 import { Component, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { usePlatform } from "@/context/platform"
 import { useLanguage } from "@/context/language"
-import { Icon } from "@bountyreper-io/ui/icon"
+import { Icon } from "@bountyreaper-io/ui/icon"
 
 export type InitError = {
   name: string

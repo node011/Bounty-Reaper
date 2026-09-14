@@ -1,5 +1,5 @@
-import { getFilename } from "@bountyreper-io/util/path"
-import { type Session } from "@bountyreper-io/sdk/v2/client"
+import { getFilename } from "@bountyreaper-io/util/path"
+import { type Session } from "@bountyreaper-io/sdk/v2/client"
 
 export const workspaceKey = (directory: string) => {
   const drive = directory.match(/^([A-Za-z]:)[\\/]+$/)

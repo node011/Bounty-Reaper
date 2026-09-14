@@ -1,5 +1,5 @@
 import { Show } from "solid-js"
-import { Tabs } from "@bountyreper-io/ui/tabs"
+import { Tabs } from "@bountyreaper-io/ui/tabs"
 
 export function SessionMobileTabs(props: {
   open: boolean

@@ -1,8 +1,8 @@
 import "solid-js"
 
 interface ImportMetaEnv {
-  readonly VITE_BOUNTYREPER_SERVER_HOST: string
-  readonly VITE_BOUNTYREPER_SERVER_PORT: string
+  readonly VITE_BOUNTYREAPER_SERVER_HOST: string
+  readonly VITE_BOUNTYREAPER_SERVER_PORT: string
 }
 
 interface ImportMeta {

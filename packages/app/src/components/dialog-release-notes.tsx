@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js"
-import { Dialog } from "@bountyreper-io/ui/dialog"
-import { Button } from "@bountyreper-io/ui/button"
-import { useDialog } from "@bountyreper-io/ui/context/dialog"
+import { Dialog } from "@bountyreaper-io/ui/dialog"
+import { Button } from "@bountyreaper-io/ui/button"
+import { useDialog } from "@bountyreaper-io/ui/context/dialog"
 import { useSettings } from "@/context/settings"
 
 export type Highlight = {

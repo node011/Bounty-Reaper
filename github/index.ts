@@ -6,7 +6,7 @@ import * as core from "@actions/core"
 import * as github from "@actions/github"
 import type { Context as GitHubContext } from "@actions/github/lib/context"
 import type { IssueCommentEvent, PullRequestReviewCommentEvent } from "@octokit/webhooks-types"
-import { createBountyreperClient } from "@bountyreper-io/sdk"
+import { createBountyReaperClient } from "@bountyreaper-io/sdk"
 import { spawn } from "node:child_process"
 
 type GitHubAuthor = {
@@ -112,7 +112,7 @@ type IssueQueryResponse = {
   }
 }
 
-const { client, server } = createBountyreper()
+const { client, server } = createBountyReaper()
 let accessToken: string
 let octoRest: Octokit
 let octoGraph: typeof graphql
@@ -126,7 +126,7 @@ type PromptFiles = Awaited<ReturnType<typeof getUserPrompt>>["promptFiles"]
 try {
   assertContextEvent("issue_comment", "pull_request_review_comment")
   assertPayloadKeyword()
-  await assertBountyreperConnected()
+  await assertBountyReaperConnected()
 
   accessToken = await getAccessToken()
   octoRest = new Octokit({ auth: accessToken })
@@ -141,7 +141,7 @@ try {
   const comment = await createComment()
   commentId = comment.data.id
 
-  // Setup bountyreper session
+  // Setup bountyreaper session
   const repoData = await fetchRepo()
   session = await client.session.create<true>().then((r) => r.data)
   await subscribeSessionEvents()
@@ -151,7 +151,7 @@ try {
     await client.session.share<true>({ path: session })
     return session.id.slice(-8)
   })()
-  console.log("bountyreper session", session.id)
+  console.log("bountyreaper session", session.id)
   if (shareId) {
     console.log("Share link:", `${useShareUrl()}/s/${shareId}`)
   }
@@ -227,12 +227,12 @@ try {
 }
 process.exit(exitCode)
 
-function createBountyreper() {
+function createBountyReaper() {
   const host = "127.0.0.1"
   const port = 4096
   const url = `http://${host}:${port}`
-  const proc = spawn(`bountyreper`, [`serve`, `--hostname=${host}`, `--port=${port}`])
-  const client = createBountyreperClient({ baseUrl: url })
+  const proc = spawn(`bountyreaper`, [`serve`, `--hostname=${host}`, `--port=${port}`])
+  const client = createBountyReaperClient({ baseUrl: url })
 
   return {
     server: { url, close: () => proc.kill() },
@@ -243,8 +243,8 @@ function createBountyreper() {
 function assertPayloadKeyword() {
   const payload = useContext().payload as IssueCommentEvent | PullRequestReviewCommentEvent
   const body = payload.comment.body.trim()
-  if (!body.match(/(?:^|\s)(?:\/bountyreper|\/oc)(?=$|\s)/)) {
-    throw new Error("Comments must mention `/bountyreper` or `/oc`")
+  if (!body.match(/(?:^|\s)(?:\/bountyreaper|\/oc)(?=$|\s)/)) {
+    throw new Error("Comments must mention `/bountyreaper` or `/oc`")
   }
 }
 
@@ -266,7 +266,7 @@ function getReviewCommentContext() {
   }
 }
 
-async function assertBountyreperConnected() {
+async function assertBountyReaperConnected() {
   let retry = 0
   let connected = false
   do {
@@ -285,7 +285,7 @@ async function assertBountyreperConnected() {
   } while (retry++ < 30)
 
   if (!connected) {
-    throw new Error("Failed to connect to bountyreper server")
+    throw new Error("Failed to connect to bountyreaper server")
   }
 }
 
@@ -381,7 +381,7 @@ async function getAccessToken() {
       body: JSON.stringify({ owner: repo.owner, repo: repo.repo }),
     })
   } else {
-    const oidcToken = await core.getIDToken("bountyreper-github-action")
+    const oidcToken = await core.getIDToken("bountyreaper-github-action")
     response = await fetch("https://api.bountyreper.io/exchange_github_app_token", {
       method: "POST",
       headers: {
@@ -417,19 +417,19 @@ async function getUserPrompt() {
 
   let prompt = (() => {
     const body = payload.comment.body.trim()
-    if (body === "/bountyreper" || body === "/oc") {
+    if (body === "/bountyreaper" || body === "/oc") {
       if (reviewContext) {
         return `Review this code change and suggest improvements for the commented lines:\n\nFile: ${reviewContext.file}\nLines: ${reviewContext.line}\n\n${reviewContext.diffHunk}`
       }
       return "Summarize this thread"
     }
-    if (body.includes("/bountyreper") || body.includes("/oc")) {
+    if (body.includes("/bountyreaper") || body.includes("/oc")) {
       if (reviewContext) {
         return `${body}\n\nContext: You are reviewing a comment on file "${reviewContext.file}" at line ${reviewContext.line}.\n\nDiff context:\n${reviewContext.diffHunk}`
       }
       return body
     }
-    throw new Error("Comments must mention `/bountyreper` or `/oc`")
+    throw new Error("Comments must mention `/bountyreaper` or `/oc`")
   })()
 
   // Handle images
@@ -607,7 +607,7 @@ async function resolveAgent(): Promise<string | undefined> {
 }
 
 async function chat(text: string, files: PromptFiles = []) {
-  console.log("Sending message to bountyreper...")
+  console.log("Sending message to bountyreaper...")
   const { providerID, modelID } = useEnvModel()
   const agent = await resolveAgent()
 
@@ -663,8 +663,8 @@ async function configureGit(appToken: string) {
 
   await $`git config --local --unset-all ${config}`
   await $`git config --local ${config} "AUTHORIZATION: basic ${newCredentials}"`
-  await $`git config --global user.name "bountyreper-agent[bot]"`
-  await $`git config --global user.email "bountyreper-agent[bot]@users.noreply.github.com"`
+  await $`git config --global user.name "bountyreaper-agent[bot]"`
+  await $`git config --global user.email "bountyreaper-agent[bot]@users.noreply.github.com"`
 }
 
 async function restoreGitConfig() {
@@ -710,7 +710,7 @@ function generateBranchName(type: "issue" | "pr") {
     .replace(/\.\d{3}Z/, "")
     .split("T")
     .join("")
-  return `bountyreper/${type}${useIssueId()}-${timestamp}`
+  return `bountyreaper/${type}${useIssueId()}-${timestamp}`
 }
 
 async function pushToNewBranch(summary: string, branch: string) {
@@ -821,9 +821,9 @@ function footer(opts?: { image?: boolean }) {
     const titleAlt = encodeURIComponent(session.title.substring(0, 50))
     const title64 = Buffer.from(session.title.substring(0, 700), "utf8").toString("base64")
 
-    return `<a href="${useShareUrl()}/s/${shareId}"><img width="200" alt="${titleAlt}" src="https://social-cards.sst.dev/bountyreper-share/${title64}.png?model=${providerID}/${modelID}&version=${session.version}&id=${shareId}" /></a>\n`
+    return `<a href="${useShareUrl()}/s/${shareId}"><img width="200" alt="${titleAlt}" src="https://social-cards.sst.dev/bountyreaper-share/${title64}.png?model=${providerID}/${modelID}&version=${session.version}&id=${shareId}" /></a>\n`
   })()
-  const shareUrl = shareId ? `[bountyreper session](${useShareUrl()}/s/${shareId})&nbsp;&nbsp;|&nbsp;&nbsp;` : ""
+  const shareUrl = shareId ? `[bountyreaper session](${useShareUrl()}/s/${shareId})&nbsp;&nbsp;|&nbsp;&nbsp;` : ""
   return `\n\n${image}${shareUrl}[github run](${useEnvRunUrl()})`
 }
 

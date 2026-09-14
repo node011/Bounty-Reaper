@@ -2,10 +2,10 @@ export * from "./gen/types.gen.js"
 
 import { createClient } from "./gen/client/client.gen.js"
 import { type Config } from "./gen/client/types.gen.js"
-import { BountyreperClient } from "./gen/sdk.gen.js"
-export { type Config as BountyreperClientConfig, BountyreperClient }
+import { BountyReaperClient } from "./gen/sdk.gen.js"
+export { type Config as BountyReaperClientConfig, BountyReaperClient }
 
-export function createBountyreperClient(config?: Config & { directory?: string }) {
+export function createBountyReaperClient(config?: Config & { directory?: string }) {
   if (!config?.fetch) {
     const customFetch: any = (req: any) => {
       // @ts-ignore
@@ -21,10 +21,10 @@ export function createBountyreperClient(config?: Config & { directory?: string }
   if (config?.directory) {
     config.headers = {
       ...config.headers,
-      "x-bountyreper-directory": encodeURIComponent(config.directory),
+      "x-bountyreaper-directory": encodeURIComponent(config.directory),
     }
   }
 
   const client = createClient(config)
-  return new BountyreperClient({ client })
+  return new BountyReaperClient({ client })
 }

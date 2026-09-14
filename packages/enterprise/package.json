@@ -1,5 +1,5 @@
 {
-  "name": "@bountyreper-io/enterprise",
+  "name": "@bountyreaper-io/enterprise",
   "version": "1.2.1",
   "private": true,
   "type": "module",
@@ -8,13 +8,13 @@
     "typecheck": "tsgo --noEmit",
     "dev": "vite dev",
     "build": "vite build",
-    "build:cloudflare": "BOUNTYREPER_DEPLOYMENT_TARGET=cloudflare vite build",
+    "build:cloudflare": "BOUNTYREAPER_DEPLOYMENT_TARGET=cloudflare vite build",
     "start": "vite start",
     "shell-prod": "sst shell --target Teams --stage production"
   },
   "dependencies": {
-    "@bountyreper-io/util": "workspace:*",
-    "@bountyreper-io/ui": "workspace:*",
+    "@bountyreaper-io/util": "workspace:*",
+    "@bountyreaper-io/ui": "workspace:*",
     "aws4fetch": "^1.0.20",
     "@pierre/diffs": "catalog:",
     "@solidjs/router": "catalog:",

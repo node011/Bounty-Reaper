@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 
 import { $ } from "bun"
-import { createBountyreper } from "@bountyreper-io/sdk/v2"
+import { createBountyReaper } from "@bountyreaper-io/sdk/v2"
 import { parseArgs } from "util"
-import { Script } from "@bountyreper-io/script"
+import { Script } from "@bountyreaper-io/script"
 
 export async function getLatestRelease(skip?: string) {
-  const data = await fetch("https://registry.npmjs.org/@bountyreper-io%2Fbountyreper").then((res) => {
+  const data = await fetch("https://registry.npmjs.org/@bountyreaper-io%2Fbountyreaper").then((res) => {
     if (!res.ok) throw new Error(res.statusText)
     return res.json()
   })
@@ -37,7 +37,7 @@ export async function getCommits(from: string, to: string): Promise<Commit[]> {
 
   // Get commit data with GitHub usernames from the API
   const compare =
-    await $`gh api "/repos/node011/Bounty-Reper/compare/${fromRef}...${toRef}" --jq '.commits[] | {sha: .sha, login: .author.login, message: .commit.message}'`.text()
+    await $`gh api "/repos/node011/Bounty-Reaper/compare/${fromRef}...${toRef}" --jq '.commits[] | {sha: .sha, login: .author.login, message: .commit.message}'`.text()
 
   const commitData = new Map<string, { login: string | null; message: string }>()
   for (const line of compare.split("\n").filter(Boolean)) {
@@ -47,7 +47,7 @@ export async function getCommits(from: string, to: string): Promise<Commit[]> {
 
   // Get commits that touch the relevant packages
   const log =
-    await $`git log ${fromRef}..${toRef} --oneline --format="%H" -- packages/bountyreper packages/sdk packages/plugin packages/app sdks/vscode packages/extensions github`.text()
+    await $`git log ${fromRef}..${toRef} --oneline --format="%H" -- packages/bountyreaper packages/sdk packages/plugin packages/app sdks/vscode packages/extensions github`.text()
   const hashes = log.split("\n").filter(Boolean)
 
   const commits: Commit[] = []
@@ -62,8 +62,8 @@ export async function getCommits(from: string, to: string): Promise<Commit[]> {
     const areas = new Set<string>()
 
     for (const file of files.split("\n").filter(Boolean)) {
-      if (file.startsWith("packages/bountyreper/src/cli/cmd/")) areas.add("tui")
-      else if (file.startsWith("packages/bountyreper/")) areas.add("core")
+      if (file.startsWith("packages/bountyreaper/src/cli/cmd/")) areas.add("tui")
+      else if (file.startsWith("packages/bountyreaper/")) areas.add("core")
       else if (file.startsWith("packages/app/")) areas.add("app")
       else if (file.startsWith("packages/sdk/")) areas.add("sdk")
       else if (file.startsWith("packages/plugin/")) areas.add("plugin")
@@ -128,16 +128,16 @@ function getSection(areas: Set<string>): string {
 }
 
 async function summarizeCommit(
-  bountyreper: Awaited<ReturnType<typeof createBountyreper>>,
+  bountyreaper: Awaited<ReturnType<typeof createBountyReaper>>,
   message: string,
 ): Promise<string> {
   console.log("summarizing commit:", message)
-  const session = await bountyreper.client.session.create()
-  const result = await bountyreper.client.session
+  const session = await bountyreaper.client.session.create()
+  const result = await bountyreaper.client.session
     .prompt(
       {
         sessionID: session.data!.id,
-        model: { providerID: "bountyreper", modelID: "claude-sonnet-4-5" },
+        model: { providerID: "bountyreaper", modelID: "claude-sonnet-4-5" },
         tools: {
           "*": false,
         },
@@ -158,13 +158,13 @@ Commit: ${message}`,
   return result.trim()
 }
 
-export async function generateChangelog(commits: Commit[], bountyreper: Awaited<ReturnType<typeof createBountyreper>>) {
+export async function generateChangelog(commits: Commit[], bountyreaper: Awaited<ReturnType<typeof createBountyReaper>>) {
   // Summarize commits in parallel with max 10 concurrent requests
   const BATCH_SIZE = 10
   const summaries: string[] = []
   for (let i = 0; i < commits.length; i += BATCH_SIZE) {
     const batch = commits.slice(i, i + BATCH_SIZE)
-    const results = await Promise.all(batch.map((c) => summarizeCommit(bountyreper, c.message)))
+    const results = await Promise.all(batch.map((c) => summarizeCommit(bountyreaper, c.message)))
     summaries.push(...results)
   }
 
@@ -195,7 +195,7 @@ export async function getContributors(from: string, to: string) {
   const fromRef = from.startsWith("v") ? from : `v${from}`
   const toRef = to === "HEAD" ? to : to.startsWith("v") ? to : `v${to}`
   const compare =
-    await $`gh api "/repos/node011/Bounty-Reper/compare/${fromRef}...${toRef}" --jq '.commits[] | {login: .author.login, message: .commit.message}'`.text()
+    await $`gh api "/repos/node011/Bounty-Reaper/compare/${fromRef}...${toRef}" --jq '.commits[] | {login: .author.login, message: .commit.message}'`.text()
   const contributors = new Map<string, Set<string>>()
 
   for (const line of compare.split("\n").filter(Boolean)) {
@@ -224,9 +224,9 @@ export async function buildNotes(from: string, to: string) {
   const notes: string[] = []
 
   try {
-    const bountyreper = await createBountyreper({ port: 0 })
+    const bountyreaper = await createBountyReaper({ port: 0 })
     try {
-      const lines = await generateChangelog(commits, bountyreper)
+      const lines = await generateChangelog(commits, bountyreaper)
       notes.push(...lines)
       console.log("---- Generated Changelog ----")
       console.log(notes.join("\n"))
@@ -242,10 +242,10 @@ export async function buildNotes(from: string, to: string) {
         throw error
       }
     } finally {
-      await bountyreper.server.close()
+      await bountyreaper.server.close()
     }
   } catch (error) {
-    console.log("Could not start bountyreper for changelog generation, using raw commits:", (error as Error).message)
+    console.log("Could not start bountyreaper for changelog generation, using raw commits:", (error as Error).message)
     for (const commit of commits) {
       const attribution = commit.author && !Script.team.includes(commit.author) ? ` (@${commit.author})` : ""
       notes.push(`- ${commit.message}${attribution}`)

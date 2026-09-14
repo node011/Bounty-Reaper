@@ -24,8 +24,8 @@ export default defineConfig({
     reuseExistingServer: reuse,
     timeout: 120_000,
     env: {
-      VITE_BOUNTYREPER_SERVER_HOST: serverHost,
-      VITE_BOUNTYREPER_SERVER_PORT: serverPort,
+      VITE_BOUNTYREAPER_SERVER_HOST: serverHost,
+      VITE_BOUNTYREAPER_SERVER_PORT: serverPort,
     },
   },
   use: {

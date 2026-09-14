@@ -7,7 +7,7 @@ import type { CSEvent } from "../types.ts"
  * config.panel via setPanelEnabled().
  *
  * Note: this only gates the BROWSER panel sink (page.evaluate). The
- * eventSink callback (bountyreper-side telemetry) runs independently
+ * eventSink callback (bountyreaper-side telemetry) runs independently
  * and is unaffected by this flag — when set, it always receives events
  * regardless of the panel switch. This separation lets headless tool
  * runs feed status updates to the TUI sidebar without injecting any
@@ -20,7 +20,7 @@ export function setPanelEnabled(value: boolean): void {
 }
 
 /**
- * Module-level event sink. Bountyreper's hackbrowser-launcher registers
+ * Module-level event sink. BountyReaper's hackbrowser-launcher registers
  * a callback here so every CSEvent is forwarded into HackbrowserStatus
  * (Faz B.1+ — INTEGRATION.md §13.2).
  *
@@ -45,19 +45,19 @@ export function clearEventSink(): void {
 }
 
 /**
- * Push an event to BOTH the injected browser panel AND the bountyreper
+ * Push an event to BOTH the injected browser panel AND the bountyreaper
  * event sink (when registered). Two independent channels:
  *
  *   browser panel  → window.__csEvent (Shadow DOM live telemetry)
- *   eventSink      → bountyreper HackbrowserStatus (TUI sidebar)
+ *   eventSink      → bountyreaper HackbrowserStatus (TUI sidebar)
  *
  * Errors are swallowed in both channels: telemetry must never be load-
  * bearing. The browser page may have navigated/closed mid-emit; the
- * bountyreper sink might throw on Bus.publish. Neither should crash the
+ * bountyreaper sink might throw on Bus.publish. Neither should crash the
  * agent. Sink throws are logged so debug is possible without coupling.
  */
 export async function csEmit(page: Page, event: CSEvent): Promise<void> {
-  // Bountyreper sink — synchronous, runs first so the TUI sidebar gets
+  // BountyReaper sink — synchronous, runs first so the TUI sidebar gets
   // the update even if the browser-side emit is slow. Always evaluated
   // when registered (independent of the `enabled` panel switch).
   if (eventSink) {

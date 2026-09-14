@@ -4,24 +4,24 @@ import { displayName, errorMessage, getDraggableId, syncWorkspaceOrder, workspac
 
 describe("layout deep links", () => {
   test("parses open-project deep links", () => {
-    expect(parseDeepLink("bountyreper://open-project?directory=/tmp/demo")).toBe("/tmp/demo")
+    expect(parseDeepLink("bountyreaper://open-project?directory=/tmp/demo")).toBe("/tmp/demo")
   })
 
   test("ignores non-project deep links", () => {
-    expect(parseDeepLink("bountyreper://other?directory=/tmp/demo")).toBeUndefined()
+    expect(parseDeepLink("bountyreaper://other?directory=/tmp/demo")).toBeUndefined()
     expect(parseDeepLink("https://example.com")).toBeUndefined()
   })
 
   test("ignores malformed deep links safely", () => {
-    expect(() => parseDeepLink("bountyreper://open-project/%E0%A4%A%")).not.toThrow()
-    expect(parseDeepLink("bountyreper://open-project/%E0%A4%A%")).toBeUndefined()
+    expect(() => parseDeepLink("bountyreaper://open-project/%E0%A4%A%")).not.toThrow()
+    expect(parseDeepLink("bountyreaper://open-project/%E0%A4%A%")).toBeUndefined()
   })
 
   test("parses links when URL.canParse is unavailable", () => {
     const original = Object.getOwnPropertyDescriptor(URL, "canParse")
     Object.defineProperty(URL, "canParse", { configurable: true, value: undefined })
     try {
-      expect(parseDeepLink("bountyreper://open-project?directory=/tmp/demo")).toBe("/tmp/demo")
+      expect(parseDeepLink("bountyreaper://open-project?directory=/tmp/demo")).toBe("/tmp/demo")
     } finally {
       if (original) Object.defineProperty(URL, "canParse", original)
       if (!original) Reflect.deleteProperty(URL, "canParse")
@@ -29,27 +29,27 @@ describe("layout deep links", () => {
   })
 
   test("ignores open-project deep links without directory", () => {
-    expect(parseDeepLink("bountyreper://open-project")).toBeUndefined()
-    expect(parseDeepLink("bountyreper://open-project?directory=")).toBeUndefined()
+    expect(parseDeepLink("bountyreaper://open-project")).toBeUndefined()
+    expect(parseDeepLink("bountyreaper://open-project?directory=")).toBeUndefined()
   })
 
   test("collects only valid open-project directories", () => {
     const result = collectOpenProjectDeepLinks([
-      "bountyreper://open-project?directory=/a",
-      "bountyreper://other?directory=/b",
-      "bountyreper://open-project?directory=/c",
+      "bountyreaper://open-project?directory=/a",
+      "bountyreaper://other?directory=/b",
+      "bountyreaper://open-project?directory=/c",
     ])
     expect(result).toEqual(["/a", "/c"])
   })
 
   test("drains global deep links once", () => {
     const target = {
-      __BOUNTYREPER__: {
-        deepLinks: ["bountyreper://open-project?directory=/a"],
+      __BOUNTYREAPER__: {
+        deepLinks: ["bountyreaper://open-project?directory=/a"],
       },
-    } as unknown as Window & { __BOUNTYREPER__?: { deepLinks?: string[] } }
+    } as unknown as Window & { __BOUNTYREAPER__?: { deepLinks?: string[] } }
 
-    expect(drainPendingDeepLinks(target)).toEqual(["bountyreper://open-project?directory=/a"])
+    expect(drainPendingDeepLinks(target)).toEqual(["bountyreaper://open-project?directory=/a"])
     expect(drainPendingDeepLinks(target)).toEqual([])
   })
 })

@@ -1,5 +1,5 @@
 import { App } from "@slack/bolt"
-import { createBountyreper, type ToolPart } from "@bountyreper-io/sdk"
+import { createBountyReaper, type ToolPart } from "@bountyreaper-io/sdk"
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -13,15 +13,15 @@ console.log("- Bot token present:", !!process.env.SLACK_BOT_TOKEN)
 console.log("- Signing secret present:", !!process.env.SLACK_SIGNING_SECRET)
 console.log("- App token present:", !!process.env.SLACK_APP_TOKEN)
 
-console.log("🚀 Starting bountyreper server...")
-const bountyreper = await createBountyreper({
+console.log("🚀 Starting bountyreaper server...")
+const bountyreaper = await createBountyReaper({
   port: 0,
 })
-console.log("✅ Bountyreper server ready")
+console.log("✅ BountyReaper server ready")
 
 const sessions = new Map<string, { client: any; server: any; sessionId: string; channel: string; thread: string }>()
 ;(async () => {
-  const events = await bountyreper.client.event.subscribe()
+  const events = await bountyreaper.client.event.subscribe()
   for await (const event of events.stream) {
     if (event.type === "message.part.updated") {
       const part = event.properties.part
@@ -72,8 +72,8 @@ app.message(async ({ message, say }) => {
   let session = sessions.get(sessionKey)
 
   if (!session) {
-    console.log("🆕 Creating new bountyreper session...")
-    const { client, server } = bountyreper
+    console.log("🆕 Creating new bountyreaper session...")
+    const { client, server } = bountyreaper
 
     const createResult = await client.session.create({
       body: { title: `Slack thread ${thread}` },
@@ -88,7 +88,7 @@ app.message(async ({ message, say }) => {
       return
     }
 
-    console.log("✅ Created bountyreper session:", createResult.data.id)
+    console.log("✅ Created bountyreaper session:", createResult.data.id)
 
     session = { client, server, sessionId: createResult.data.id, channel, thread }
     sessions.set(sessionKey, session)
@@ -101,13 +101,13 @@ app.message(async ({ message, say }) => {
     }
   }
 
-  console.log("📝 Sending to bountyreper:", message.text)
+  console.log("📝 Sending to bountyreaper:", message.text)
   const result = await session.client.session.prompt({
     path: { id: session.sessionId },
     body: { parts: [{ type: "text", text: message.text }] },
   })
 
-  console.log("📤 Bountyreper response:", JSON.stringify(result, null, 2))
+  console.log("📤 BountyReaper response:", JSON.stringify(result, null, 2))
 
   if (result.error) {
     console.error("❌ Failed to send message:", result.error)

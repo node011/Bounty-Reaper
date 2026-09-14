@@ -1,4 +1,4 @@
-import { base64Decode } from "@bountyreper-io/util/encode"
+import { base64Decode } from "@bountyreaper-io/util/encode"
 import type { Page } from "@playwright/test"
 import { test, expect } from "../fixtures"
 import { cleanupTestProject, openSidebar, sessionIDFromUrl, setWorkspacesEnabled } from "../actions"

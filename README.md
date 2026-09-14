@@ -5,13 +5,13 @@
 <p align="center">
 
 <p align="center">
-  <img src="assets/tui-screenshot.png" alt="BountyReper TUI — Palantir theme, Proxy-Agent live teardown" width="880">
+  <img src="assets/tui-screenshot.png" alt="BountyReaper TUI — Palantir theme, Proxy-Agent live teardown" width="880">
 </p>
 
 <h3 align="center">The open-source AI agent for offensive security.</h3>
 
 <p align="center">
-  Automated pentesting from your terminal — your LLM subscription + BountyReper's security intelligence = autonomous red team.
+  Automated pentesting from your terminal — your LLM subscription + BountyReaper's security intelligence = autonomous red team.
 </p>
 
 <p align="center">
@@ -24,10 +24,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/node011/Bounty-Reper/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/node011/Bounty-Reper?style=flat-square&color=1e40af" /></a>
-  <a href="https://github.com/node011/Bounty-Reper/releases"><img alt="Release" src="https://img.shields.io/github/v/release/node011/Bounty-Reper?style=flat-square&color=1e40af&display_name=tag" /></a>
-  <a href="https://github.com/node011/Bounty-Reper/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/node011/Bounty-Reper/publish.yml?style=flat-square&branch=main" /></a>
-  <a href="https://github.com/node011/Bounty-Reper/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-1e40af?style=flat-square" /></a>
+  <a href="https://github.com/node011/Bounty-Reaper/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/node011/Bounty-Reaper?style=flat-square&color=1e40af" /></a>
+  <a href="https://github.com/node011/Bounty-Reaper/releases"><img alt="Release" src="https://img.shields.io/github/v/release/node011/Bounty-Reaper?style=flat-square&color=1e40af&display_name=tag" /></a>
+  <a href="https://github.com/node011/Bounty-Reaper/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/node011/Bounty-Reaper/publish.yml?style=flat-square&branch=main" /></a>
+  <a href="https://github.com/node011/Bounty-Reaper/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-1e40af?style=flat-square" /></a>
 </p>
 
 ---
@@ -37,21 +37,21 @@
 ### Quick Start
 
 ```bash
-git clone https://github.com/node011/Bounty-Reper.git
-cd Bounty-Reper
+git clone https://github.com/node011/Bounty-Reaper.git
+cd Bounty-Reaper
 ./script/bootstrap.sh
 bun dev
 ```
 
 `bootstrap.sh` checks prerequisites (bun 1.3+, uv, git), installs deps, sets up MCP servers, and fetches Chromium. `bun dev` launches the TUI — connect your LLM provider and start testing. Tell it what to test; it handles recon, discovery, exploitation, and reporting.
 
-> Already have an LLM subscription? BountyReper sits on top of your existing subscription. No extra API costs.
+> Already have an LLM subscription? BountyReaper sits on top of your existing subscription. No extra API costs.
 
 Full setup notes, MCP server configuration and troubleshooting: **[docs/SETUP.md](./docs/SETUP.md)**
 
 ---
 
-### What Is BountyReper?
+### What Is BountyReaper?
 
 An intelligence layer that turns any LLM (GPT, Gemini, 200+ providers via models.dev, or local Ollama) into a security specialist. It injects OWASP WSTG methodology, vulnerability patterns, and tool orchestration into every interaction — so the model follows proven pentest frameworks instead of guessing. 13+ specialized agents, 900+ MITRE techniques, 120+ WSTG cases, 6,600+ CIS/NIST controls.
 
@@ -63,7 +63,7 @@ Switch with `Tab`. Each is a domain specialist:
 
 | Agent | Focus |
 |-------|-------|
-| **bountyreper** | Primary — recon, exploitation, reporting |
+| **bountyreaper** | Primary — recon, exploitation, reporting |
 | **web-application** | OWASP Top 10, WSTG, API, session testing |
 | **mobile-application** | Android/iOS, Frida, MASTG/MASVS |
 | **cloud-security** | AWS/Azure/GCP — IAM, CIS benchmarks |
@@ -81,7 +81,7 @@ Plus 8 proxy testers that run on intercepted traffic (IDOR, authz bypass, mass a
 
 **Security Team Assessments** — Run structured assessments with reproducible methodology. Track coverage per asset, chain low-severity findings into critical paths, export evidence for compliance.
 
-**Continuous Security** — Deploy Bolt on remote servers for network-positioned testing; run BountyReper offline with Ollama for air-gapped environments.
+**Continuous Security** — Deploy Bolt on remote servers for network-positioned testing; run BountyReaper offline with Ollama for air-gapped environments.
 
 **Learning & Training** — New to pentesting? Agents explain each step, link to WSTG/CWE, and show PoCs. Learn by watching the agent work.
 
@@ -89,10 +89,10 @@ Plus 8 proxy testers that run on intercepted traffic (IDOR, authz bypass, mass a
 
 ### MCPBrowser
 
-MCPBrowser is the built-in Chromium browser. Start it with `/mcpbrowser` in the TUI or `bountyreper mcpbrowser https://target.com`:
+MCPBrowser is the built-in Chromium browser. Start it with `/mcpbrowser` in the TUI or `bountyreaper mcpbrowser https://target.com`:
 
 ```bash
-bountyreper mcpbrowser https://target.com --scope "*.target.com" --steps 50
+bountyreaper mcpbrowser https://target.com --scope "*.target.com" --steps 50
 ```
 
 Every request is intercepted and routed through the 8 proxy testers. Two modes: **manual** (browse as different users, trigger features) and **autonomous** (provide credentials, let it crawl and compare roles). Use `--scope` to limit testing, `--credential hunter1` for role-based crawling.
@@ -110,8 +110,8 @@ Browser traffic → Proxy intercept → Orchestrator → 8 sub-testers (parallel
 **Clone and build — only supported method:**
 
 ```bash
-git clone https://github.com/node011/Bounty-Reper.git
-cd Bounty-Reper
+git clone https://github.com/node011/Bounty-Reaper.git
+cd Bounty-Reaper
 ./script/bootstrap.sh
 bun dev
 ```
@@ -119,9 +119,9 @@ bun dev
 Or build a binary:
 
 ```bash
-cd packages/bountyreper && bun run build && cd ../..
-./install --binary packages/bountyreper/dist/bountyreper-darwin-arm64/bin/bountyreper
-# installs to ~/.bountyreper/bin, `bountyreper --version` works anywhere
+cd packages/bountyreaper && bun run build && cd ../..
+./install --binary packages/bountyreaper/dist/bountyreaper-darwin-arm64/bin/bountyreaper
+# installs to ~/.bountyreaper/bin, `bountyreaper --version` works anywhere
 ```
 
 Details: **[docs/SETUP.md](./docs/SETUP.md)**
@@ -130,7 +130,7 @@ Details: **[docs/SETUP.md](./docs/SETUP.md)**
 
 ### Web UI & Bolt
 
-`bountyreper web` — full browser UI for chat, MCP status, and findings. Tunnel via Cloudflare for remote access (`cloudflared tunnel --url http://localhost:4096`).
+`bountyreaper web` — full browser UI for chat, MCP status, and findings. Tunnel via Cloudflare for remote access (`cloudflared tunnel --url http://localhost:4096`).
 
 Bolt — run tools on remote servers over MCP with Ed25519 auth. One TUI, many Bolt servers.
 
@@ -144,12 +144,12 @@ Contributions welcome — agents, skills, MCP servers, knowledge base, or core i
 
 ### License
 
-[MIT](./LICENSE), except [`.bountyreper/skill/CIS_benchmarks/`](./.bountyreper/skill/CIS_benchmarks/) which is [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — NonCommercial.
+[MIT](./LICENSE), except [`.bountyreaper/skill/CIS_benchmarks/`](./.bountyreaper/skill/CIS_benchmarks/) which is [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — NonCommercial.
 
 Derived from [opencode](https://github.com/anomalyco/opencode) (MIT). See [NOTICE](./NOTICE).
 
 ---
 
 <p align="center">
-  <a href="https://x.com/bountyreperio"><b>X.com</b></a> · <a href="https://github.com/node011/Bounty-Reper"><b>GitHub</b></a>
+  <a href="https://x.com/bountyreaperio"><b>X.com</b></a> · <a href="https://github.com/node011/Bounty-Reaper"><b>GitHub</b></a>
 </p>

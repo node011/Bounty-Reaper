@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate BountyReper 'BR' identity assets (PNG + SVG)."""
+"""Generate BountyReaper 'BR' identity assets (PNG + SVG)."""
 import math
 import struct
 import zlib

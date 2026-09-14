@@ -29,7 +29,7 @@ body:
       label: Agent
       description: Which agent were you using?
       options:
-        - bountyreper (default)
+        - bountyreaper (default)
         - web-application
         - mobile-application
         - cloud-security
@@ -78,10 +78,10 @@ body:
       required: false
 
   - type: input
-    id: bountyreper-version
+    id: bountyreaper-version
     attributes:
-      label: BountyReper version
-      description: Run `bountyreper --version`
+      label: BountyReaper version
+      description: Run `bountyreaper --version`
     validations:
       required: false
 

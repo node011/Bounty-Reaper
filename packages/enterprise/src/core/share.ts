@@ -1,10 +1,10 @@
-import { FileDiff, Message, Model, Part, Session } from "@bountyreper-io/sdk/v2"
-import { fn } from "@bountyreper-io/util/fn"
-import { iife } from "@bountyreper-io/util/iife"
-import { Identifier } from "@bountyreper-io/util/identifier"
+import { FileDiff, Message, Model, Part, Session } from "@bountyreaper-io/sdk/v2"
+import { fn } from "@bountyreaper-io/util/fn"
+import { iife } from "@bountyreaper-io/util/iife"
+import { Identifier } from "@bountyreaper-io/util/identifier"
 import z from "zod"
 import { Storage } from "./storage"
-import { Binary } from "@bountyreper-io/util/binary"
+import { Binary } from "@bountyreaper-io/util/binary"
 
 export namespace Share {
   export const Info = z.object({

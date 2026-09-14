@@ -1,12 +1,12 @@
 {
-  "name": "bountyreper",
-  "displayName": "bountyreper",
-  "description": "bountyreper for VS Code",
+  "name": "bountyreaper",
+  "displayName": "bountyreaper",
+  "description": "bountyreaper for VS Code",
   "version": "1.2.1",
   "publisher": "sst-dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bounty-reper/BountyReper"
+    "url": "https://github.com/node011/Bounty-Reaper"
   },
   "license": "MIT",
   "icon": "images/icon.png",
@@ -25,82 +25,82 @@
   "contributes": {
     "commands": [
       {
-        "command": "bountyreper.openTerminal",
-        "title": "Open bountyreper",
+        "command": "bountyreaper.openTerminal",
+        "title": "Open bountyreaper",
         "icon": {
           "light": "images/button-dark.svg",
           "dark": "images/button-light.svg"
         }
       },
       {
-        "command": "bountyreper.openNewTerminal",
-        "title": "Open bountyreper in new tab",
+        "command": "bountyreaper.openNewTerminal",
+        "title": "Open bountyreaper in new tab",
         "icon": {
           "light": "images/button-dark.svg",
           "dark": "images/button-light.svg"
         }
       },
       {
-        "command": "bountyreper.openSidebar",
-        "title": "Open bountyreper in side bar",
+        "command": "bountyreaper.openSidebar",
+        "title": "Open bountyreaper in side bar",
         "icon": {
           "light": "images/button-dark.svg",
           "dark": "images/button-light.svg"
         }
       },
       {
-        "command": "bountyreper.addFilepathToTerminal",
+        "command": "bountyreaper.addFilepathToTerminal",
         "title": "Add Filepath to Terminal"
       }
     ],
     "viewsContainers": {
       "secondarySidebar": [
         {
-          "id": "bountyreper",
-          "title": "bountyreper",
+          "id": "bountyreaper",
+          "title": "bountyreaper",
           "icon": "images/icon.svg"
         }
       ]
     },
     "views": {
-      "bountyreper": [
+      "bountyreaper": [
         {
           "type": "webview",
-          "id": "bountyreper.chat",
-          "name": "bountyreper",
+          "id": "bountyreaper.chat",
+          "name": "bountyreaper",
           "icon": "images/icon.svg",
-          "contextualTitle": "bountyreper"
+          "contextualTitle": "bountyreaper"
         }
       ]
     },
     "menus": {
       "editor/title": [
         {
-          "command": "bountyreper.openNewTerminal",
+          "command": "bountyreaper.openNewTerminal",
           "group": "navigation"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "bountyreper.openTerminal",
-        "title": "Run bountyreper",
+        "command": "bountyreaper.openTerminal",
+        "title": "Run bountyreaper",
         "key": "cmd+escape",
         "mac": "cmd+escape",
         "win": "ctrl+escape",
         "linux": "ctrl+escape"
       },
       {
-        "command": "bountyreper.openNewTerminal",
-        "title": "Run bountyreper",
+        "command": "bountyreaper.openNewTerminal",
+        "title": "Run bountyreaper",
         "key": "cmd+shift+escape",
         "mac": "cmd+shift+escape",
         "win": "ctrl+shift+escape",
         "linux": "ctrl+shift+escape"
       },
       {
-        "command": "bountyreper.addFilepathToTerminal",
-        "title": "bountyreper: Insert At-Mentioned",
+        "command": "bountyreaper.addFilepathToTerminal",
+        "title": "bountyreaper: Insert At-Mentioned",
         "key": "cmd+alt+k",
         "mac": "cmd+alt+k",
         "win": "ctrl+alt+K",

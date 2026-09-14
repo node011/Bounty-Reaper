@@ -1,8 +1,8 @@
 import { Title } from "@solidjs/meta"
 import { A, createAsync, query } from "@solidjs/router"
 import { createMemo, For, Show } from "solid-js"
-import { Database, desc } from "@bountyreper-io/console-core/drizzle/index.js"
-import { BenchmarkTable } from "@bountyreper-io/console-core/schema/benchmark.sql.js"
+import { Database, desc } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { BenchmarkTable } from "@bountyreaper-io/console-core/schema/benchmark.sql.js"
 import { useI18n } from "~/context/i18n"
 
 interface BenchmarkResult {

@@ -1,16 +1,16 @@
 export * from "./client.js"
 export * from "./server.js"
 
-import { createBountyreperClient } from "./client.js"
-import { createBountyreperServer } from "./server.js"
+import { createBountyReaperClient } from "./client.js"
+import { createBountyReaperServer } from "./server.js"
 import type { ServerOptions } from "./server.js"
 
-export async function createBountyreper(options?: ServerOptions) {
-  const server = await createBountyreperServer({
+export async function createBountyReaper(options?: ServerOptions) {
+  const server = await createBountyReaperServer({
     ...options,
   })
 
-  const client = createBountyreperClient({
+  const client = createBountyReaperClient({
     baseUrl: server.url,
   })
 

@@ -119,12 +119,12 @@ export async function waitForManualLogin(
     resolveReady = resolve
   })
 
-  const callbackName = label ? `__bountyreperReady_${label}` : "__bountyreperReady"
+  const callbackName = label ? `__bountyreaperReady_${label}` : "__bountyreaperReady"
   await page.exposeFunction(callbackName, () => {
     resolveReady()
   })
 
-  const posCallbackName = label ? `__bountyreperPos_${label}` : "__bountyreperPos"
+  const posCallbackName = label ? `__bountyreaperPos_${label}` : "__bountyreaperPos"
   await page.exposeFunction(posCallbackName, (left: number, top: number) => {
     savedBtnPos = { left, top }
   })
@@ -140,8 +140,8 @@ export async function waitForManualLogin(
     ? `// ${who}${step} · LOGIN MANUALLY ⟶ START SCAN`
     : `// ${who}${step} · LOGIN MANUALLY ⟶ CONFIRM & NEXT`
   const buttonText = isFinal ? "START SCAN" : "CONFIRM & NEXT ⟶"
-  const buttonId = label ? `__bountyreper-ready-btn-${label}` : "__bountyreper-ready-btn"
-  const styleId = "__bountyreper-ready-btn-style"
+  const buttonId = label ? `__bountyreaper-ready-btn-${label}` : "__bountyreaper-ready-btn"
+  const styleId = "__bountyreaper-ready-btn-style"
 
   const injectButton = async () => {
     await page

@@ -1,5 +1,5 @@
 {
-  description = "BountyReper development flake";
+  description = "BountyReaper development flake";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -37,12 +37,12 @@
             node_modules = final.callPackage ./nix/node_modules.nix {
               inherit rev;
             };
-            bountyreper = final.callPackage ./nix/bountyreper.nix {
+            bountyreaper = final.callPackage ./nix/bountyreaper.nix {
               inherit node_modules;
             };
           in
           {
-            inherit bountyreper;
+            inherit bountyreaper;
           };
       };
 
@@ -52,13 +52,13 @@
           node_modules = pkgs.callPackage ./nix/node_modules.nix {
             inherit rev;
           };
-          bountyreper = pkgs.callPackage ./nix/bountyreper.nix {
+          bountyreaper = pkgs.callPackage ./nix/bountyreaper.nix {
             inherit node_modules;
           };
         in
         {
-          default = bountyreper;
-          inherit bountyreper;
+          default = bountyreaper;
+          inherit bountyreaper;
           # Updater derivation with fakeHash - build fails and reveals correct hash
           node_modules_updater = node_modules.override {
             hash = pkgs.lib.fakeHash;

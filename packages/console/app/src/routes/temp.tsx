@@ -47,8 +47,8 @@ export default function Home() {
 
       <div data-component="content">
         <section data-component="top">
-          <img data-slot="logo light" src={logoLight} alt="bountyreper logo light" />
-          <img data-slot="logo dark" src={logoDark} alt="bountyreper logo dark" />
+          <img data-slot="logo light" src={logoLight} alt="bountyreaper logo light" />
+          <img data-slot="logo dark" src={logoDark} alt="bountyreaper logo dark" />
           <h1 data-slot="title">{i18n.t("temp.hero.title")}</h1>
           <div data-slot="login">
             <a href="/auth">{i18n.t("temp.zen")}</a>
@@ -113,7 +113,7 @@ export default function Home() {
             <h3 data-component="title">npm</h3>
             <button data-copy data-slot="button">
               <span>
-                npm install -g <strong>@bountyreper-io/bountyreper@latest</strong>
+                npm install -g <strong>@bountyreaper-io/bountyreaper@latest</strong>
               </span>
               <CopyStatus />
             </button>
@@ -122,7 +122,7 @@ export default function Home() {
             <h3 data-component="title">bun</h3>
             <button data-copy data-slot="button">
               <span>
-                bun install -g <strong>@bountyreper-io/bountyreper@latest</strong>
+                bun install -g <strong>@bountyreaper-io/bountyreaper@latest</strong>
               </span>
               <CopyStatus />
             </button>
@@ -131,7 +131,7 @@ export default function Home() {
             <h3 data-component="title">homebrew</h3>
             <button data-copy data-slot="button">
               <span>
-                brew install <strong>bountyreper</strong>
+                brew install <strong>bountyreaper</strong>
               </span>
               <CopyStatus />
             </button>
@@ -140,7 +140,7 @@ export default function Home() {
             <h3 data-component="title">paru</h3>
             <button data-copy data-slot="button">
               <span>
-                paru -S <strong>bountyreper-bin</strong>
+                paru -S <strong>bountyreaper-bin</strong>
               </span>
               <CopyStatus />
             </button>
@@ -158,10 +158,10 @@ export default function Home() {
 
         <footer data-component="footer">
           <div data-slot="cell">
-            <a href="https://x.com/bountyreper">{i18n.t("footer.x")}</a>
+            <a href="https://x.com/bountyreaper">{i18n.t("footer.x")}</a>
           </div>
           <div data-slot="cell">
-            <a href="https://github.com/bounty-reper/BountyReper">{i18n.t("footer.github")}</a>
+            <a href="https://github.com/node011/Bounty-Reaper">{i18n.t("footer.github")}</a>
           </div>
           <div data-slot="cell">
             <a href="https://bountyreper.io/discord">{i18n.t("footer.discord")}</a>

@@ -1,5 +1,5 @@
-import type { Event, BountyreperClient } from "@bountyreper-io/sdk/v2/client"
-import { createSimpleContext } from "@bountyreper-io/ui/context"
+import type { Event, BountyReaperClient } from "@bountyreaper-io/sdk/v2/client"
+import { createSimpleContext } from "@bountyreaper-io/ui/context"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
 import type { GlobalEmitter } from "@solid-primitives/event-bus"
 import { type Accessor, createEffect, createMemo, onCleanup } from "solid-js"
@@ -12,10 +12,10 @@ type SDKEventMap = {
 
 export type SDKValue = {
   readonly directory: string
-  readonly client: BountyreperClient
+  readonly client: BountyReaperClient
   event: GlobalEmitter<SDKEventMap>
   readonly url: string
-  createClient: (opts: CreateClientOpts) => BountyreperClient
+  createClient: (opts: CreateClientOpts) => BountyReaperClient
   fetch: (path: string, init?: RequestInit) => Promise<Response>
 }
 

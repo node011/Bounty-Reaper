@@ -57,11 +57,11 @@ const unsafeCSS = `
   background-color: var(--diffs-bg-selection-text);
 }
 
-::highlight(bountyreper-find) {
+::highlight(bountyreaper-find) {
   background-color: rgb(from var(--surface-warning-base) r g b / 0.35);
 }
 
-::highlight(bountyreper-find-current) {
+::highlight(bountyreaper-find-current) {
   background-color: rgb(from var(--surface-warning-strong) r g b / 0.55);
 }
 
@@ -127,7 +127,7 @@ const unsafeCSS = `
 
 export function createDefaultOptions<T>(style: FileDiffOptions<T>["diffStyle"]) {
   return {
-    theme: "BountyReper",
+    theme: "BountyReaper",
     themeType: "system",
     disableLineNumbers: false,
     overflow: "wrap",

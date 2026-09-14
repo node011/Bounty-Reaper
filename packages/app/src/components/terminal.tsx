@@ -7,9 +7,9 @@ import { monoFontFamily, useSettings } from "@/context/settings"
 import { parseKeybind, matchKeybind } from "@/context/command"
 import { SerializeAddon } from "@/addons/serialize"
 import { LocalPTY } from "@/context/terminal"
-import { resolveThemeVariant, useTheme, withAlpha, type HexColor } from "@bountyreper-io/ui/theme"
+import { resolveThemeVariant, useTheme, withAlpha, type HexColor } from "@bountyreaper-io/ui/theme"
 import { useLanguage } from "@/context/language"
-import { showToast } from "@bountyreper-io/ui/toast"
+import { showToast } from "@bountyreaper-io/ui/toast"
 import { disposeIfDisposable, getHoveredLinkText, setOptionIfSupported } from "@/utils/runtime-adapters"
 import { terminalWriter } from "@/utils/terminal-writer"
 
@@ -431,7 +431,7 @@ export const Terminal = (props: TerminalProps) => {
       url.searchParams.set("cursor", String(start !== undefined ? start : local.pty.buffer ? -1 : 0))
       url.protocol = url.protocol === "https:" ? "wss:" : "ws:"
       const auth = server.current?.http
-      url.username = auth?.username ?? "bountyreper"
+      url.username = auth?.username ?? "bountyreaper"
       url.password = auth?.password ?? ""
       const socket = new WebSocket(url)
       socket.binaryType = "arraybuffer"

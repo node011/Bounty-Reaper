@@ -1,8 +1,8 @@
-import { createBountyreperClient, createBountyreperServer } from "@bountyreper-io/sdk"
+import { createBountyReaperClient, createBountyReaperServer } from "@bountyreaper-io/sdk"
 import { pathToFileURL } from "bun"
 
-const server = await createBountyreperServer()
-const client = createBountyreperClient({ baseUrl: server.url })
+const server = await createBountyReaperServer()
+const client = createBountyReaperClient({ baseUrl: server.url })
 
 const input = await Array.fromAsync(new Bun.Glob("packages/core/*.ts").scan())
 

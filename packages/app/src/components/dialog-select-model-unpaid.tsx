@@ -1,11 +1,11 @@
-import { Button } from "@bountyreper-io/ui/button"
-import { useDialog } from "@bountyreper-io/ui/context/dialog"
-import { Dialog } from "@bountyreper-io/ui/dialog"
-import type { IconName } from "@bountyreper-io/ui/icons/provider"
-import { List, type ListRef } from "@bountyreper-io/ui/list"
-import { ProviderIcon } from "@bountyreper-io/ui/provider-icon"
-import { Tag } from "@bountyreper-io/ui/tag"
-import { Tooltip } from "@bountyreper-io/ui/tooltip"
+import { Button } from "@bountyreaper-io/ui/button"
+import { useDialog } from "@bountyreaper-io/ui/context/dialog"
+import { Dialog } from "@bountyreaper-io/ui/dialog"
+import type { IconName } from "@bountyreaper-io/ui/icons/provider"
+import { List, type ListRef } from "@bountyreaper-io/ui/list"
+import { ProviderIcon } from "@bountyreaper-io/ui/provider-icon"
+import { Tag } from "@bountyreaper-io/ui/tag"
+import { Tooltip } from "@bountyreaper-io/ui/tooltip"
 import { type Component, Show } from "solid-js"
 import { useLocal } from "@/context/local"
 import { popularProviders, useProviders } from "@/hooks/use-providers"
@@ -48,7 +48,7 @@ export const DialogSelectModelUnpaid: Component = () => {
                 <ModelTooltip
                   model={item}
                   latest={item.latest}
-                  free={item.provider.id === "bountyreper" && (!item.cost || item.cost.input === 0)}
+                  free={item.provider.id === "bountyreaper" && (!item.cost || item.cost.input === 0)}
                 />
               }
             >
@@ -97,7 +97,7 @@ export const DialogSelectModelUnpaid: Component = () => {
                   <div class="w-full flex items-center gap-x-3">
                     <ProviderIcon data-slot="list-item-extra-icon" id={i.id as IconName} />
                     <span>{i.name}</span>
-                    <Show when={i.id === "bountyreper"}>
+                    <Show when={i.id === "bountyreaper"}>
                       <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
                     </Show>
                     <Show when={i.id === "anthropic"}>

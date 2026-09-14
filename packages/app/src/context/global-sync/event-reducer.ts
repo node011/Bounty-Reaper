@@ -1,4 +1,4 @@
-import { Binary } from "@bountyreper-io/util/binary"
+import { Binary } from "@bountyreaper-io/util/binary"
 import { produce, reconcile, type SetStoreFunction, type Store } from "solid-js/store"
 import type {
   FileDiff,
@@ -11,7 +11,7 @@ import type {
   SessionStatus,
   Todo,
   Vulnerability,
-} from "@bountyreper-io/sdk/v2/client"
+} from "@bountyreaper-io/sdk/v2/client"
 import type { State, VcsCache } from "./types"
 import { trimSessions } from "./session-trim"
 

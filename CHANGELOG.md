@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to BountyReper are documented in this file.
+All notable changes to BountyReaper are documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), versions follow [Semantic Versioning](https://semver.org/).
 
@@ -93,13 +93,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), versions follow
 ### Added
 
 - **Web UI v1.1.6-beta** — branding, auth, side panel, offensive tooling
-- Web UI bundled in npm package (auto-installs to `~/.bountyreper/web/`)
+- Web UI bundled in npm package (auto-installs to `~/.bountyreaper/web/`)
 - MCP/Bolt status tabs in TUI status popover with config persistence
 
 ### Fixed
 
 - CORS and auth failures on remote/tunnel access
-- Enterprise infra made conditional on `BOUNTYREPER_ENTERPRISE` env var
+- Enterprise infra made conditional on `BOUNTYREAPER_ENTERPRISE` env var
 - Stripe/PlanetScale providers made optional
 
 ---
@@ -115,9 +115,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), versions follow
 
 - Schema reconciler for partially applied migrations
 - Auto-fallback to available port when default port busy
-- npm scope renamed `@bountyreperus` → `@bountyreper-io`
-- All `bountyreper.us` → `bountyreper.io`
-- Bin launcher `opencode` → `bountyreper`
+- npm scope renamed `@bountyreaperus` → `@bountyreaper-io`
+- All `bountyreaper.us` → `bountyreper.io`
+- Bin launcher `opencode` → `bountyreaper`
 
 ### Changed
 
@@ -157,17 +157,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), versions follow
 
 ### Added
 
-- Initial public release of BountyReper
+- Initial public release of BountyReaper
 - AI-powered offensive security agent platform with 13+ specialized agents
 - Claude Code CLI/API provider, cloud security agent, chunked context compaction
 - MCP browser server, ASCII logo
 
 ---
 
-[1.1.16]: https://github.com/bounty-reper/BountyReper/releases/tag/v1.1.16
-[1.1.15]: https://github.com/bounty-reper/BountyReper/releases/tag/v1.1.15
-[1.1.6]: https://github.com/bounty-reper/BountyReper/releases/tag/v1.1.6
-[1.1.4]: https://github.com/bounty-reper/BountyReper/releases/tag/v1.1.4
-[1.1.0]: https://github.com/bounty-reper/BountyReper/releases/tag/v1.1.0
-[1.0.8-beta.1]: https://github.com/bounty-reper/BountyReper/releases/tag/v1.0.8-beta.1
-[0.1.0]: https://github.com/bounty-reper/BountyReper/releases/tag/v0.1.0
+[1.1.16]: https://github.com/node011/Bounty-Reaper/releases/tag/v1.1.16
+[1.1.15]: https://github.com/node011/Bounty-Reaper/releases/tag/v1.1.15
+[1.1.6]: https://github.com/node011/Bounty-Reaper/releases/tag/v1.1.6
+[1.1.4]: https://github.com/node011/Bounty-Reaper/releases/tag/v1.1.4
+[1.1.0]: https://github.com/node011/Bounty-Reaper/releases/tag/v1.1.0
+[1.0.8-beta.1]: https://github.com/node011/Bounty-Reaper/releases/tag/v1.0.8-beta.1
+[0.1.0]: https://github.com/node011/Bounty-Reaper/releases/tag/v0.1.0

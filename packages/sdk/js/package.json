@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@bountyreper-io/sdk",
+  "name": "@bountyreaper-io/sdk",
   "version": "1.2.1",
   "type": "module",
   "license": "MIT",

@@ -1,36 +1,36 @@
-id = "bountyreper"
-name = "BountyReper"
+id = "bountyreaper"
+name = "BountyReaper"
 description = "The open source coding agent."
 version = "1.2.1"
 schema_version = 1
 authors = ["Anomaly"]
-repository = "https://github.com/bounty-reper/BountyReper"
+repository = "https://github.com/node011/Bounty-Reaper"
 
-[agent_servers.bountyreper]
-name = "BountyReper"
-icon = "./icons/bountyreper.svg"
+[agent_servers.bountyreaper]
+name = "BountyReaper"
+icon = "./icons/bountyreaper.svg"
 
-[agent_servers.bountyreper.targets.darwin-aarch64]
-archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.2.1/bountyreper-darwin-arm64.zip"
-cmd = "./bountyreper"
+[agent_servers.bountyreaper.targets.darwin-aarch64]
+archive = "https://github.com/node011/Bounty-Reaper/releases/download/v1.2.1/bountyreaper-darwin-arm64.zip"
+cmd = "./bountyreaper"
 args = ["acp"]
 
-[agent_servers.bountyreper.targets.darwin-x86_64]
-archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.2.1/bountyreper-darwin-x64.zip"
-cmd = "./bountyreper"
+[agent_servers.bountyreaper.targets.darwin-x86_64]
+archive = "https://github.com/node011/Bounty-Reaper/releases/download/v1.2.1/bountyreaper-darwin-x64.zip"
+cmd = "./bountyreaper"
 args = ["acp"]
 
-[agent_servers.bountyreper.targets.linux-aarch64]
-archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.2.1/bountyreper-linux-arm64.tar.gz"
-cmd = "./bountyreper"
+[agent_servers.bountyreaper.targets.linux-aarch64]
+archive = "https://github.com/node011/Bounty-Reaper/releases/download/v1.2.1/bountyreaper-linux-arm64.tar.gz"
+cmd = "./bountyreaper"
 args = ["acp"]
 
-[agent_servers.bountyreper.targets.linux-x86_64]
-archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.2.1/bountyreper-linux-x64.tar.gz"
-cmd = "./bountyreper"
+[agent_servers.bountyreaper.targets.linux-x86_64]
+archive = "https://github.com/node011/Bounty-Reaper/releases/download/v1.2.1/bountyreaper-linux-x64.tar.gz"
+cmd = "./bountyreaper"
 args = ["acp"]
 
-[agent_servers.bountyreper.targets.windows-x86_64]
-archive = "https://github.com/bounty-reper/BountyReper/releases/download/v1.2.1/bountyreper-windows-x64.zip"
-cmd = "./bountyreper.exe"
+[agent_servers.bountyreaper.targets.windows-x86_64]
+archive = "https://github.com/node011/Bounty-Reaper/releases/download/v1.2.1/bountyreaper-windows-x64.zip"
+cmd = "./bountyreaper.exe"
 args = ["acp"]

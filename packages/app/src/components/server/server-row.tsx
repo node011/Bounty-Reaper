@@ -1,4 +1,4 @@
-import { Tooltip } from "@bountyreper-io/ui/tooltip"
+import { Tooltip } from "@bountyreaper-io/ui/tooltip"
 import {
   type JSXElement,
   type ParentProps,

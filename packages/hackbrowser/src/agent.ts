@@ -67,18 +67,18 @@ const log = Log.create({ service: "hackbrowser:agent" })
 
 // ── Env-gated fault injector (test-only, #117) ─────────────────────────────
 // Deliberately triggers a worker-level fault so the crash safety net can be
-// verified end-to-end. NO effect unless BOUNTYREPER_HB_FAULT is set. Fires once
-// mid-crawl (default page 3, override via BOUNTYREPER_HB_FAULT_AT) so you can
+// verified end-to-end. NO effect unless BOUNTYREAPER_HB_FAULT is set. Fires once
+// mid-crawl (default page 3, override via BOUNTYREAPER_HB_FAULT_AT) so you can
 // confirm the crawl CONTINUES past the fault instead of the worker dying.
-//   BOUNTYREPER_HB_FAULT=unhandled → an un-awaited Promise.reject (mimics #116)
-//   BOUNTYREPER_HB_FAULT=uncaught  → a sync throw in a timer callback
+//   BOUNTYREAPER_HB_FAULT=unhandled → an un-awaited Promise.reject (mimics #116)
+//   BOUNTYREAPER_HB_FAULT=uncaught  → a sync throw in a timer callback
 let faultInjected = false
 function maybeInjectFault(pagesExplored: number): void {
-  const fault = process.env.BOUNTYREPER_HB_FAULT
+  const fault = process.env.BOUNTYREAPER_HB_FAULT
   if (!fault || faultInjected) return
-  if (pagesExplored < Number(process.env.BOUNTYREPER_HB_FAULT_AT ?? "3")) return
+  if (pagesExplored < Number(process.env.BOUNTYREAPER_HB_FAULT_AT ?? "3")) return
   faultInjected = true
-  log.warn("injecting TEST fault (BOUNTYREPER_HB_FAULT)", { fault, pagesExplored })
+  log.warn("injecting TEST fault (BOUNTYREAPER_HB_FAULT)", { fault, pagesExplored })
   if (fault === "unhandled") {
     void Promise.reject(new Error(`injected fault: unhandledRejection at page ${pagesExplored}`))
   } else if (fault === "uncaught") {
@@ -1891,7 +1891,7 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
   const targetUrl = config.targetUrl
   const scopePatterns = resolveScopePatterns(config)
   const inScope = makeMatcher(scopePatterns)
-  const serverUrl = config.bountyreper.serverUrl ?? "http://127.0.0.1:4096"
+  const serverUrl = config.bountyreaper.serverUrl ?? "http://127.0.0.1:4096"
   const maxPages = config.maxSteps ?? 50
   const dryRun = config.dryRun ?? false
   const panelOn = config.panel ?? true
@@ -1924,18 +1924,18 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
     log.error("browser disconnected — multi-credential crawl will terminate")
   })
 
-  // Single BountyReper session for ALL credentials. Honor a host-provided
-  // sessionID (bountyreper injects this when /hackbrowser slash or the
+  // Single BountyReaper session for ALL credentials. Honor a host-provided
+  // sessionID (bountyreaper injects this when /hackbrowser slash or the
   // hackbrowser tool runs inside an existing session) — only fall back to
   // initSession when none was passed (standalone CLI). This mirrors run()
   // line 1732 and prevents the multi-cred path from silently creating a
   // second session that captures arrive in but the user can't see.
-  let sessionId = config.bountyreper.sessionID ?? ""
+  let sessionId = config.bountyreaper.sessionID ?? ""
   if (!dryRun && !sessionId) {
     const created = await initSession(serverUrl, targetUrl, undefined)
     if (!created) {
       await browser.close().catch(() => {})
-      throw new Error(`failed to create BountyReper session at ${serverUrl}`)
+      throw new Error(`failed to create BountyReaper session at ${serverUrl}`)
     }
     sessionId = created
   }
@@ -2006,7 +2006,7 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
     // says "START SCAN" — earlier ones say "CONFIRM & NEXT".
     await waitForManualLogin(page, cred.id, { index: credIndex, total: credentials.length })
 
-    // Register credential with BountyReper (same as Firefox extension pattern)
+    // Register credential with BountyReaper (same as Firefox extension pattern)
     let credentialId = cred.id
     if (!dryRun) {
       const registeredId = await registerCredential(serverUrl, sessionId, cred.id)
@@ -2202,7 +2202,7 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
     const allSameFingerprint = fingerprints.length > 0 && fingerprints.every((fp) => fp === fingerprints[0])
 
     // Page-diff is intermediate data — element_roles + page_visited_by on each request
-    // is the summarized form. Raw page-diff is NOT sent to BountyReper (Decision 1).
+    // is the summarized form. Raw page-diff is NOT sent to BountyReaper (Decision 1).
     if (dryRun) {
       log.info("page-diff", {
         url: entry.url,
@@ -2358,7 +2358,7 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
 // ============================================================
 
 export async function run(config: AgentConfig): Promise<CrawlResult> {
-  initAuth(config.bountyreper.username, config.bountyreper.password)
+  initAuth(config.bountyreaper.username, config.bountyreaper.password)
 
   // Multi-credential mode: separate code path, same BFS engine
   if (config.multiCredentials && config.multiCredentials.length >= 2) {
@@ -2369,11 +2369,11 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
   const targetUrl = config.targetUrl
   const scopePatterns = resolveScopePatterns(config)
   const inScope = makeMatcher(scopePatterns)
-  const serverUrl = config.bountyreper.serverUrl ?? "http://127.0.0.1:4096"
+  const serverUrl = config.bountyreaper.serverUrl ?? "http://127.0.0.1:4096"
   const maxPages = config.maxSteps ?? 50
   const dryRun = config.dryRun ?? false
   const usageAcc: CrawlUsage = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 }
-  let credentialId = config.bountyreper.credentialId
+  let credentialId = config.bountyreaper.credentialId
   const panelOn = config.panel ?? true
   setPanelEnabled(panelOn)
 
@@ -2395,12 +2395,12 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
     throw new Error(`AI model required for v2 architecture: ${String(err)}`)
   }
 
-  // Create BountyReper session
-  let sessionID = config.bountyreper.sessionID
+  // Create BountyReaper session
+  let sessionID = config.bountyreaper.sessionID
   if (!dryRun && !sessionID) {
     const created = await initSession(serverUrl, targetUrl, credentialId)
     if (!created) {
-      throw new Error(`failed to create BountyReper session at ${serverUrl} — is BountyReper running?`)
+      throw new Error(`failed to create BountyReaper session at ${serverUrl} — is BountyReaper running?`)
     }
     sessionID = created
   }
@@ -2422,9 +2422,9 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
   // Wire up capture pipeline with header sync. Mirrors the per-credential
   // pattern in runMultiCredential (agent.ts:1459-1471): each captured request
   // contributes its auth headers to a delta tracker; when the delta changes,
-  // PATCH the credential record on bountyreper. Without this, manual-login
+  // PATCH the credential record on bountyreaper. Without this, manual-login
   // sessions in single-cred mode end up with an empty credential record on
-  // the bountyreper side — captures get tagged with the credentialID but
+  // the bountyreaper side — captures get tagged with the credentialID but
   // the cookies/tokens captured during login never make it back to the DB.
   const captureQueue: CapturedRequest[] = []
   let lastAuthHeaders: Record<string, string> = {}

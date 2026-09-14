@@ -16,8 +16,8 @@ export default function NotFound() {
       <div data-component="content">
         <section data-component="top">
           <a href={language.route("/")} data-slot="logo-link">
-            <img data-slot="logo light" src={logoLight} alt="bountyreper logo light" />
-            <img data-slot="logo dark" src={logoDark} alt="bountyreper logo dark" />
+            <img data-slot="logo light" src={logoLight} alt="bountyreaper logo light" />
+            <img data-slot="logo dark" src={logoDark} alt="bountyreaper logo dark" />
           </a>
           <h1 data-slot="title">{i18n.t("notFound.heading")}</h1>
         </section>
@@ -30,7 +30,7 @@ export default function NotFound() {
             <a href={language.route("/docs")}>{i18n.t("notFound.docs")}</a>
           </div>
           <div data-slot="action">
-            <a href="https://github.com/bounty-reper/BountyReper">{i18n.t("notFound.github")}</a>
+            <a href="https://github.com/node011/Bounty-Reaper">{i18n.t("notFound.github")}</a>
           </div>
           <div data-slot="action">
             <a href={language.route("/discord")}>{i18n.t("notFound.discord")}</a>

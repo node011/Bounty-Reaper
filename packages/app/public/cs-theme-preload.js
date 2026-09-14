@@ -1,8 +1,8 @@
 ;(function () {
-  var themeId = localStorage.getItem("bountyreper-theme-id")
+  var themeId = localStorage.getItem("bountyreaper-theme-id")
   if (!themeId) return
 
-  var scheme = localStorage.getItem("bountyreper-color-scheme") || "system"
+  var scheme = localStorage.getItem("bountyreaper-color-scheme") || "system"
   var isDark = scheme === "dark" || (scheme === "system" && matchMedia("(prefers-color-scheme: dark)").matches)
   var mode = isDark ? "dark" : "light"
 
@@ -11,7 +11,7 @@
 
   if (themeId === "cs-1") return
 
-  var css = localStorage.getItem("bountyreper-theme-css-" + themeId + "-" + mode)
+  var css = localStorage.getItem("bountyreaper-theme-css-" + themeId + "-" + mode)
   if (css) {
     var style = document.createElement("style")
     style.id = "cs-theme-preload"

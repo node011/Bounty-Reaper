@@ -1,10 +1,10 @@
 import { createStore, type SetStoreFunction } from "solid-js/store"
-import { createSimpleContext } from "@bountyreper-io/ui/context"
+import { createSimpleContext } from "@bountyreaper-io/ui/context"
 import { batch, createMemo, createRoot, onCleanup } from "solid-js"
 import { useParams } from "@solidjs/router"
 import type { FileSelection } from "@/context/file"
 import { Persist, persisted } from "@/utils/persist"
-import { checksum } from "@bountyreper-io/util/encode"
+import { checksum } from "@bountyreaper-io/util/encode"
 
 interface PartBase {
   content: string

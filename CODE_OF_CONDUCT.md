@@ -2,7 +2,7 @@
 
 ## Our Pledge
 
-We are committed to making BountyReper an open, welcoming, and professional community for everyone interested in offensive security, penetration testing, and AI-powered security tools.
+We are committed to making BountyReaper an open, welcoming, and professional community for everyone interested in offensive security, penetration testing, and AI-powered security tools.
 
 ## Our Standards
 
@@ -10,7 +10,7 @@ We are committed to making BountyReper an open, welcoming, and professional comm
 
 - **Be professional.** Treat all contributors with respect regardless of experience level.
 - **Be constructive.** Provide helpful feedback on issues and pull requests.
-- **Be ethical.** BountyReper is for authorized security testing only. Do not share techniques, exploits, or tools intended for unauthorized access.
+- **Be ethical.** BountyReaper is for authorized security testing only. Do not share techniques, exploits, or tools intended for unauthorized access.
 - **Be responsible.** Follow responsible disclosure practices. Never share active vulnerabilities, credentials, or sensitive data in issues or discussions.
 - **Help others learn.** Security is a field where knowledge sharing makes everyone safer.
 
@@ -25,12 +25,12 @@ We are committed to making BountyReper an open, welcoming, and professional comm
 
 ## Responsible Security Research
 
-BountyReper is a security tool. We expect all community members to:
+BountyReaper is a security tool. We expect all community members to:
 
 - Only test systems you own or have explicit written authorization to test
 - Follow applicable laws and regulations in your jurisdiction
 - Practice responsible disclosure for any vulnerabilities discovered
-- Never use BountyReper or its components for unauthorized access
+- Never use BountyReaper or its components for unauthorized access
 
 ## Enforcement
 
@@ -54,7 +54,7 @@ All reports will be reviewed and investigated. Reporters' identities will be kep
 
 ## Scope
 
-This code of conduct applies to all BountyReper project spaces: GitHub repository, issues, pull requests, Discord, and any other community channels.
+This code of conduct applies to all BountyReaper project spaces: GitHub repository, issues, pull requests, Discord, and any other community channels.
 
 ## Attribution
 

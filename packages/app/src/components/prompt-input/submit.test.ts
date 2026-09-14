@@ -39,18 +39,18 @@ beforeAll(async () => {
     useParams: () => ({}),
   }))
 
-  mock.module("@bountyreper-io/sdk/v2/client", () => ({
-    createBountyreperClient: (input: { directory: string }) => {
+  mock.module("@bountyreaper-io/sdk/v2/client", () => ({
+    createBountyReaperClient: (input: { directory: string }) => {
       createdClients.push(input.directory)
       return clientFor(input.directory)
     },
   }))
 
-  mock.module("@bountyreper-io/ui/toast", () => ({
+  mock.module("@bountyreaper-io/ui/toast", () => ({
     showToast: () => 0,
   }))
 
-  mock.module("@bountyreper-io/util/encode", () => ({
+  mock.module("@bountyreaper-io/util/encode", () => ({
     base64Encode: (value: string) => value,
   }))
 

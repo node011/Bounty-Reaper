@@ -1,7 +1,7 @@
-export const deepLinkEvent = "bountyreper:deep-link"
+export const deepLinkEvent = "bountyreaper:deep-link"
 
 export const parseDeepLink = (input: string) => {
-  if (!input.startsWith("bountyreper://")) return
+  if (!input.startsWith("bountyreaper://")) return
   if (typeof URL.canParse === "function" && !URL.canParse(input)) return
   const url = (() => {
     try {
@@ -20,15 +20,15 @@ export const parseDeepLink = (input: string) => {
 export const collectOpenProjectDeepLinks = (urls: string[]) =>
   urls.map(parseDeepLink).filter((directory): directory is string => !!directory)
 
-type BountyReperWindow = Window & {
-  __BOUNTYREPER__?: {
+type BountyReaperWindow = Window & {
+  __BOUNTYREAPER__?: {
     deepLinks?: string[]
   }
 }
 
-export const drainPendingDeepLinks = (target: BountyReperWindow) => {
-  const pending = target.__BOUNTYREPER__?.deepLinks ?? []
+export const drainPendingDeepLinks = (target: BountyReaperWindow) => {
+  const pending = target.__BOUNTYREAPER__?.deepLinks ?? []
   if (pending.length === 0) return []
-  if (target.__BOUNTYREPER__) target.__BOUNTYREPER__.deepLinks = []
+  if (target.__BOUNTYREAPER__) target.__BOUNTYREAPER__.deepLinks = []
   return pending
 }

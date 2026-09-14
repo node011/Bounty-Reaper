@@ -1,37 +1,37 @@
-import { FileDiff, Message, Model, Part, Session, SessionStatus, UserMessage } from "@bountyreper-io/sdk/v2"
-import { SessionTurn } from "@bountyreper-io/ui/session-turn"
-import { SessionReview } from "@bountyreper-io/ui/session-review"
-import { DataProvider } from "@bountyreper-io/ui/context"
-import { DiffComponentProvider } from "@bountyreper-io/ui/context/diff"
-import { CodeComponentProvider } from "@bountyreper-io/ui/context/code"
-import { WorkerPoolProvider } from "@bountyreper-io/ui/context/worker-pool"
+import { FileDiff, Message, Model, Part, Session, SessionStatus, UserMessage } from "@bountyreaper-io/sdk/v2"
+import { SessionTurn } from "@bountyreaper-io/ui/session-turn"
+import { SessionReview } from "@bountyreaper-io/ui/session-review"
+import { DataProvider } from "@bountyreaper-io/ui/context"
+import { DiffComponentProvider } from "@bountyreaper-io/ui/context/diff"
+import { CodeComponentProvider } from "@bountyreaper-io/ui/context/code"
+import { WorkerPoolProvider } from "@bountyreaper-io/ui/context/worker-pool"
 import { createAsync, query, useParams } from "@solidjs/router"
 import { createEffect, createMemo, ErrorBoundary, For, Match, Show, Switch } from "solid-js"
 import { Share } from "~/core/share"
-import { Logo, Mark } from "@bountyreper-io/ui/logo"
-import { IconButton } from "@bountyreper-io/ui/icon-button"
-import { ProviderIcon } from "@bountyreper-io/ui/provider-icon"
-import { createDefaultOptions } from "@bountyreper-io/ui/pierre"
-import { iife } from "@bountyreper-io/util/iife"
-import { Binary } from "@bountyreper-io/util/binary"
-import { NamedError } from "@bountyreper-io/util/error"
+import { Logo, Mark } from "@bountyreaper-io/ui/logo"
+import { IconButton } from "@bountyreaper-io/ui/icon-button"
+import { ProviderIcon } from "@bountyreaper-io/ui/provider-icon"
+import { createDefaultOptions } from "@bountyreaper-io/ui/pierre"
+import { iife } from "@bountyreaper-io/util/iife"
+import { Binary } from "@bountyreaper-io/util/binary"
+import { NamedError } from "@bountyreaper-io/util/error"
 import { DateTime } from "luxon"
 import { createStore } from "solid-js/store"
 import z from "zod"
 import NotFound from "../[...404]"
-import { Tabs } from "@bountyreper-io/ui/tabs"
-import { MessageNav } from "@bountyreper-io/ui/message-nav"
+import { Tabs } from "@bountyreaper-io/ui/tabs"
+import { MessageNav } from "@bountyreaper-io/ui/message-nav"
 import { preloadMultiFileDiff, PreloadMultiFileDiffResult } from "@pierre/diffs/ssr"
-import { Diff as SSRDiff } from "@bountyreper-io/ui/diff-ssr"
+import { Diff as SSRDiff } from "@bountyreaper-io/ui/diff-ssr"
 import { clientOnly } from "@solidjs/start"
-import { type IconName } from "@bountyreper-io/ui/icons/provider"
+import { type IconName } from "@bountyreaper-io/ui/icons/provider"
 import { Meta, Title } from "@solidjs/meta"
 import { Base64 } from "js-base64"
 
-const ClientOnlyDiff = clientOnly(() => import("@bountyreper-io/ui/diff").then((m) => ({ default: m.Diff })))
-const ClientOnlyCode = clientOnly(() => import("@bountyreper-io/ui/code").then((m) => ({ default: m.Code })))
+const ClientOnlyDiff = clientOnly(() => import("@bountyreaper-io/ui/diff").then((m) => ({ default: m.Diff })))
+const ClientOnlyCode = clientOnly(() => import("@bountyreaper-io/ui/code").then((m) => ({ default: m.Code })))
 const ClientOnlyWorkerPoolProvider = clientOnly(() =>
-  import("@bountyreper-io/ui/pierre/worker").then((m) => ({
+  import("@bountyreaper-io/ui/pierre/worker").then((m) => ({
     default: (props: { children: any }) => (
       <WorkerPoolProvider pools={m.getWorkerPools()}>{props.children}</WorkerPoolProvider>
     ),
@@ -206,15 +206,15 @@ export default function () {
               modelParam = "unknown"
             }
             const version = `v${info().version}`
-            return `https://social-cards.sst.dev/bountyreper-share/${encodedTitle}.png?model=${modelParam}&version=${version}&id=${data().shareID}`
+            return `https://social-cards.sst.dev/bountyreaper-share/${encodedTitle}.png?model=${modelParam}&version=${version}&id=${data().shareID}`
           })
 
           return (
             <>
               <Show when={info().title}>
-                <Title>{info().title} | BountyReper</Title>
+                <Title>{info().title} | BountyReaper</Title>
               </Show>
-              <Meta name="description" content="bountyreper - The AI coding agent built for the terminal." />
+              <Meta name="description" content="bountyreaper - The AI coding agent built for the terminal." />
               <Meta property="og:image" content={ogImage()} />
               <Meta name="twitter:image" content={ogImage()} />
               <ClientOnlyWorkerPoolProvider>
@@ -328,7 +328,7 @@ export default function () {
                               <div class="flex gap-3 items-center">
                                 <IconButton
                                   as={"a"}
-                                  href="https://github.com/bounty-reper/BountyReper"
+                                  href="https://github.com/node011/Bounty-Reaper"
                                   target="_blank"
                                   icon="github"
                                   variant="ghost"

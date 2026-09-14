@@ -1,4 +1,4 @@
-import type { Project, ProviderListResponse } from "@bountyreper-io/sdk/v2/client"
+import type { Project, ProviderListResponse } from "@bountyreaper-io/sdk/v2/client"
 
 export const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
 

@@ -6,13 +6,13 @@ import {
   type ProviderAuthResponse,
   type ProviderListResponse,
   type QuestionRequest,
-  createBountyreperClient,
-} from "@bountyreper-io/sdk/v2/client"
+  createBountyReaperClient,
+} from "@bountyreaper-io/sdk/v2/client"
 import { batch } from "solid-js"
 import { reconcile, type SetStoreFunction, type Store } from "solid-js/store"
-import { retry } from "@bountyreper-io/util/retry"
-import { getFilename } from "@bountyreper-io/util/path"
-import { showToast } from "@bountyreper-io/ui/toast"
+import { retry } from "@bountyreaper-io/util/retry"
+import { getFilename } from "@bountyreaper-io/util/path"
+import { showToast } from "@bountyreaper-io/ui/toast"
 import { cmp, normalizeProviderList } from "./utils"
 import type { State, VcsCache } from "./types"
 
@@ -27,7 +27,7 @@ type GlobalStore = {
 }
 
 export async function bootstrapGlobal(input: {
-  globalSDK: ReturnType<typeof createBountyreperClient>
+  globalSDK: ReturnType<typeof createBountyReaperClient>
   connectErrorTitle: string
   connectErrorDescription: string
   requestFailedTitle: string
@@ -62,7 +62,7 @@ export async function bootstrapGlobal(input: {
       input.globalSDK.project.list().then((x) => {
         const projects = (x.data ?? [])
           .filter((p) => !!p?.id)
-          .filter((p) => !!p.worktree && !p.worktree.includes("bountyreper-test"))
+          .filter((p) => !!p.worktree && !p.worktree.includes("bountyreaper-test"))
           .slice()
           .sort((a, b) => cmp(a.id, b.id))
         input.setGlobalStore("project", projects)
@@ -106,7 +106,7 @@ function groupBySession<T extends { id: string; sessionID: string }>(input: T[])
 
 export async function bootstrapDirectory(input: {
   directory: string
-  sdk: ReturnType<typeof createBountyreperClient>
+  sdk: ReturnType<typeof createBountyReaperClient>
   store: Store<State>
   setStore: SetStoreFunction<State>
   vcsCache: VcsCache

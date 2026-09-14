@@ -1,4 +1,4 @@
-import { createSimpleContext } from "@bountyreper-io/ui/context"
+import { createSimpleContext } from "@bountyreaper-io/ui/context"
 import { AsyncStorage, SyncStorage } from "@solid-primitives/storage"
 import type { Accessor } from "solid-js"
 

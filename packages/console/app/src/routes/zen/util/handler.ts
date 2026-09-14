@@ -1,18 +1,18 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { and, Database, eq, isNull, lt, or, sql } from "@bountyreper-io/console-core/drizzle/index.js"
-import { KeyTable } from "@bountyreper-io/console-core/schema/key.sql.js"
-import { BillingTable, SubscriptionTable, UsageTable } from "@bountyreper-io/console-core/schema/billing.sql.js"
-import { centsToMicroCents } from "@bountyreper-io/console-core/util/price.js"
-import { getWeekBounds } from "@bountyreper-io/console-core/util/date.js"
-import { Identifier } from "@bountyreper-io/console-core/identifier.js"
-import { Billing } from "@bountyreper-io/console-core/billing.js"
-import { Actor } from "@bountyreper-io/console-core/actor.js"
-import { WorkspaceTable } from "@bountyreper-io/console-core/schema/workspace.sql.js"
-import { ZenData } from "@bountyreper-io/console-core/model.js"
-import { Black, BlackData } from "@bountyreper-io/console-core/black.js"
-import { UserTable } from "@bountyreper-io/console-core/schema/user.sql.js"
-import { ModelTable } from "@bountyreper-io/console-core/schema/model.sql.js"
-import { ProviderTable } from "@bountyreper-io/console-core/schema/provider.sql.js"
+import { and, Database, eq, isNull, lt, or, sql } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { KeyTable } from "@bountyreaper-io/console-core/schema/key.sql.js"
+import { BillingTable, SubscriptionTable, UsageTable } from "@bountyreaper-io/console-core/schema/billing.sql.js"
+import { centsToMicroCents } from "@bountyreaper-io/console-core/util/price.js"
+import { getWeekBounds } from "@bountyreaper-io/console-core/util/date.js"
+import { Identifier } from "@bountyreaper-io/console-core/identifier.js"
+import { Billing } from "@bountyreaper-io/console-core/billing.js"
+import { Actor } from "@bountyreaper-io/console-core/actor.js"
+import { WorkspaceTable } from "@bountyreaper-io/console-core/schema/workspace.sql.js"
+import { ZenData } from "@bountyreaper-io/console-core/model.js"
+import { Black, BlackData } from "@bountyreaper-io/console-core/black.js"
+import { UserTable } from "@bountyreaper-io/console-core/schema/user.sql.js"
+import { ModelTable } from "@bountyreaper-io/console-core/schema/model.sql.js"
+import { ProviderTable } from "@bountyreaper-io/console-core/schema/provider.sql.js"
 import { logger } from "./logger"
 import {
   AuthError,
@@ -58,7 +58,7 @@ export async function handler(
   const MAX_429_RETRIES = 3
   const FREE_WORKSPACES = [
     "wrk_01K46JDFR0E75SG2Q8K172KF3Y", // frank
-    "wrk_01K6W1A3VE0KMNVSCQT43BG2SX", // bountyreper bench
+    "wrk_01K6W1A3VE0KMNVSCQT43BG2SX", // bountyreaper bench
   ]
 
   try {
@@ -67,10 +67,10 @@ export async function handler(
     const model = opts.parseModel(url, body)
     const isStream = opts.parseIsStream(url, body)
     const ip = input.request.headers.get("x-real-ip") ?? ""
-    const sessionId = input.request.headers.get("x-bountyreper-session") ?? ""
-    const requestId = input.request.headers.get("x-bountyreper-request") ?? ""
-    const projectId = input.request.headers.get("x-bountyreper-project") ?? ""
-    const ocClient = input.request.headers.get("x-bountyreper-client") ?? ""
+    const sessionId = input.request.headers.get("x-bountyreaper-session") ?? ""
+    const requestId = input.request.headers.get("x-bountyreaper-request") ?? ""
+    const projectId = input.request.headers.get("x-bountyreaper-project") ?? ""
+    const ocClient = input.request.headers.get("x-bountyreaper-client") ?? ""
     logger.metric({
       is_tream: isStream,
       session: sessionId,
@@ -128,10 +128,10 @@ export async function handler(
           })
           headers.delete("host")
           headers.delete("content-length")
-          headers.delete("x-bountyreper-request")
-          headers.delete("x-bountyreper-session")
-          headers.delete("x-bountyreper-project")
-          headers.delete("x-bountyreper-client")
+          headers.delete("x-bountyreaper-request")
+          headers.delete("x-bountyreaper-session")
+          headers.delete("x-bountyreaper-project")
+          headers.delete("x-bountyreaper-client")
           return headers
         })(),
         body: reqBody,

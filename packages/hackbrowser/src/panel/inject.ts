@@ -7,7 +7,7 @@
  * in types.ts and the csEmit helper in panel/emit.ts.
  *
  * Architecture:
- *   - Host div: #__cs-host, covers viewport, data-bountyreper-ui="panel",
+ *   - Host div: #__cs-host, covers viewport, data-bountyreaper-ui="panel",
  *     pointer-events: none. Scanner/capture filter on this attribute.
  *   - Shadow DOM (closed) inside host — target page CSS cannot bleed in.
  *   - Two z-ordered regions in the shadow:
@@ -389,7 +389,7 @@ const PANEL_HTML = `
     <span class="bracket br"></span>
 
     <div class="boot">
-      <div class="ln" style="animation-delay:0ms">&gt; bountyreper.agent.connect()</div>
+      <div class="ln" style="animation-delay:0ms">&gt; bountyreaper.agent.connect()</div>
       <div class="ln" style="animation-delay:140ms">&gt; shadow-dom mount <span class="ok">[OK]</span></div>
       <div class="ln" style="animation-delay:300ms">&gt; event bridge <span class="ok">[OK]</span></div>
       <div class="ln" style="animation-delay:460ms">&gt; standby for capture stream...</div>
@@ -967,7 +967,7 @@ export const PANEL_INIT_SCRIPT = `
       if (document.getElementById('__cs-host')) return;
       var host = document.createElement('div');
       host.id = '__cs-host';
-      host.setAttribute('data-bountyreper-ui', 'panel');
+      host.setAttribute('data-bountyreaper-ui', 'panel');
       host.setAttribute('aria-hidden', 'true');
       host.style.cssText = 'all:initial;position:fixed;inset:0;pointer-events:none;z-index:2147483647';
       document.documentElement.appendChild(host);

@@ -18,14 +18,14 @@ jobs:
 
       - uses: ./.github/actions/setup-bun
 
-      - name: Install bountyreper
+      - name: Install bountyreaper
         run: curl -fsSL https://bountyreper.io/install | bash
 
       - name: Check duplicates and compliance
         env:
-          BOUNTYREPER_API_KEY: ${{ secrets.BOUNTYREPER_API_KEY }}
+          BOUNTYREAPER_API_KEY: ${{ secrets.BOUNTYREAPER_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BOUNTYREPER_PERMISSION: |
+          BOUNTYREAPER_PERMISSION: |
             {
               "bash": {
                 "*": "deny",
@@ -34,7 +34,7 @@ jobs:
               "webfetch": "deny"
             }
         run: |
-          bountyreper run -m bountyreper/claude-haiku-4-5 "A new issue has been created:
+          bountyreaper run -m bountyreaper/claude-haiku-4-5 "A new issue has been created:
 
           Issue number: ${{ github.event.issue.number }}
 

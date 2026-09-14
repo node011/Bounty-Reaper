@@ -44,7 +44,7 @@ class ScopeError(Exception):
 
 
 def root() -> Path:
-    base = Path(os.environ.get("BB_RECON_OUTPUT_DIR", str(Path.cwd() / ".bountyreper" / "recon")))
+    base = Path(os.environ.get("BB_RECON_OUTPUT_DIR", str(Path.cwd() / ".bountyreaper" / "recon")))
     base.mkdir(parents=True, exist_ok=True)
     return base
 

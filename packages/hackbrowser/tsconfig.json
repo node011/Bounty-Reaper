@@ -3,12 +3,12 @@
   "extends": "@tsconfig/bun/tsconfig.json",
   "compilerOptions": {
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    // Mirror bountyreper's tsconfig settings — required because we import bountyreper source directly
+    // Mirror bountyreaper's tsconfig settings — required because we import bountyreaper source directly
     "types": ["bun"],
     "noUncheckedIndexedAccess": false,
     "paths": {
-      "@/*": ["../bountyreper/src/*"],
-      "@tui/*": ["../bountyreper/src/cli/cmd/tui/*"]
+      "@/*": ["../bountyreaper/src/*"],
+      "@tui/*": ["../bountyreaper/src/cli/cmd/tui/*"]
     }
   },
   "exclude": ["test-cases"]

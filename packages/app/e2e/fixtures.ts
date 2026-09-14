@@ -74,9 +74,9 @@ async function seedStorage(page: Page, input: { directory: string; extra?: strin
   await seedProjects(page, input)
   await page.addInitScript(() => {
     localStorage.setItem(
-      "bountyreper.global.dat:model",
+      "bountyreaper.global.dat:model",
       JSON.stringify({
-        recent: [{ providerID: "bountyreper", modelID: "big-pickle" }],
+        recent: [{ providerID: "bountyreaper", modelID: "big-pickle" }],
         user: [],
         variant: {},
       }),

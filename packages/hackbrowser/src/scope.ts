@@ -10,7 +10,7 @@ const psl = pslDefault as {
 // ============================================================
 // Network scope (ARCHITECTURE.md §1.2 — Network Scope)
 //
-// Scope = which hostnames the agent forwards to BountyReper.
+// Scope = which hostnames the agent forwards to BountyReaper.
 // Distinct from --exclude (semantic task filter, planner-side).
 //
 // Resolution order at startup:

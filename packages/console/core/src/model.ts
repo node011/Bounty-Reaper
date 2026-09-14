@@ -5,7 +5,7 @@ import { ModelTable } from "./schema/model.sql"
 import { Identifier } from "./identifier"
 import { fn } from "./util/fn"
 import { Actor } from "./actor"
-import { Resource } from "@bountyreper-io/console-resource"
+import { Resource } from "@bountyreaper-io/console-resource"
 
 export namespace ZenData {
   const FormatSchema = z.enum(["anthropic", "google", "openai", "oa-compat"])

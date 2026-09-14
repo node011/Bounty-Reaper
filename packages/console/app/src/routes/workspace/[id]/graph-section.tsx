@@ -9,11 +9,11 @@ import {
   or,
   sql,
   sum,
-} from "@bountyreper-io/console-core/drizzle/index.js"
-import { UsageTable } from "@bountyreper-io/console-core/schema/billing.sql.js"
-import { KeyTable } from "@bountyreper-io/console-core/schema/key.sql.js"
-import { UserTable } from "@bountyreper-io/console-core/schema/user.sql.js"
-import { AuthTable } from "@bountyreper-io/console-core/schema/auth.sql.js"
+} from "@bountyreaper-io/console-core/drizzle/index.js"
+import { UsageTable } from "@bountyreaper-io/console-core/schema/billing.sql.js"
+import { KeyTable } from "@bountyreaper-io/console-core/schema/key.sql.js"
+import { UserTable } from "@bountyreaper-io/console-core/schema/user.sql.js"
+import { AuthTable } from "@bountyreaper-io/console-core/schema/auth.sql.js"
 import { useParams } from "@solidjs/router"
 import { createEffect, createMemo, onCleanup, Show, For } from "solid-js"
 import { createStore } from "solid-js/store"

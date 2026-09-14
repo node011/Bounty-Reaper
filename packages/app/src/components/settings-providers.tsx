@@ -1,9 +1,9 @@
-import { Button } from "@bountyreper-io/ui/button"
-import { useDialog } from "@bountyreper-io/ui/context/dialog"
-import { ProviderIcon } from "@bountyreper-io/ui/provider-icon"
-import { Tag } from "@bountyreper-io/ui/tag"
-import { showToast } from "@bountyreper-io/ui/toast"
-import { iconNames, type IconName } from "@bountyreper-io/ui/icons/provider"
+import { Button } from "@bountyreaper-io/ui/button"
+import { useDialog } from "@bountyreaper-io/ui/context/dialog"
+import { ProviderIcon } from "@bountyreaper-io/ui/provider-icon"
+import { Tag } from "@bountyreaper-io/ui/tag"
+import { showToast } from "@bountyreaper-io/ui/toast"
+import { iconNames, type IconName } from "@bountyreaper-io/ui/icons/provider"
 import { popularProviders, useProviders } from "@/hooks/use-providers"
 import { createMemo, type Component, For, Show } from "solid-js"
 import { useLanguage } from "@/context/language"
@@ -17,7 +17,7 @@ type ProviderSource = "env" | "api" | "config" | "custom"
 type ProviderItem = ReturnType<ReturnType<typeof useProviders>["connected"]>[number]
 
 const PROVIDER_NOTES = [
-  { match: (id: string) => id === "bountyreper", key: "dialog.provider.bountyreper.note" },
+  { match: (id: string) => id === "bountyreaper", key: "dialog.provider.bountyreaper.note" },
   { match: (id: string) => id === "anthropic", key: "dialog.provider.anthropic.note" },
   { match: (id: string) => id.startsWith("github-copilot"), key: "dialog.provider.copilot.note" },
   { match: (id: string) => id === "openai", key: "dialog.provider.openai.note" },
@@ -41,7 +41,7 @@ export const SettingsProviders: Component = () => {
   const connected = createMemo(() => {
     return providers
       .connected()
-      .filter((p) => p.id !== "bountyreper" || Object.values(p.models).find((m) => m.cost?.input))
+      .filter((p) => p.id !== "bountyreaper" || Object.values(p.models).find((m) => m.cost?.input))
   })
 
   const popular = createMemo(() => {
@@ -187,7 +187,7 @@ export const SettingsProviders: Component = () => {
                     <div class="flex items-center gap-x-3">
                       <ProviderIcon id={icon(item.id)} class="size-5 shrink-0 icon-strong-base" />
                       <span class="text-14-medium text-text-strong">{item.name}</span>
-                      <Show when={item.id === "bountyreper"}>
+                      <Show when={item.id === "bountyreaper"}>
                         <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
                       </Show>
                     </div>

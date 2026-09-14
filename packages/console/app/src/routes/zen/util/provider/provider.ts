@@ -1,4 +1,4 @@
-import { ZenData } from "@bountyreper-io/console-core/model.js"
+import { ZenData } from "@bountyreaper-io/console-core/model.js"
 import {
   fromAnthropicChunk,
   fromAnthropicRequest,

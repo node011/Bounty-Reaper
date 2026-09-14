@@ -44,7 +44,7 @@ async function waitForHealth(url: string) {
 
 const appDir = process.cwd()
 const repoDir = path.resolve(appDir, "../..")
-const bountyreperDir = path.join(repoDir, "packages", "bountyreper")
+const bountyreaperDir = path.join(repoDir, "packages", "bountyreaper")
 
 const extraArgs = (() => {
   const args = process.argv.slice(2)
@@ -54,33 +54,33 @@ const extraArgs = (() => {
 
 const [serverPort, webPort] = await Promise.all([freePort(), freePort()])
 
-const sandbox = await fs.mkdtemp(path.join(os.tmpdir(), "bountyreper-e2e-"))
-const keepSandbox = process.env.BOUNTYREPER_E2E_KEEP_SANDBOX === "1"
+const sandbox = await fs.mkdtemp(path.join(os.tmpdir(), "bountyreaper-e2e-"))
+const keepSandbox = process.env.BOUNTYREAPER_E2E_KEEP_SANDBOX === "1"
 
 const serverEnv = {
   ...process.env,
-  BOUNTYREPER_DISABLE_SHARE: process.env.BOUNTYREPER_DISABLE_SHARE ?? "true",
-  BOUNTYREPER_DISABLE_LSP_DOWNLOAD: "true",
-  BOUNTYREPER_DISABLE_DEFAULT_PLUGINS: "true",
-  BOUNTYREPER_EXPERIMENTAL_DISABLE_FILEWATCHER: "true",
-  BOUNTYREPER_TEST_HOME: path.join(sandbox, "home"),
+  BOUNTYREAPER_DISABLE_SHARE: process.env.BOUNTYREAPER_DISABLE_SHARE ?? "true",
+  BOUNTYREAPER_DISABLE_LSP_DOWNLOAD: "true",
+  BOUNTYREAPER_DISABLE_DEFAULT_PLUGINS: "true",
+  BOUNTYREAPER_EXPERIMENTAL_DISABLE_FILEWATCHER: "true",
+  BOUNTYREAPER_TEST_HOME: path.join(sandbox, "home"),
   XDG_DATA_HOME: path.join(sandbox, "share"),
   XDG_CACHE_HOME: path.join(sandbox, "cache"),
   XDG_CONFIG_HOME: path.join(sandbox, "config"),
   XDG_STATE_HOME: path.join(sandbox, "state"),
-  BOUNTYREPER_E2E_PROJECT_DIR: repoDir,
-  BOUNTYREPER_E2E_SESSION_TITLE: "E2E Session",
-  BOUNTYREPER_E2E_MESSAGE: "Seeded for UI e2e",
-  BOUNTYREPER_E2E_MODEL: "bountyreper/gpt-5-nano",
-  BOUNTYREPER_CLIENT: "app",
+  BOUNTYREAPER_E2E_PROJECT_DIR: repoDir,
+  BOUNTYREAPER_E2E_SESSION_TITLE: "E2E Session",
+  BOUNTYREAPER_E2E_MESSAGE: "Seeded for UI e2e",
+  BOUNTYREAPER_E2E_MODEL: "bountyreaper/gpt-5-nano",
+  BOUNTYREAPER_CLIENT: "app",
 } satisfies Record<string, string>
 
 const runnerEnv = {
   ...serverEnv,
   PLAYWRIGHT_SERVER_HOST: "127.0.0.1",
   PLAYWRIGHT_SERVER_PORT: String(serverPort),
-  VITE_BOUNTYREPER_SERVER_HOST: "127.0.0.1",
-  VITE_BOUNTYREPER_SERVER_PORT: String(serverPort),
+  VITE_BOUNTYREAPER_SERVER_HOST: "127.0.0.1",
+  VITE_BOUNTYREAPER_SERVER_PORT: String(serverPort),
   PLAYWRIGHT_PORT: String(webPort),
 } satisfies Record<string, string>
 
@@ -132,7 +132,7 @@ let code = 1
 
 try {
   seed = Bun.spawn(["bun", "script/seed-e2e.ts"], {
-    cwd: bountyreperDir,
+    cwd: bountyreaperDir,
     env: serverEnv,
     stdout: "inherit",
     stderr: "inherit",
@@ -144,20 +144,20 @@ try {
   } else {
     Object.assign(process.env, serverEnv)
     process.env.AGENT = "1"
-    process.env.BOUNTYREPER = "1"
+    process.env.BOUNTYREAPER = "1"
 
-    const log = await import("../../bountyreper/src/util/log")
-    const install = await import("../../bountyreper/src/installation")
+    const log = await import("../../bountyreaper/src/util/log")
+    const install = await import("../../bountyreaper/src/installation")
     await log.Log.init({
       print: true,
       dev: install.Installation.isLocal(),
       level: "WARN",
     })
 
-    const servermod = await import("../../bountyreper/src/server/server")
-    inst = await import("../../bountyreper/src/project/instance")
+    const servermod = await import("../../bountyreaper/src/server/server")
+    inst = await import("../../bountyreaper/src/project/instance")
     server = servermod.Server.listen({ port: serverPort, hostname: "127.0.0.1" })
-    console.log(`bountyreper server listening on http://127.0.0.1:${serverPort}`)
+    console.log(`bountyreaper server listening on http://127.0.0.1:${serverPort}`)
 
     await waitForHealth(`http://127.0.0.1:${serverPort}/global/health`)
     runner = Bun.spawn(["bun", "test:e2e", ...extraArgs], {

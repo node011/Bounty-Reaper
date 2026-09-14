@@ -8,8 +8,8 @@ import {
   type DragEvent,
 } from "@thisbeyond/solid-dnd"
 import { ConstrainDragXAxis } from "@/utils/solid-dnd"
-import { IconButton } from "@bountyreper-io/ui/icon-button"
-import { Tooltip, TooltipKeybind } from "@bountyreper-io/ui/tooltip"
+import { IconButton } from "@bountyreaper-io/ui/icon-button"
+import { Tooltip, TooltipKeybind } from "@bountyreaper-io/ui/tooltip"
 import { type LocalProject } from "@/context/layout"
 import { sidebarExpanded } from "./sidebar-shell-helpers"
 

@@ -7,7 +7,7 @@ import type {
   PermissionRequest,
   QuestionRequest,
   QuestionAnswer,
-} from "@bountyreper-io/sdk/v2"
+} from "@bountyreaper-io/sdk/v2"
 import { createSimpleContext } from "./helper"
 import { PreloadMultiFileDiffResult } from "@pierre/diffs/ssr"
 

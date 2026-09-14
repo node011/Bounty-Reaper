@@ -1,4 +1,4 @@
-import { Resource } from "@bountyreper-io/console-resource"
+import { Resource } from "@bountyreaper-io/console-resource"
 import type { TraceItem } from "@cloudflare/workers-types"
 
 export default {

@@ -1,7 +1,7 @@
 /**
  * HAR entry -> raw HTTP/1.1 request text.
  *
- * BountyReper's /session/ingest parses `text` as a raw HTTP request, so the
+ * BountyReaper's /session/ingest parses `text` as a raw HTTP request, so the
  * capture has to come back out as bytes on the wire, not as a JSON object.
  *
  * Chrome reports HTTP/2 and HTTP/3 traffic with pseudo-headers (`:method`,

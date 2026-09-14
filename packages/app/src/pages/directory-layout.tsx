@@ -5,10 +5,10 @@ import { SDKProvider, useSDK } from "@/context/sdk"
 import { SyncProvider, useSync } from "@/context/sync"
 import { LocalProvider } from "@/context/local"
 
-import { DataProvider } from "@bountyreper-io/ui/context"
-import type { QuestionAnswer } from "@bountyreper-io/sdk/v2"
+import { DataProvider } from "@bountyreaper-io/ui/context"
+import type { QuestionAnswer } from "@bountyreaper-io/sdk/v2"
 import { decode64 } from "@/utils/base64"
-import { showToast } from "@bountyreper-io/ui/toast"
+import { showToast } from "@bountyreaper-io/ui/toast"
 import { useLanguage } from "@/context/language"
 import { agentColor } from "@/utils/agent"
 

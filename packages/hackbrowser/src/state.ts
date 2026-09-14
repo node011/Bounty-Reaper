@@ -244,7 +244,7 @@ export function computeElementAvailability(elementsByContext: Map<string, RawEle
 }
 
 /**
- * Convert element availability map to a serializable record for BountyReper page-diff.
+ * Convert element availability map to a serializable record for BountyReaper page-diff.
  * Keys: "role:label" (single colon for readability), values: context ID arrays.
  */
 export function availabilityToRecord(availability: Map<string, string[]>): Record<string, string[]> {

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://bountyreper.io/desktop-theme.json",
-  "title": "BountyReper Desktop Theme",
-  "description": "A theme definition for the BountyReper desktop application",
+  "title": "BountyReaper Desktop Theme",
+  "description": "A theme definition for the BountyReaper desktop application",
   "type": "object",
   "required": ["name", "id", "light", "dark"],
   "properties": {

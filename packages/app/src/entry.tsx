@@ -8,7 +8,7 @@ import { dict as zh } from "@/i18n/zh"
 import { handleNotificationClick } from "@/utils/notification-click"
 import pkg from "../package.json"
 
-const DEFAULT_SERVER_URL_KEY = "bountyreper.settings.dat:defaultServerUrl"
+const DEFAULT_SERVER_URL_KEY = "bountyreaper.settings.dat:defaultServerUrl"
 
 const getLocale = () => {
   if (typeof navigator !== "object") return "en" as const

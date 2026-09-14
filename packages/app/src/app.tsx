@@ -2,14 +2,14 @@ import "@/index.css"
 import { createMemo, ErrorBoundary, Match, Show, Suspense, Switch, lazy, type JSX, type ParentProps } from "solid-js"
 import { Router, Route, Navigate } from "@solidjs/router"
 import { MetaProvider } from "@solidjs/meta"
-import { Font } from "@bountyreper-io/ui/font"
-import { MarkedProvider } from "@bountyreper-io/ui/context/marked"
-import { DiffComponentProvider } from "@bountyreper-io/ui/context/diff"
-import { CodeComponentProvider } from "@bountyreper-io/ui/context/code"
-import { I18nProvider } from "@bountyreper-io/ui/context"
-import { Diff } from "@bountyreper-io/ui/diff"
-import { Code } from "@bountyreper-io/ui/code"
-import { ThemeProvider } from "@bountyreper-io/ui/theme"
+import { Font } from "@bountyreaper-io/ui/font"
+import { MarkedProvider } from "@bountyreaper-io/ui/context/marked"
+import { DiffComponentProvider } from "@bountyreaper-io/ui/context/diff"
+import { CodeComponentProvider } from "@bountyreaper-io/ui/context/code"
+import { I18nProvider } from "@bountyreaper-io/ui/context"
+import { Diff } from "@bountyreaper-io/ui/diff"
+import { Code } from "@bountyreaper-io/ui/code"
+import { ThemeProvider } from "@bountyreaper-io/ui/theme"
 import { GlobalSyncProvider } from "@/context/global-sync"
 import { PermissionProvider } from "@/context/permission"
 import { LayoutProvider } from "@/context/layout"
@@ -23,7 +23,7 @@ import { FileProvider } from "@/context/file"
 import { CommentsProvider } from "@/context/comments"
 import { NotificationProvider } from "@/context/notification"
 import { ModelsProvider } from "@/context/models"
-import { DialogProvider } from "@bountyreper-io/ui/context/dialog"
+import { DialogProvider } from "@bountyreaper-io/ui/context/dialog"
 import { CommandProvider } from "@/context/command"
 import { LanguageProvider, useLanguage } from "@/context/language"
 import { usePlatform } from "@/context/platform"
@@ -58,7 +58,7 @@ function UiI18nBridge(props: ParentProps) {
 
 declare global {
   interface Window {
-    __BOUNTYREPER__?: { updaterEnabled?: boolean; serverPassword?: string; deepLinks?: string[]; wsl?: boolean }
+    __BOUNTYREAPER__?: { updaterEnabled?: boolean; serverPassword?: string; deepLinks?: string[]; wsl?: boolean }
   }
 }
 
@@ -194,15 +194,15 @@ export function AppInterface(props: { defaultUrl?: string; children?: JSX.Elemen
     !props.defaultUrl &&
     !props.isSidecar &&
     (location.hostname === "bountyreper.io" || location.hostname.endsWith(".bountyreper.io"))
-  if (isHub) console.info("[bountyreper] hub mode:", location.hostname)
+  if (isHub) console.info("[bountyreaper] hub mode:", location.hostname)
   const defaultServerUrl = resolveDefaultServerUrl({
     defaultUrl: props.defaultUrl,
     storedDefaultServerUrl,
     hostname: location.hostname,
     origin: window.location.origin,
     isDev: import.meta.env.DEV,
-    devHost: import.meta.env.VITE_BOUNTYREPER_SERVER_HOST,
-    devPort: import.meta.env.VITE_BOUNTYREPER_SERVER_PORT,
+    devHost: import.meta.env.VITE_BOUNTYREAPER_SERVER_HOST,
+    devPort: import.meta.env.VITE_BOUNTYREAPER_SERVER_PORT,
   })
 
   return (

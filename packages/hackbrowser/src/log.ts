@@ -1,13 +1,13 @@
 // Hackbrowser-internal logger.
 //
-// Replaces the previous `bountyreper/util/log` import (Karar 2 — Dependency
+// Replaces the previous `bountyreaper/util/log` import (Karar 2 — Dependency
 // Inversion, INTEGRATION.md §5). Hackbrowser no longer depends on the
-// bountyreper workspace package; this module provides the same API surface
+// bountyreaper workspace package; this module provides the same API surface
 // hackbrowser code already uses (Log.create, log.debug/info/warn/error).
 //
 // Default behavior: write to process.stderr.
-// Bountyreper integration: call Log.setSink() to forward records into
-// bountyreper's own logging pipeline (see hackbrowser-launcher.ts).
+// BountyReaper integration: call Log.setSink() to forward records into
+// bountyreaper's own logging pipeline (see hackbrowser-launcher.ts).
 //
 // API surface — only what hackbrowser actually uses today:
 //   Log.init({ level })       — set global threshold
@@ -15,10 +15,10 @@
 //   Log.setSink(sink)         — redirect output to a custom transport
 //   logger.debug/info/warn/error(message, extra?)
 //
-// Intentionally NOT carried over from bountyreper util/log:
+// Intentionally NOT carried over from bountyreaper util/log:
 //   - .tag(), .clone(), .time()  — unused in hackbrowser, YAGNI
 //   - file logging                — hackbrowser always streamed to stderr
-//   - Global.Path.log dependency  — coupled to bountyreper state
+//   - Global.Path.log dependency  — coupled to bountyreaper state
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR"
 
@@ -97,7 +97,7 @@ export namespace Log {
   }
 
   /**
-   * Replace the output transport. Default writes to stderr; bountyreper
+   * Replace the output transport. Default writes to stderr; bountyreaper
    * passes a function that forwards records into its own logger so
    * hackbrowser output appears in the same log stream as the rest of
    * the agent.
@@ -116,7 +116,7 @@ export namespace Log {
   /**
    * Produce a logger bound to a service name. Module-level singletons
    * (`const log = Log.create({ service: "hackbrowser:agent" })`) are the
-   * intended pattern — same as bountyreper util/log.
+   * intended pattern — same as bountyreaper util/log.
    */
   export function create(options: CreateOptions): Logger {
     const { service } = options

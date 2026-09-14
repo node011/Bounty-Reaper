@@ -83,7 +83,7 @@ at detection time rather than being left to whoever reads the output:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `BB_RECON_OUTPUT_DIR` | `./.bountyreper/recon` | artifacts, `scope.json`, `audit.jsonl` |
+| `BB_RECON_OUTPUT_DIR` | `./.bountyreaper/recon` | artifacts, `scope.json`, `audit.jsonl` |
 | `BB_RECON_SCOPE` | unset | comma-separated scope, used when no `scope.json` exists |
 | `BB_RECON_ALLOW_PRIVATE` | unset | `1` to allow reserved ranges via env scope |
 | `BB_RECON_CONCURRENCY` | `20` | in-flight requests |

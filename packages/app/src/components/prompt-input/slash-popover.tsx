@@ -1,7 +1,7 @@
 import { Component, For, Match, Show, Switch } from "solid-js"
-import { FileIcon } from "@bountyreper-io/ui/file-icon"
-import { Icon } from "@bountyreper-io/ui/icon"
-import { getDirectory, getFilename } from "@bountyreper-io/util/path"
+import { FileIcon } from "@bountyreaper-io/ui/file-icon"
+import { Icon } from "@bountyreaper-io/ui/icon"
+import { getDirectory, getFilename } from "@bountyreaper-io/util/path"
 
 export type AtOption =
   | { type: "agent"; name: string; display: string }

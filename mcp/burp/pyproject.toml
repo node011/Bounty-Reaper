@@ -1,5 +1,5 @@
 [project]
-name = "bountyreper-mcp-burp"
+name = "bountyreaper-mcp-burp"
 version = "0.1.0"
 description = "Burp Suite MCP bridge - stdio server to the Burp MCP BApp SSE endpoint"
 requires-python = ">=3.10"

@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 import httpx
 
-UA = "bb-recon/0.1 (BountyReper bug bounty recon)"
+UA = "bb-recon/0.1 (BountyReaper bug bounty recon)"
 
 
 def clean(lines: list[str]) -> set[str]:

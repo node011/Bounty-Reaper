@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { Message } from "@bountyreper-io/sdk/v2/client"
+import type { Message } from "@bountyreaper-io/sdk/v2/client"
 import { getSessionContextMetrics } from "./session-context-metrics"
 
 const assistant = (

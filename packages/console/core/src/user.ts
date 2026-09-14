@@ -138,10 +138,10 @@ export namespace User {
             .then((rows) => rows[0]),
         )
 
-        const { InviteEmail } = await import("@bountyreper-io/console-mail/InviteEmail.jsx")
+        const { InviteEmail } = await import("@bountyreaper-io/console-mail/InviteEmail.jsx")
         await AWS.sendEmail({
           to: email,
-          subject: `You've been invited to join the ${emailInfo.workspaceName} workspace on BountyReper`,
+          subject: `You've been invited to join the ${emailInfo.workspaceName} workspace on BountyReaper`,
           body: render(
             // @ts-ignore
             InviteEmail({

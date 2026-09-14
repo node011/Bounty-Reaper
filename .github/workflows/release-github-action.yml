@@ -24,6 +24,6 @@ jobs:
 
       - name: Release
         run: |
-          git config --global user.email "bountyreper@sst.dev"
-          git config --global user.name "bountyreper"
+          git config --global user.email "bountyreaper@sst.dev"
+          git config --global user.name "bountyreaper"
           ./github/script/release

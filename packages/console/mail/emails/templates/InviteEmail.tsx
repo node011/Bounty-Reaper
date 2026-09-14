@@ -34,7 +34,7 @@ export const InviteEmail = ({
   return (
     <Html lang="en">
       <Head>
-        <Title>{`BountyReper — ${messagePlain}`}</Title>
+        <Title>{`BountyReaper — ${messagePlain}`}</Title>
       </Head>
       <Fonts assetsUrl={assetsUrl} />
       <Preview>{messagePlain}</Preview>
@@ -44,16 +44,16 @@ export const InviteEmail = ({
             <Row>
               <Column>
                 <A href={`${CONSOLE_URL}zen`}>
-                  <Img height="32" alt="BountyReper Logo" src={`${assetsUrl}/logo.png`} />
+                  <Img height="32" alt="BountyReaper Logo" src={`${assetsUrl}/logo.png`} />
                 </A>
               </Column>
             </Row>
 
             <Section style={{ padding: `${unit * 2}px 0 0 0` }}>
-              <Text style={headingText}>Join your team's BountyReper workspace</Text>
+              <Text style={headingText}>Join your team's BountyReaper workspace</Text>
               <Text style={contentText}>
                 You have been invited by <Span style={contentHighlightText}>{inviter}</Span> to join the{" "}
-                <Span style={contentHighlightText}>{workspaceName}</Span> workspace on BountyReper.
+                <Span style={contentHighlightText}>{workspaceName}</Span> workspace on BountyReaper.
               </Text>
             </Section>
 

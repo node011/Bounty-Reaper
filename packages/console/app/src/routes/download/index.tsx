@@ -5,7 +5,7 @@ import { Header } from "~/component/header"
 import { Footer } from "~/component/footer"
 import { IconCopy, IconCheck } from "~/component/icon"
 import { Faq } from "~/component/faq"
-import desktopAppIcon from "../../asset/lander/bountyreper-desktop-icon.png"
+import desktopAppIcon from "../../asset/lander/bountyreaper-desktop-icon.png"
 import { Legal } from "~/component/legal"
 import { config } from "~/config"
 import { createSignal, onMount, Show, JSX } from "solid-js"
@@ -125,27 +125,27 @@ export default function Download() {
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("npm i -g @bountyreper-io/bountyreper")}>
+              <button data-component="cli-row" onClick={handleCopyClick("npm i -g @bountyreaper-io/bountyreaper")}>
                 <code>
-                  npm i -g <strong>@bountyreper-io/bountyreper</strong>
+                  npm i -g <strong>@bountyreaper-io/bountyreaper</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("bun add -g @bountyreper-io/bountyreper")}>
+              <button data-component="cli-row" onClick={handleCopyClick("bun add -g @bountyreaper-io/bountyreaper")}>
                 <code>
-                  bun add -g <strong>@bountyreper-io/bountyreper</strong>
+                  bun add -g <strong>@bountyreaper-io/bountyreaper</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("brew install bounty-reper/tap/bountyreper")}>
+              <button data-component="cli-row" onClick={handleCopyClick("brew install bounty-reper/tap/bountyreaper")}>
                 <code>
-                  brew install <strong>bounty-reper/tap/bountyreper</strong>
+                  brew install <strong>bounty-reper/tap/bountyreaper</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("paru -S bountyreper")}>
+              <button data-component="cli-row" onClick={handleCopyClick("paru -S bountyreaper")}>
                 <code>
-                  paru -S <strong>bountyreper</strong>
+                  paru -S <strong>bountyreaper</strong>
                 </code>
                 <CopyStatus />
               </button>
@@ -157,9 +157,9 @@ export default function Download() {
               <span>[2]</span> {i18n.t("download.section.desktop")}
             </div>
             <div data-component="section-content">
-              <button data-component="cli-row" onClick={handleCopyClick("brew install --cask bountyreper-desktop")}>
+              <button data-component="cli-row" onClick={handleCopyClick("brew install --cask bountyreaper-desktop")}>
                 <code>
-                  brew install --cask <strong>bountyreper-desktop</strong>
+                  brew install --cask <strong>bountyreaper-desktop</strong>
                 </code>
                 <CopyStatus />
               </button>

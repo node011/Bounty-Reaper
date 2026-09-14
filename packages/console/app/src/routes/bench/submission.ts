@@ -1,7 +1,7 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { Database } from "@bountyreper-io/console-core/drizzle/index.js"
-import { BenchmarkTable } from "@bountyreper-io/console-core/schema/benchmark.sql.js"
-import { Identifier } from "@bountyreper-io/console-core/identifier.js"
+import { Database } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { BenchmarkTable } from "@bountyreaper-io/console-core/schema/benchmark.sql.js"
+import { Identifier } from "@bountyreaper-io/console-core/identifier.js"
 
 interface SubmissionBody {
   model: string

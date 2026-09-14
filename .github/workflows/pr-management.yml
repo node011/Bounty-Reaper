@@ -8,7 +8,7 @@ jobs:
   check-duplicates:
     if: |
       github.event.pull_request.user.login != 'actions-user' &&
-      github.event.pull_request.user.login != 'bountyreper' &&
+      github.event.pull_request.user.login != 'bountyreaper' &&
       github.event.pull_request.user.login != 'rekram1-node' &&
       github.event.pull_request.user.login != 'thdxr' &&
       github.event.pull_request.user.login != 'kommander' &&
@@ -16,7 +16,7 @@ jobs:
       github.event.pull_request.user.login != 'fwang' &&
       github.event.pull_request.user.login != 'adamdotdevin' &&
       github.event.pull_request.user.login != 'iamdavidhill' &&
-      github.event.pull_request.user.login != 'bountyreper-agent[bot]'
+      github.event.pull_request.user.login != 'bountyreaper-agent[bot]'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Install bountyreper
+      - name: Install bountyreaper
         run: curl -fsSL https://bountyreper.io/install | bash
 
       - name: Build prompt
@@ -54,7 +54,7 @@ jobs:
 
       - name: Check for duplicate PRs
         env:
-          BOUNTYREPER_API_KEY: ${{ secrets.BOUNTYREPER_API_KEY }}
+          BOUNTYREAPER_API_KEY: ${{ secrets.BOUNTYREAPER_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |

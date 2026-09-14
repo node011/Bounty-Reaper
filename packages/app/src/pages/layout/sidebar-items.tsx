@@ -5,21 +5,21 @@ import { useLanguage } from "@/context/language"
 import { decode64 } from "@/utils/base64"
 import { useLayout, type LocalProject, getAvatarColors } from "@/context/layout"
 import { useNotification } from "@/context/notification"
-import { base64Encode } from "@bountyreper-io/util/encode"
-import { Avatar } from "@bountyreper-io/ui/avatar"
-import { DiffChanges } from "@bountyreper-io/ui/diff-changes"
-import { HoverCard } from "@bountyreper-io/ui/hover-card"
-import { Icon } from "@bountyreper-io/ui/icon"
-import { IconButton } from "@bountyreper-io/ui/icon-button"
-import { MessageNav } from "@bountyreper-io/ui/message-nav"
-import { Spinner } from "@bountyreper-io/ui/spinner"
-import { Tooltip } from "@bountyreper-io/ui/tooltip"
-import { getFilename } from "@bountyreper-io/util/path"
-import { type Message, type Session, type TextPart, type UserMessage } from "@bountyreper-io/sdk/v2/client"
+import { base64Encode } from "@bountyreaper-io/util/encode"
+import { Avatar } from "@bountyreaper-io/ui/avatar"
+import { DiffChanges } from "@bountyreaper-io/ui/diff-changes"
+import { HoverCard } from "@bountyreaper-io/ui/hover-card"
+import { Icon } from "@bountyreaper-io/ui/icon"
+import { IconButton } from "@bountyreaper-io/ui/icon-button"
+import { MessageNav } from "@bountyreaper-io/ui/message-nav"
+import { Spinner } from "@bountyreaper-io/ui/spinner"
+import { Tooltip } from "@bountyreaper-io/ui/tooltip"
+import { getFilename } from "@bountyreaper-io/util/path"
+import { type Message, type Session, type TextPart, type UserMessage } from "@bountyreaper-io/sdk/v2/client"
 import { For, Match, Show, Switch, createMemo, onCleanup, type Accessor, type JSX } from "solid-js"
 import { agentColor } from "@/utils/agent"
 
-const BOUNTYREPER_PROJECT_ID = "4b0ea68d7af9a6031a7ffda7ad66e0cb83315750"
+const BOUNTYREAPER_PROJECT_ID = "4b0ea68d7af9a6031a7ffda7ad66e0cb83315750"
 
 export const ProjectIcon = (props: { project: LocalProject; class?: string; notify?: boolean }): JSX.Element => {
   const notification = useNotification()
@@ -35,7 +35,7 @@ export const ProjectIcon = (props: { project: LocalProject; class?: string; noti
         <Avatar
           fallback={name()}
           src={
-            props.project.id === BOUNTYREPER_PROJECT_ID
+            props.project.id === BOUNTYREAPER_PROJECT_ID
               ? "https://bountyreper.io/favicon.svg"
               : props.project.icon?.override
           }

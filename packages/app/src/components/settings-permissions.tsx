@@ -1,5 +1,5 @@
-import { Select } from "@bountyreper-io/ui/select"
-import { showToast } from "@bountyreper-io/ui/toast"
+import { Select } from "@bountyreaper-io/ui/select"
+import { showToast } from "@bountyreaper-io/ui/toast"
 import { Component, For, createMemo, type JSX } from "solid-js"
 import { useGlobalSync } from "@/context/global-sync"
 import { useLanguage } from "@/context/language"

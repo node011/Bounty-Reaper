@@ -1,15 +1,15 @@
-import type { ProviderAuthAuthorization } from "@bountyreper-io/sdk/v2/client"
-import { Button } from "@bountyreper-io/ui/button"
-import { useDialog } from "@bountyreper-io/ui/context/dialog"
-import { Dialog } from "@bountyreper-io/ui/dialog"
-import { Icon } from "@bountyreper-io/ui/icon"
-import { IconButton } from "@bountyreper-io/ui/icon-button"
-import type { IconName } from "@bountyreper-io/ui/icons/provider"
-import { List, type ListRef } from "@bountyreper-io/ui/list"
-import { ProviderIcon } from "@bountyreper-io/ui/provider-icon"
-import { Spinner } from "@bountyreper-io/ui/spinner"
-import { TextField } from "@bountyreper-io/ui/text-field"
-import { showToast } from "@bountyreper-io/ui/toast"
+import type { ProviderAuthAuthorization } from "@bountyreaper-io/sdk/v2/client"
+import { Button } from "@bountyreaper-io/ui/button"
+import { useDialog } from "@bountyreaper-io/ui/context/dialog"
+import { Dialog } from "@bountyreaper-io/ui/dialog"
+import { Icon } from "@bountyreaper-io/ui/icon"
+import { IconButton } from "@bountyreaper-io/ui/icon-button"
+import type { IconName } from "@bountyreaper-io/ui/icons/provider"
+import { List, type ListRef } from "@bountyreaper-io/ui/list"
+import { ProviderIcon } from "@bountyreaper-io/ui/provider-icon"
+import { Spinner } from "@bountyreaper-io/ui/spinner"
+import { TextField } from "@bountyreaper-io/ui/text-field"
+import { showToast } from "@bountyreaper-io/ui/toast"
 import { createMemo, Match, onCleanup, onMount, Switch } from "solid-js"
 import { createStore, produce } from "solid-js/store"
 import { Link } from "@/components/link"
@@ -270,16 +270,16 @@ export function DialogConnectProvider(props: { provider: string }) {
     return (
       <div class="flex flex-col gap-6">
         <Switch>
-          <Match when={provider().id === "bountyreper"}>
+          <Match when={provider().id === "bountyreaper"}>
             <div class="flex flex-col gap-4">
-              <div class="text-14-regular text-text-base">{language.t("provider.connect.bountyreperZen.line1")}</div>
-              <div class="text-14-regular text-text-base">{language.t("provider.connect.bountyreperZen.line2")}</div>
+              <div class="text-14-regular text-text-base">{language.t("provider.connect.bountyreaperZen.line1")}</div>
+              <div class="text-14-regular text-text-base">{language.t("provider.connect.bountyreaperZen.line2")}</div>
               <div class="text-14-regular text-text-base">
-                {language.t("provider.connect.bountyreperZen.visit.prefix")}
+                {language.t("provider.connect.bountyreaperZen.visit.prefix")}
                 <Link href="https://bountyreper.io/zen" tabIndex={-1}>
-                  {language.t("provider.connect.bountyreperZen.visit.link")}
+                  {language.t("provider.connect.bountyreaperZen.visit.link")}
                 </Link>
-                {language.t("provider.connect.bountyreperZen.visit.suffix")}
+                {language.t("provider.connect.bountyreaperZen.visit.suffix")}
               </div>
             </div>
           </Match>

@@ -214,7 +214,7 @@ through the engine — as a **requirement, not a prompt-level initiative.**
 
 ### 4.1 Scope of the funnel (honest boundary)
 
-Only **target-directed attack traffic** funnels through the engine. BountyReper's
+Only **target-directed attack traffic** funnels through the engine. BountyReaper's
 own control-plane calls (LLM provider, GitHub, cloud SDKs, websearch) are **out
 of scope** — they are infrastructure, not attack traffic.
 
@@ -247,13 +247,13 @@ unmonitored.
 
 Today requests are serial (IngestQueue serial; testers sequential). We want
 concurrency **without overwhelming any of three things**: (a) the target server,
-(b) the AI model, (c) BountyReper / the proxy agents themselves. Concurrency is
+(b) the AI model, (c) BountyReaper / the proxy agents themselves. Concurrency is
 governed at **two independent layers**:
 
 | Layer                               | Protects               | Mechanism                                                                                                                                                                                                        |
 | ----------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **HTTP layer** (in-engine)          | Target server          | **AIMD adaptive rate-limit** (slow-start; ramp up until 429/503/latency spike, then multiplicative back-off) + **per-host token bucket** + honor `Retry-After` + **circuit breaker** + **global session budget** |
-| **Agent/LLM layer** (orchestration) | AI model + BountyReper | **Bounded concurrency pool** (how many testers / ingest items run at once) + provider rate-limit awareness + **backpressure** (throttle new dispatch when the LLM slows)                                         |
+| **Agent/LLM layer** (orchestration) | AI model + BountyReaper | **Bounded concurrency pool** (how many testers / ingest items run at once) + provider rate-limit awareness + **backpressure** (throttle new dispatch when the LLM slows)                                         |
 
 **Key distinction:** a _target_ rate-limit (→ throttle HTTP) and a _model_
 rate-limit (→ throttle agent spawning) are **different signals with different
@@ -265,7 +265,7 @@ responses**; conflating them either hammers the server or stalls the model.
   off; never exceed observed capacity.
 - **Overwhelming the model** → agent-pool cap + provider-429 backoff; the LLM
   queue never balloons.
-- **Slowing BountyReper** → backpressure + global budget; concurrency never
+- **Slowing BountyReaper** → backpressure + global budget; concurrency never
   starves the main loop. New work is admitted as the pool drains.
 - **Partial failure** → a host's circuit breaker pauses only that host; others
   continue (one failure never stalls the whole run).

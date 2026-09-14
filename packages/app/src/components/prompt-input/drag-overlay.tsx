@@ -1,5 +1,5 @@
 import { Component, Show } from "solid-js"
-import { Icon } from "@bountyreper-io/ui/icon"
+import { Icon } from "@bountyreaper-io/ui/icon"
 
 type PromptDragOverlayProps = {
   type: "image" | "@mention" | null

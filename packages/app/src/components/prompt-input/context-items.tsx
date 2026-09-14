@@ -1,8 +1,8 @@
 import { Component, For, Show } from "solid-js"
-import { FileIcon } from "@bountyreper-io/ui/file-icon"
-import { IconButton } from "@bountyreper-io/ui/icon-button"
-import { Tooltip } from "@bountyreper-io/ui/tooltip"
-import { getDirectory, getFilename, getFilenameTruncated } from "@bountyreper-io/util/path"
+import { FileIcon } from "@bountyreaper-io/ui/file-icon"
+import { IconButton } from "@bountyreaper-io/ui/icon-button"
+import { Tooltip } from "@bountyreaper-io/ui/tooltip"
+import { getDirectory, getFilename, getFilenameTruncated } from "@bountyreaper-io/util/path"
 import type { ContextItem } from "@/context/prompt"
 
 type PromptContextItem = ContextItem & { key: string }

@@ -1,6 +1,6 @@
 import type {
   Event,
-  createBountyreperClient,
+  createBountyReaperClient,
   Project,
   Model,
   Provider,
@@ -10,7 +10,7 @@ import type {
   Part,
   Auth,
   Config,
-} from "@bountyreper-io/sdk"
+} from "@bountyreaper-io/sdk"
 
 import type { BunShell } from "./shell"
 import { type ToolDefinition } from "./tool"
@@ -24,7 +24,7 @@ export type ProviderContext = {
 }
 
 export type PluginInput = {
-  client: ReturnType<typeof createBountyreperClient>
+  client: ReturnType<typeof createBountyReaperClient>
   project: Project
   directory: string
   worktree: string

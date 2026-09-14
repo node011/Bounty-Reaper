@@ -1,7 +1,7 @@
 import { Match, Show, Switch, createMemo } from "solid-js"
-import { Tooltip } from "@bountyreper-io/ui/tooltip"
-import { ProgressCircle } from "@bountyreper-io/ui/progress-circle"
-import { Button } from "@bountyreper-io/ui/button"
+import { Tooltip } from "@bountyreaper-io/ui/tooltip"
+import { ProgressCircle } from "@bountyreaper-io/ui/progress-circle"
+import { Button } from "@bountyreaper-io/ui/button"
 import { useParams } from "@solidjs/router"
 
 import { useLayout } from "@/context/layout"

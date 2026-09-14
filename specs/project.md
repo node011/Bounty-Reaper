@@ -1,6 +1,6 @@
 ## project
 
-The goal is to let a single instance of BountyReper run sessions for multiple projects and different worktrees per project.
+The goal is to let a single instance of BountyReaper run sessions for multiple projects and different worktrees per project.
 
 ### api
 

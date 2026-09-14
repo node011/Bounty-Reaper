@@ -1,12 +1,12 @@
 # Skill Signing & Verification
 
-BountyReper uses Ed25519 digital signatures to guarantee the integrity and authenticity of official skills. This document covers the full signing architecture, verification flow, and maintainer operations.
+BountyReaper uses Ed25519 digital signatures to guarantee the integrity and authenticity of official skills. This document covers the full signing architecture, verification flow, and maintainer operations.
 
 ## Architecture Overview
 
 ```
 ┌─────────────────────────────────────┐
-│  BountyReper Maintainer (offline)   │
+│  BountyReaper Maintainer (offline)   │
 │                                     │
 │  Private Key (.skill-signing-key)   │
 │  ─────────────┐                     │
@@ -37,7 +37,7 @@ BountyReper uses Ed25519 digital signatures to guarantee the integrity and authe
 
 | Component   | Format                             | Location                                               | Committed to Git |
 | ----------- | ---------------------------------- | ------------------------------------------------------ | ---------------- |
-| Public Key  | Base64-encoded raw 32-byte Ed25519 | `packages/bountyreper/src/skill/signing.ts` (embedded) | Yes              |
+| Public Key  | Base64-encoded raw 32-byte Ed25519 | `packages/bountyreaper/src/skill/signing.ts` (embedded) | Yes              |
 | Private Key | Base64-encoded PKCS8 Ed25519       | `.skill-signing-key` (project root)                    | **NEVER**        |
 
 ### Current Public Key
@@ -51,7 +51,7 @@ qC5noNpNWhgt8fyKZyc9p6kXOHvsHDDO4GCqfDHJ/RA=
 - `.skill-signing-key` is listed in `.gitignore`
 - The private key should also be backed up in a secure location (1Password, air-gapped USB, etc.)
 - If the private key is compromised, a new keypair must be generated and all skills re-signed
-- The `BOUNTYREPER_SKILL_PRIVATE_KEY` environment variable can be used instead of the file
+- The `BOUNTYREAPER_SKILL_PRIVATE_KEY` environment variable can be used instead of the file
 
 ## Verification Statuses
 
@@ -88,7 +88,7 @@ No                       Yes
         │                  │           │
         ▼                  ▼           │
    "tampered"    ┌─ signed_by ==      │
-   (BLOCKED)     │  "bountyreper-     │
+   (BLOCKED)     │  "bountyreaper-     │
                  │   official"        │
                  │  AND signature     │
                  │  exists?           │
@@ -119,7 +119,7 @@ description: "Testing for SQL Injection"
 category: input-validation
 owasp_id: WSTG-INPV-05
 version: "1.0.0"
-author: bountyreper-official
+author: bountyreaper-official
 tags: [injection, input-validation, xss, sqli, wstg, inpv]
 tech_stack: [mysql, postgresql, mssql, oracle, sqlite, php, java, python, nodejs]
 cwe_ids: [CWE-89, CWE-564]
@@ -130,7 +130,7 @@ severity_boost:
   wstg-conf-05: "SQLi + Directory Listing = Full DB Dump (Critical)"
 sha256: 49581e2023f1163ded572a56fac09b107ba027df7a37738a71aa473f9d95483f
 signature: 48ALC4B9k+EDnl4iUlWGvx/y0rJ0UMg3S9nHA1CP34OC0X6bNrq7VVMzVhRZShVMPexceX7IfvFDNgbwFeTUBQ==
-signed_by: bountyreper-official
+signed_by: bountyreaper-official
 ---
 ```
 
@@ -155,29 +155,29 @@ content (minus signing fields) → SHA-256 hex string → Ed25519 sign
 ### First-Time Setup (Generate Keypair + Sign)
 
 ```bash
-bun run packages/bountyreper/script/sign-skills.ts --generate
+bun run packages/bountyreaper/script/sign-skills.ts --generate
 ```
 
 This will:
 
 1. Generate a new Ed25519 keypair
 2. Save the private key to `.skill-signing-key`
-3. Embed the public key in `packages/bountyreper/src/skill/signing.ts`
+3. Embed the public key in `packages/bountyreaper/src/skill/signing.ts`
 4. Add `.skill-signing-key` to `.gitignore` (if not already present)
-5. Sign all skills in `.bountyreper/skill/`
+5. Sign all skills in `.bountyreaper/skill/`
 
 ### Re-Sign All Skills (After Content Changes)
 
 ```bash
-bun run packages/bountyreper/script/sign-skills.ts
+bun run packages/bountyreaper/script/sign-skills.ts
 ```
 
-Reads the private key from `.skill-signing-key` (or `BOUNTYREPER_SKILL_PRIVATE_KEY` env var) and signs all skills.
+Reads the private key from `.skill-signing-key` (or `BOUNTYREAPER_SKILL_PRIVATE_KEY` env var) and signs all skills.
 
 ### Sign with Environment Variable
 
 ```bash
-BOUNTYREPER_SKILL_PRIVATE_KEY="<base64-pkcs8-key>" bun run packages/bountyreper/script/sign-skills.ts
+BOUNTYREAPER_SKILL_PRIVATE_KEY="<base64-pkcs8-key>" bun run packages/bountyreaper/script/sign-skills.ts
 ```
 
 Useful for CI/CD pipelines where the private key is stored as a secret.
@@ -185,8 +185,8 @@ Useful for CI/CD pipelines where the private key is stored as a secret.
 ### Verify Skills (CLI)
 
 ```bash
-bountyreper skill verify              # verify all skills
-bountyreper skill verify wstg-inpv-05 # verify a specific skill
+bountyreaper skill verify              # verify all skills
+bountyreaper skill verify wstg-inpv-05 # verify a specific skill
 ```
 
 ### Verify Skills (API)
@@ -204,7 +204,7 @@ POST /skill/wstg-inpv-05/verify
 | ---------------------------------------------------- | ------------------------------------------------------------------------------- |
 | Tampered official skill (modified content)           | SHA-256 hash mismatch → "tampered" → blocked                                    |
 | Forged signature (attacker signs with different key) | Ed25519 verify fails against embedded public key → "tampered" → blocked         |
-| Malicious community skill pretending to be official  | No valid signature for `signed_by: bountyreper-official` → "tampered" → blocked |
+| Malicious community skill pretending to be official  | No valid signature for `signed_by: bountyreaper-official` → "tampered" → blocked |
 | Supply chain attack on skill registry                | Downloaded skills must pass signature verification                              |
 
 ### What This Does NOT Protect Against
@@ -220,7 +220,7 @@ POST /skill/wstg-inpv-05/verify
 This follows the same trust model as GPG package signing, Apple codesign, and npm package provenance:
 
 - **The binary is the trust anchor** — the public key embedded in the published binary is the root of trust
-- **The private key is the authority** — only the BountyReper maintainer team can sign skills as official
+- **The private key is the authority** — only the BountyReaper maintainer team can sign skills as official
 - **Verification is offline** — no network request needed, works in air-gapped pentest environments
 - **The user decides** — unverified/community skills can still be loaded, the system informs rather than blocks (only "tampered" is blocked)
 
@@ -230,13 +230,13 @@ If the private key is compromised or needs rotation:
 
 ```bash
 # 1. Generate new keypair (overwrites old public key in signing.ts)
-bun run packages/bountyreper/script/sign-skills.ts --generate
+bun run packages/bountyreaper/script/sign-skills.ts --generate
 
 # 2. Re-sign all skills with new key
 # (already done by --generate)
 
 # 3. Commit the new public key and re-signed skills
-git add packages/bountyreper/src/skill/signing.ts .bountyreper/skill/
+git add packages/bountyreaper/src/skill/signing.ts .bountyreaper/skill/
 git commit -m "chore: rotate skill signing keypair"
 
 # 4. Publish new binary with updated public key
@@ -251,10 +251,10 @@ After rotation, skills signed with the old key will show as "tampered" in new bi
 
 | File                                              | Purpose                                                      |
 | ------------------------------------------------- | ------------------------------------------------------------ |
-| `packages/bountyreper/src/skill/signing.ts`       | Verification engine + embedded public key                    |
-| `packages/bountyreper/src/skill/skill.ts`         | Calls `verify()` on skill load, blocks tampered              |
-| `packages/bountyreper/script/sign-skills.ts`      | Maintainer tool: generate keypair + sign all skills          |
+| `packages/bountyreaper/src/skill/signing.ts`       | Verification engine + embedded public key                    |
+| `packages/bountyreaper/src/skill/skill.ts`         | Calls `verify()` on skill load, blocks tampered              |
+| `packages/bountyreaper/script/sign-skills.ts`      | Maintainer tool: generate keypair + sign all skills          |
 | `.skill-signing-key`                              | Private key (gitignored)                                     |
-| `.bountyreper/skill/*/SKILL.md`                   | Signed skills with sha256/signature/signed_by in frontmatter |
-| `packages/bountyreper/src/cli/cmd/skill.ts`       | CLI `bountyreper skill verify` command                       |
-| `packages/bountyreper/src/server/routes/skill.ts` | REST `POST /skill/:name/verify` endpoint                     |
+| `.bountyreaper/skill/*/SKILL.md`                   | Signed skills with sha256/signature/signed_by in frontmatter |
+| `packages/bountyreaper/src/cli/cmd/skill.ts`       | CLI `bountyreaper skill verify` command                       |
+| `packages/bountyreaper/src/server/routes/skill.ts` | REST `POST /skill/:name/verify` endpoint                     |

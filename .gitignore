@@ -7,8 +7,8 @@ node_modules
 .vscode
 .codex
 .claude/
-.bountyreper/*
-!.bountyreper/skill/
+.bountyreaper/*
+!.bountyreaper/skill/
 __MACOSX/
 *~
 playground
@@ -21,8 +21,8 @@ ts-dist
 /result
 refs
 Session.vim
-bountyreper.json
-!packages/bountyreper/src/cli/cmd/tui/context/theme/bountyreper.json
+bountyreaper.json
+!packages/bountyreaper/src/cli/cmd/tui/context/theme/bountyreaper.json
 a.out
 target
 .scripts
@@ -36,7 +36,7 @@ logs/
 .skill-signing-key
 
 # Local throwaway test/eval harness (not committed)
-packages/bountyreper/test/proxy-eval/
+packages/bountyreaper/test/proxy-eval/
 
 # Exported session transcripts and reports
 session-*.md

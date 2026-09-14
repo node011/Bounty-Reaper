@@ -16,9 +16,9 @@ app
     openAPIRouteHandler(app, {
       documentation: {
         info: {
-          title: "Bountyreper Enterprise API",
+          title: "BountyReaper Enterprise API",
           version: "1.0.0",
-          description: "Bountyreper Enterprise API endpoints",
+          description: "BountyReaper Enterprise API endpoints",
         },
         openapi: "3.1.1",
       },

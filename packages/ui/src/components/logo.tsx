@@ -8,7 +8,7 @@ const BR_CELLS: [number, number][] = [
   [4, 0], [4, 1], [4, 2], [4, 3], [4, 6], [4, 7], [4, 8], [4, 9],
 ]
 
-// BountyReper "BR" mark — 10x5 grid rendered in a 512 viewBox
+// BountyReaper "BR" mark — 10x5 grid rendered in a 512 viewBox
 const BrCells = (props: { size?: number; fill?: string }) => {
   const size = props.size ?? 512
   const cols = 10
@@ -63,7 +63,7 @@ export const Splash = (props: Pick<ComponentProps<"svg">, "ref" | "class">) => {
         letter-spacing="-0.5"
         fill="var(--icon-strong-base)"
       >
-        BountyReper
+        BountyReaper
       </text>
     </svg>
   )
@@ -90,7 +90,7 @@ export const Logo = (props: { class?: string }) => {
         letter-spacing="-0.5"
         fill="var(--icon-strong-base)"
       >
-        BountyReper
+        BountyReaper
       </text>
     </svg>
   )

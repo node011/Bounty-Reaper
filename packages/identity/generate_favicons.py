@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate all web favicon/social assets with the BountyReper BR mark."""
+"""Regenerate all web favicon/social assets with the BountyReaper BR mark."""
 from PIL import Image, ImageDraw
 from pathlib import Path
 
@@ -37,7 +37,7 @@ def render_share(width: int = 1200, height: int = 630) -> Image.Image:
     d = ImageDraw.Draw(img)
     mark = render(360)
     img.paste(mark, ((width - 360) // 2, (height - 360) // 2 - 40), mark)
-    d.text((width // 2, height // 2 + 160), "BountyReper", anchor="mm", fill=(232, 228, 224), font_size=72)
+    d.text((width // 2, height // 2 + 160), "BountyReaper", anchor="mm", fill=(232, 228, 224), font_size=72)
     return img
 
 

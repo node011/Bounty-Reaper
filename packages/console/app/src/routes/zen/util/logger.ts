@@ -1,4 +1,4 @@
-import { Resource } from "@bountyreper-io/console-resource"
+import { Resource } from "@bountyreaper-io/console-resource"
 
 export const logger = {
   metric: (values: Record<string, any>) => {

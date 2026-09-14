@@ -187,7 +187,7 @@ export interface UIContext {
 export interface CapturedRequest {
   // Raw HTTP request string (same format as Firefox ext sends)
   raw: string
-  // URL scheme captured at request time. Forwarded to BountyReper so the
+  // URL scheme captured at request time. Forwarded to BountyReaper so the
   // server-side normalizer can build a stable origin identity without having
   // to guess (request-target on the wire is path-only).
   scheme: "http" | "https"
@@ -215,7 +215,7 @@ export interface IngestPayload {
   sessionID?: string
   credential_id?: string
   // URL scheme of the captured request. Optional for backward compat with
-  // older hackbrowser / Firefox extension builds; BountyReper falls back
+  // older hackbrowser / Firefox extension builds; BountyReaper falls back
   // to a Host-header heuristic when absent.
   scheme?: "http" | "https"
   response?: {
@@ -226,10 +226,10 @@ export interface IngestPayload {
   ui_context?: UIContext
   access_context?: AccessContext | PageDiffContext
   // Which UI element triggered this request — "role:label" format
-  // BountyReper uses this with element_roles to determine available_roles per endpoint
+  // BountyReaper uses this with element_roles to determine available_roles per endpoint
   trigger_element?: string
   // Which roles can see the trigger element — derived from page_diff availability Map
-  // BountyReper proxy-analyzer uses this to set available_roles on web_function
+  // BountyReaper proxy-analyzer uses this to set available_roles on web_function
   element_roles?: string[]
   // Which page was being explored when this request was captured
   page_url?: string
@@ -242,7 +242,7 @@ export interface AccessContext {
   fingerprint_match: boolean // all contexts see the same page structure?
 }
 
-/** Page-diff payload — sent once per page, element-level availability for BountyReper */
+/** Page-diff payload — sent once per page, element-level availability for BountyReaper */
 export interface PageDiffContext {
   type: "page_diff"
   page_url: string
@@ -254,12 +254,12 @@ export interface PageDiffContext {
 
 export interface AgentConfig {
   targetUrl: string
-  bountyreper: {
+  bountyreaper: {
     serverUrl: string // default: http://127.0.0.1:4096
     sessionID?: string
     credentialId?: string
-    username?: string // --bountyreper-username (default: "bountyreper")
-    password?: string // --bountyreper-password or BOUNTYREPER_SERVER_PASSWORD env var
+    username?: string // --bountyreaper-username (default: "bountyreaper")
+    password?: string // --bountyreaper-password or BOUNTYREAPER_SERVER_PASSWORD env var
   }
   auth: {
     // Path to a saved session file (cookies JSON)
@@ -274,7 +274,7 @@ export interface AgentConfig {
   // Out-of-scope labels (Aşama 13) — planner never plans tasks with these labels (semantic match).
   // Example: ["Delete Account", "Cancel Subscription"]
   outOfScope?: string[]
-  // Network scope: hostnames whose requests get forwarded to BountyReper.
+  // Network scope: hostnames whose requests get forwarded to BountyReaper.
   // Each entry is a bare host ("api.test.com") or wildcard ("*.test.com").
   // When omitted, scope is derived from targetUrl's eTLD+1 wildcard.
   // Distinct from outOfScope (which is a planner-side semantic filter).
@@ -283,12 +283,12 @@ export interface AgentConfig {
   maxSteps?: number
   // Show browser window
   headless?: boolean
-  // Dry-run mode: crawl without LLM calls, print captures to console instead of sending to BountyReper
+  // Dry-run mode: crawl without LLM calls, print captures to console instead of sending to BountyReaper
   dryRun?: boolean
   // Inject the live telemetry panel into every page (PANEL_UI_BRIEF.md). Default: true.
   panel?: boolean
   // Pre-resolved LanguageModel — when provided, navigator skips env resolution.
-  // Used by bountyreper launcher (Provider → opts.model → AgentConfig.model).
+  // Used by bountyreaper launcher (Provider → opts.model → AgentConfig.model).
   // Standalone CLI leaves this undefined; navigator falls back to env vars.
   model?: import("ai").LanguageModel
   // Connect to user's real Chrome via CDP instead of launching Playwright's
@@ -384,7 +384,7 @@ export interface QueueEntry {
  * Result returned by `run()` / `runMultiCredential()` / `runCrawl()`.
  *
  * Errors are aggregated here rather than thrown — caller (CLI shell or
- * bountyreper launcher) decides exit code / user surface based on the
+ * bountyreaper launcher) decides exit code / user surface based on the
  * `errors` array. Only truly fatal cases (resolveModel fails, initSession
  * fails) propagate as exceptions; everything else is collected.
  */

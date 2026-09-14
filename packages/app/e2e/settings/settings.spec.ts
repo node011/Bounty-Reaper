@@ -30,7 +30,7 @@ test("smoke settings dialog opens, switches tabs, closes", async ({ page, gotoSe
 
 test("changing language updates settings labels", async ({ page, gotoSession }) => {
   await page.addInitScript(() => {
-    localStorage.setItem("bountyreper.global.dat:language", JSON.stringify({ locale: "en" }))
+    localStorage.setItem("bountyreaper.global.dat:language", JSON.stringify({ locale: "en" }))
   })
 
   await gotoSession()
@@ -98,7 +98,7 @@ test("changing theme persists in localStorage", async ({ page, gotoSession }) =>
   await page.keyboard.press("Escape")
 
   const storedThemeId = await page.evaluate(() => {
-    return localStorage.getItem("bountyreper-theme-id")
+    return localStorage.getItem("bountyreaper-theme-id")
   })
 
   expect(storedThemeId).not.toBeNull()

@@ -9,20 +9,20 @@ import { usePlatform } from "@/context/platform"
 import { useServer } from "@/context/server"
 import { useSync } from "@/context/sync"
 import { useGlobalSDK } from "@/context/global-sdk"
-import { getFilename } from "@bountyreper-io/util/path"
+import { getFilename } from "@bountyreaper-io/util/path"
 import { decode64 } from "@/utils/base64"
 import { Persist, persisted } from "@/utils/persist"
 
-import { Icon } from "@bountyreper-io/ui/icon"
-import { IconButton } from "@bountyreper-io/ui/icon-button"
-import { Button } from "@bountyreper-io/ui/button"
-import { AppIcon } from "@bountyreper-io/ui/app-icon"
-import { DropdownMenu } from "@bountyreper-io/ui/dropdown-menu"
-import { Tooltip, TooltipKeybind } from "@bountyreper-io/ui/tooltip"
-import { Popover } from "@bountyreper-io/ui/popover"
-import { TextField } from "@bountyreper-io/ui/text-field"
-import { Keybind } from "@bountyreper-io/ui/keybind"
-import { showToast } from "@bountyreper-io/ui/toast"
+import { Icon } from "@bountyreaper-io/ui/icon"
+import { IconButton } from "@bountyreaper-io/ui/icon-button"
+import { Button } from "@bountyreaper-io/ui/button"
+import { AppIcon } from "@bountyreaper-io/ui/app-icon"
+import { DropdownMenu } from "@bountyreaper-io/ui/dropdown-menu"
+import { Tooltip, TooltipKeybind } from "@bountyreaper-io/ui/tooltip"
+import { Popover } from "@bountyreaper-io/ui/popover"
+import { TextField } from "@bountyreaper-io/ui/text-field"
+import { Keybind } from "@bountyreaper-io/ui/keybind"
+import { showToast } from "@bountyreaper-io/ui/toast"
 import { StatusPopover } from "../status-popover"
 
 const OPEN_APPS = [
@@ -313,9 +313,9 @@ export function SessionHeader() {
 
   const leftMount = createMemo(
     () =>
-      document.getElementById("bountyreper-titlebar-left") ?? document.getElementById("bountyreper-titlebar-center"),
+      document.getElementById("bountyreaper-titlebar-left") ?? document.getElementById("bountyreaper-titlebar-center"),
   )
-  const rightMount = createMemo(() => document.getElementById("bountyreper-titlebar-right"))
+  const rightMount = createMemo(() => document.getElementById("bountyreaper-titlebar-right"))
 
   return (
     <>

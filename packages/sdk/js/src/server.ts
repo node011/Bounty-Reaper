@@ -18,7 +18,7 @@ export type TuiOptions = {
   config?: Config
 }
 
-export async function createBountyreperServer(options?: ServerOptions) {
+export async function createBountyReaperServer(options?: ServerOptions) {
   options = Object.assign(
     {
       hostname: "127.0.0.1",
@@ -31,11 +31,11 @@ export async function createBountyreperServer(options?: ServerOptions) {
   const args = [`serve`, `--hostname=${options.hostname}`, `--port=${options.port}`]
   if (options.config?.logLevel) args.push(`--log-level=${options.config.logLevel}`)
 
-  const proc = spawn(`bountyreper`, args, {
+  const proc = spawn(`bountyreaper`, args, {
     signal: options.signal,
     env: {
       ...process.env,
-      BOUNTYREPER_CONFIG_CONTENT: JSON.stringify(options.config ?? {}),
+      BOUNTYREAPER_CONFIG_CONTENT: JSON.stringify(options.config ?? {}),
     },
   })
 
@@ -48,7 +48,7 @@ export async function createBountyreperServer(options?: ServerOptions) {
       output += chunk.toString()
       const lines = output.split("\n")
       for (const line of lines) {
-        if (line.startsWith("bountyreper server listening")) {
+        if (line.startsWith("bountyreaper server listening")) {
           const match = line.match(/on\s+(https?:\/\/[^\s]+)/)
           if (!match) {
             throw new Error(`Failed to parse server url from output: ${line}`)
@@ -90,7 +90,7 @@ export async function createBountyreperServer(options?: ServerOptions) {
   }
 }
 
-export function createBountyreperTui(options?: TuiOptions) {
+export function createBountyReaperTui(options?: TuiOptions) {
   const args = []
 
   if (options?.project) {
@@ -106,12 +106,12 @@ export function createBountyreperTui(options?: TuiOptions) {
     args.push(`--agent=${options.agent}`)
   }
 
-  const proc = spawn(`bountyreper`, args, {
+  const proc = spawn(`bountyreaper`, args, {
     signal: options?.signal,
     stdio: "inherit",
     env: {
       ...process.env,
-      BOUNTYREPER_CONFIG_CONTENT: JSON.stringify(options?.config ?? {}),
+      BOUNTYREAPER_CONFIG_CONTENT: JSON.stringify(options?.config ?? {}),
     },
   })
 

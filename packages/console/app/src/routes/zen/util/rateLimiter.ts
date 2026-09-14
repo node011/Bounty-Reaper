@@ -1,8 +1,8 @@
-import { Database, eq, and, sql, inArray } from "@bountyreper-io/console-core/drizzle/index.js"
-import { IpRateLimitTable } from "@bountyreper-io/console-core/schema/ip.sql.js"
+import { Database, eq, and, sql, inArray } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { IpRateLimitTable } from "@bountyreaper-io/console-core/schema/ip.sql.js"
 import { FreeUsageLimitError } from "./error"
 import { logger } from "./logger"
-import { ZenData } from "@bountyreper-io/console-core/model.js"
+import { ZenData } from "@bountyreaper-io/console-core/model.js"
 
 export function createRateLimiter(limit: ZenData.RateLimit | undefined, rawIp: string, headers: Headers) {
   if (!limit) return

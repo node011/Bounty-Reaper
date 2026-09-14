@@ -29,7 +29,7 @@ jobs:
       - name: Configure git identity
         run: |
           git config --global user.email "bot@bountyreper.io"
-          git config --global user.name "bountyreper"
+          git config --global user.name "bountyreaper"
 
       - name: Run unit tests
         run: bun turbo test

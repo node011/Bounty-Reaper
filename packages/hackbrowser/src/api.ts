@@ -1,5 +1,5 @@
 // Hackbrowser library API — single entry point for both standalone CLI
-// (`bun src/index.ts`) and bountyreper-internal callers (Tool / Slash / CLI
+// (`bun src/index.ts`) and bountyreaper-internal callers (Tool / Slash / CLI
 // subcommand). See INTEGRATION.md §4 for the contract.
 //
 // Three responsibilities:
@@ -10,7 +10,7 @@
 //
 // Exceptions only escape for truly fatal cases (preflight, validation).
 // Runtime errors during the crawl land in errors[] so callers (CLI shell or
-// bountyreper launcher) can decide their own surface.
+// bountyreaper launcher) can decide their own surface.
 
 import path from "path"
 import { existsSync } from "fs"
@@ -28,14 +28,14 @@ import type { AgentConfig, CredentialConfig, CrawlResult, CSEvent } from "./type
 // ============================================================
 
 /**
- * Library API options. Flat shape (vs. AgentConfig's nested bountyreper/auth
- * blocks) — easier for bountyreper launcher and external callers.
+ * Library API options. Flat shape (vs. AgentConfig's nested bountyreaper/auth
+ * blocks) — easier for bountyreaper launcher and external callers.
  */
 export interface CrawlOptions {
   // Target (required)
   url: string
 
-  // BountyReper integration — populated by launcher when invoked in-process
+  // BountyReaper integration — populated by launcher when invoked in-process
   sessionID?: string
   credentialID?: string
 
@@ -43,7 +43,7 @@ export interface CrawlOptions {
   model?: LanguageModel
 
   // Log sink — when set, hackbrowser log records flow here instead of stderr.
-  // Bountyreper launcher uses this to forward into its own Log namespace.
+  // BountyReaper launcher uses this to forward into its own Log namespace.
   logSink?: LogSink
 
   // Log level (DEBUG | INFO | WARN | ERROR). Default: INFO
@@ -51,7 +51,7 @@ export interface CrawlOptions {
 
   // Event sink — when set, every CSEvent emitted by the crawler (page-change,
   // capture, crawl-done, intelligence, etc.) is also forwarded to this
-  // callback synchronously. Bountyreper launcher routes these into
+  // callback synchronously. BountyReaper launcher routes these into
   // HackbrowserStatus to drive the live TUI sidebar (Faz B.1+ /
   // INTEGRATION.md §13.2). Independent of `panel: boolean` — sink fires
   // even in headless mode where no browser-side panel exists.
@@ -71,10 +71,10 @@ export interface CrawlOptions {
   authenticated?: boolean
   multiCredentials?: CredentialConfig[]
 
-  // BountyReper ingest target (HTTP loopback — Karar 6, INTEGRATION.md §10.5)
-  bountyreperUrl?: string
-  bountyreperUsername?: string
-  bountyreperPassword?: string
+  // BountyReaper ingest target (HTTP loopback — Karar 6, INTEGRATION.md §10.5)
+  bountyreaperUrl?: string
+  bountyreaperUsername?: string
+  bountyreaperPassword?: string
 
   // UI / panel
   panel?: boolean
@@ -151,12 +151,12 @@ function validate(opts: CrawlOptions): void {
 function toAgentConfig(opts: CrawlOptions): AgentConfig {
   return {
     targetUrl: opts.url,
-    bountyreper: {
-      serverUrl: opts.bountyreperUrl ?? "http://127.0.0.1:4096",
+    bountyreaper: {
+      serverUrl: opts.bountyreaperUrl ?? "http://127.0.0.1:4096",
       sessionID: opts.sessionID,
       credentialId: opts.credentialID,
-      username: opts.bountyreperUsername,
-      password: opts.bountyreperPassword,
+      username: opts.bountyreaperUsername,
+      password: opts.bountyreaperPassword,
     },
     auth: {
       sessionFile: opts.sessionFile ? path.resolve(process.cwd(), opts.sessionFile) : undefined,
@@ -181,11 +181,11 @@ function toAgentConfig(opts: CrawlOptions): AgentConfig {
 // ============================================================
 
 /**
- * Run a crawl. Single entry point for both standalone CLI and bountyreper-
+ * Run a crawl. Single entry point for both standalone CLI and bountyreaper-
  * internal callers.
  *
  * Validation/preflight throw immediately. Runtime errors during the crawl
- * land in CrawlResult.errors[] — they don't propagate, so bountyreper's
+ * land in CrawlResult.errors[] — they don't propagate, so bountyreaper's
  * tool framework gets a structured result instead of a thrown exception
  * that would crash the agent's tool dispatch.
  */
@@ -242,7 +242,7 @@ export async function runCrawl(opts: CrawlOptions): Promise<CrawlResult> {
 
 /**
  * Parse CLI argv into CrawlOptions. Used by the standalone shell
- * (`bun src/index.ts`); bountyreper-internal callers construct opts directly.
+ * (`bun src/index.ts`); bountyreaper-internal callers construct opts directly.
  *
  * Mirrors the flag set from the original index.ts (no new flags added here);
  * extending the CLI surface should be done in step with INTEGRATION.md.
@@ -285,9 +285,9 @@ export function parseArgsToOptions(argv: string[]): CrawlOptions {
     multiCredentials: credentials.length >= 2 ? credentials : undefined,
     exclude: exclude.length > 0 ? exclude : undefined,
     scope: scope.length > 0 ? scope : undefined,
-    bountyreperUrl: getArg("--bountyreper"),
-    bountyreperUsername: getArg("--bountyreper-username"),
-    bountyreperPassword: getArg("--bountyreper-password") ?? process.env.BOUNTYREPER_SERVER_PASSWORD,
+    bountyreaperUrl: getArg("--bountyreaper"),
+    bountyreaperUsername: getArg("--bountyreaper-username"),
+    bountyreaperPassword: getArg("--bountyreaper-password") ?? process.env.BOUNTYREAPER_SERVER_PASSWORD,
     steps: getArg("--steps") ? parseInt(getArg("--steps")!, 10) : undefined,
     headless: hasFlag("--headless") ? true : undefined,
     dryRun: hasFlag("--dry-run"),

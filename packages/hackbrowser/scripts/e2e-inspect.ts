@@ -1,11 +1,11 @@
-// E2E inspection: dump what BountyReper captured + how proxy-agent interpreted it.
+// E2E inspection: dump what BountyReaper captured + how proxy-agent interpreted it.
 //
 // Usage:
 //   bun run scripts/e2e-inspect.ts --latest
 //   bun run scripts/e2e-inspect.ts --session ses_XXX
-//   bun run scripts/e2e-inspect.ts --latest --db /custom/path/bountyreper.db
+//   bun run scripts/e2e-inspect.ts --latest --db /custom/path/bountyreaper.db
 //
-// Reads the BountyReper SQLite DB read-only and prints:
+// Reads the BountyReaper SQLite DB read-only and prints:
 //   - session metadata
 //   - registered credentials + discovered roles
 //   - captured requests per credential
@@ -19,7 +19,7 @@ import path from "path"
 function defaultDbPath(): string {
   const xdg = process.env.XDG_DATA_HOME
   const base = xdg && xdg.length > 0 ? xdg : path.join(os.homedir(), ".local", "share")
-  return path.join(base, "bountyreper", "bountyreper.db")
+  return path.join(base, "bountyreaper", "bountyreaper.db")
 }
 
 function arg(flag: string): string | undefined {
@@ -92,7 +92,7 @@ if (!session) {
   process.exit(1)
 }
 
-console.log(`BountyReper E2E Inspection`)
+console.log(`BountyReaper E2E Inspection`)
 console.log(`DB: ${dbPath}`)
 section("Session")
 console.log(`  id       : ${session.id}`)

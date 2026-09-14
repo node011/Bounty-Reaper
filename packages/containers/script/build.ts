@@ -22,11 +22,11 @@ const images = ["base", "bun-node", "rust", "publish"]
 const setup = async () => {
   if (!push) return
   const list = await $`docker buildx ls`.text()
-  if (list.includes("bountyreper")) {
-    await $`docker buildx use bountyreper`
+  if (list.includes("bountyreaper")) {
+    await $`docker buildx use bountyreaper`
     return
   }
-  await $`docker buildx create --name bountyreper --use`
+  await $`docker buildx create --name bountyreaper --use`
 }
 
 await setup()

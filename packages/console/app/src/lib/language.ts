@@ -21,7 +21,7 @@ export const LOCALES = [
 export type Locale = (typeof LOCALES)[number]
 
 export const LOCALE_COOKIE = "cs_locale" as const
-export const LOCALE_HEADER = "x-bountyreper-locale" as const
+export const LOCALE_HEADER = "x-bountyreaper-locale" as const
 
 function fix(pathname: string) {
   if (pathname.startsWith("/")) return pathname

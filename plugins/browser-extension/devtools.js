@@ -46,4 +46,4 @@ chrome.devtools.network.onRequestFinished.addListener((entry) => {
   })
 })
 
-chrome.devtools.panels.create("BountyReper", "icons/icon48.png", "panel/panel.html")
+chrome.devtools.panels.create("BountyReaper", "icons/icon48.png", "panel/panel.html")

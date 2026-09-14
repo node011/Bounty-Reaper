@@ -1,11 +1,11 @@
 import { batch, createMemo } from "solid-js"
 import { createStore, produce, reconcile } from "solid-js/store"
-import { Binary } from "@bountyreper-io/util/binary"
-import { retry } from "@bountyreper-io/util/retry"
-import { createSimpleContext } from "@bountyreper-io/ui/context"
+import { Binary } from "@bountyreaper-io/util/binary"
+import { retry } from "@bountyreaper-io/util/retry"
+import { createSimpleContext } from "@bountyreaper-io/ui/context"
 import { useGlobalSync } from "./global-sync"
 import { useSDK } from "./sdk"
-import type { Message, Part } from "@bountyreper-io/sdk/v2/client"
+import type { Message, Part } from "@bountyreaper-io/sdk/v2/client"
 
 function sortParts(parts: Part[]) {
   return parts.filter((part) => !!part?.id).sort((a, b) => cmp(a.id, b.id))

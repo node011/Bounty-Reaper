@@ -1,4 +1,4 @@
-import { Resource } from "@bountyreper-io/console-resource"
+import { Resource } from "@bountyreaper-io/console-resource"
 
 export function createStickyTracker(stickyProvider: "strict" | "prefer" | undefined, session: string) {
   if (!stickyProvider) return

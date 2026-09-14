@@ -1,4 +1,4 @@
-import type { FileNode } from "@bountyreper-io/sdk/v2"
+import type { FileNode } from "@bountyreaper-io/sdk/v2"
 
 type WatcherEvent = {
   type: string

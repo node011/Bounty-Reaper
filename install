@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-APP=bountyreper
+APP=bountyreaper
 
 MUTED='\033[0;2m'
 RED='\033[0;31m'
@@ -9,7 +9,7 @@ NC='\033[0m' # No Color
 
 usage() {
     cat <<EOF
-BountyReper Installer
+BountyReaper Installer
 
 Usage: install.sh [options]
 
@@ -24,7 +24,7 @@ Examples:
     curl -fsSL https://bountyreper.io/install.sh | bash
     curl -fsSL https://bountyreper.io/install.sh | bash -s -- --beta
     curl -fsSL https://bountyreper.io/install.sh | bash -s -- --version 1.1.3
-    ./install --binary /path/to/bountyreper
+    ./install --binary /path/to/bountyreaper
 EOF
 }
 
@@ -72,7 +72,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-INSTALL_DIR=$HOME/.bountyreper/bin
+INSTALL_DIR=$HOME/.bountyreaper/bin
 mkdir -p "$INSTALL_DIR"
 
 # If --binary is provided, skip all download/detection logic
@@ -190,27 +190,27 @@ else
     if [ -z "$requested_version" ]; then
         if [ "$channel" = "beta" ]; then
             # Fetch latest pre-release
-            specific_version=$(curl -s https://api.github.com/repos/bounty-reper/BountyReper/releases | sed -n '/"tag_name":/{s/.*"v\([^"]*\)".*/\1/p;q;}')
+            specific_version=$(curl -s https://api.github.com/repos/node011/Bounty-Reaper/releases | sed -n '/"tag_name":/{s/.*"v\([^"]*\)".*/\1/p;q;}')
         else
-            specific_version=$(curl -s https://api.github.com/repos/bounty-reper/BountyReper/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
+            specific_version=$(curl -s https://api.github.com/repos/node011/Bounty-Reaper/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
         fi
 
         if [[ $? -ne 0 || -z "$specific_version" ]]; then
             echo -e "${RED}Failed to fetch version information${NC}"
             exit 1
         fi
-        url="https://github.com/bounty-reper/BountyReper/releases/download/v${specific_version}/$filename"
+        url="https://github.com/node011/Bounty-Reaper/releases/download/v${specific_version}/$filename"
     else
         # Strip leading 'v' if present
         requested_version="${requested_version#v}"
-        url="https://github.com/bounty-reper/BountyReper/releases/download/v${requested_version}/$filename"
+        url="https://github.com/node011/Bounty-Reaper/releases/download/v${requested_version}/$filename"
         specific_version=$requested_version
 
         # Verify the release exists before downloading
-        http_status=$(curl -sI -o /dev/null -w "%{http_code}" "https://github.com/bounty-reper/BountyReper/releases/tag/v${requested_version}")
+        http_status=$(curl -sI -o /dev/null -w "%{http_code}" "https://github.com/node011/Bounty-Reaper/releases/tag/v${requested_version}")
         if [ "$http_status" = "404" ]; then
             echo -e "${RED}Error: Release v${requested_version} not found${NC}"
-            echo -e "${MUTED}Available releases: https://github.com/bounty-reper/BountyReper/releases${NC}"
+            echo -e "${MUTED}Available releases: https://github.com/node011/Bounty-Reaper/releases${NC}"
             exit 1
         fi
     fi
@@ -231,11 +231,11 @@ print_message() {
 }
 
 check_version() {
-    if command -v bountyreper >/dev/null 2>&1; then
-        bountyreper_path=$(which bountyreper)
+    if command -v bountyreaper >/dev/null 2>&1; then
+        bountyreaper_path=$(which bountyreaper)
 
         ## Check the installed version
-        installed_version=$(bountyreper --version 2>/dev/null || echo "")
+        installed_version=$(bountyreaper --version 2>/dev/null || echo "")
 
         if [[ "$installed_version" != "$specific_version" ]]; then
             print_message info "${MUTED}Installed version: ${NC}$installed_version."
@@ -287,7 +287,7 @@ download_with_progress() {
     fi
 
     local tmp_dir=${TMPDIR:-/tmp}
-    local basename="${tmp_dir}/bountyreper_install_$$"
+    local basename="${tmp_dir}/bountyreaper_install_$$"
     local tracefile="${basename}.trace"
 
     rm -f "$tracefile"
@@ -337,8 +337,8 @@ download_with_progress() {
 }
 
 download_and_install() {
-    print_message info "\n${MUTED}Installing ${NC}bountyreper ${MUTED}version: ${NC}$specific_version"
-    local tmp_dir="${TMPDIR:-/tmp}/bountyreper_install_$$"
+    print_message info "\n${MUTED}Installing ${NC}bountyreaper ${MUTED}version: ${NC}$specific_version"
+    local tmp_dir="${TMPDIR:-/tmp}/bountyreaper_install_$$"
     mkdir -p "$tmp_dir"
 
     if [[ "$os" == "windows" ]] || ! [ -t 2 ] || ! download_with_progress "$url" "$tmp_dir/$filename"; then
@@ -352,20 +352,20 @@ download_and_install() {
         unzip -q "$tmp_dir/$filename" -d "$tmp_dir"
     fi
 
-    mv "$tmp_dir/bountyreper" "$INSTALL_DIR"
-    chmod 755 "${INSTALL_DIR}/bountyreper"
+    mv "$tmp_dir/bountyreaper" "$INSTALL_DIR"
+    chmod 755 "${INSTALL_DIR}/bountyreaper"
     rm -rf "$tmp_dir"
 }
 
 install_from_binary() {
-    print_message info "\n${MUTED}Installing ${NC}bountyreper ${MUTED}from: ${NC}$binary_path"
-    cp "$binary_path" "${INSTALL_DIR}/bountyreper"
-    chmod 755 "${INSTALL_DIR}/bountyreper"
+    print_message info "\n${MUTED}Installing ${NC}bountyreaper ${MUTED}from: ${NC}$binary_path"
+    cp "$binary_path" "${INSTALL_DIR}/bountyreaper"
+    chmod 755 "${INSTALL_DIR}/bountyreaper"
     local worker_src="$(dirname "$binary_path")/hackbrowser-worker.js"
     if [ -f "$worker_src" ]; then
-        mkdir -p "$HOME/.local/share/bountyreper/bin"
-        cp "$worker_src" "$HOME/.local/share/bountyreper/bin/hackbrowser-worker.js"
-        chmod 755 "$HOME/.local/share/bountyreper/bin/hackbrowser-worker.js"
+        mkdir -p "$HOME/.local/share/bountyreaper/bin"
+        cp "$worker_src" "$HOME/.local/share/bountyreaper/bin/hackbrowser-worker.js"
+        chmod 755 "$HOME/.local/share/bountyreaper/bin/hackbrowser-worker.js"
         print_message info "${MUTED}Installed ${NC}hackbrowser worker"
     fi
 }
@@ -385,9 +385,9 @@ add_to_path() {
     if grep -Fxq "$command" "$config_file"; then
         print_message info "Command already exists in $config_file, skipping write."
     elif [[ -w $config_file ]]; then
-        echo -e "\n# bountyreper" >> "$config_file"
+        echo -e "\n# bountyreaper" >> "$config_file"
         echo "$command" >> "$config_file"
-        print_message info "${MUTED}Successfully added ${NC}bountyreper ${MUTED}to \$PATH in ${NC}$config_file"
+        print_message info "${MUTED}Successfully added ${NC}bountyreaper ${MUTED}to \$PATH in ${NC}$config_file"
     else
         print_message warning "Manually add the directory to $config_file (or similar):"
         print_message info "  $command"
@@ -469,10 +469,10 @@ echo -e "${MUTED}█░░█ █░░█ █▀▀▀ █░░█ ${NC}█░
 echo -e "${MUTED}▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ${NC}▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"
 echo -e ""
 echo -e ""
-echo -e "${MUTED}BountyReper includes free models, to start:${NC}"
+echo -e "${MUTED}BountyReaper includes free models, to start:${NC}"
 echo -e ""
 echo -e "cd <project>  ${MUTED}# Open directory${NC}"
-echo -e "bountyreper      ${MUTED}# Run command${NC}"
+echo -e "bountyreaper      ${MUTED}# Run command${NC}"
 echo -e ""
 echo -e "${MUTED}For more information visit ${NC}https://bountyreper.io/docs"
 echo -e ""

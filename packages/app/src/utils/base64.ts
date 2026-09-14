@@ -1,4 +1,4 @@
-import { base64Decode } from "@bountyreper-io/util/encode"
+import { base64Decode } from "@bountyreaper-io/util/encode"
 
 export function decode64(value: string | undefined) {
   if (value === undefined) return

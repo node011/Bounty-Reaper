@@ -347,8 +347,8 @@ async function collectInteractiveElements(page: Page): Promise<BrowserElement[]>
     // LWC etc.) put their real buttons/inputs inside shadow DOM, which a flat
     // document.querySelectorAll cannot see. We walk every element's open
     // shadowRoot recursively. CLOSED roots return null and stay unreachable (a
-    // hard browser limit) — including the BountyReper panel's own closed root, so
-    // the LLM never sees its own UI. We also skip any data-bountyreper-ui host
+    // hard browser limit) — including the BountyReaper panel's own closed root, so
+    // the LLM never sees its own UI. We also skip any data-bountyreaper-ui host
     // defensively. Document order is preserved per root; shadow matches append
     // after their host's light-DOM siblings.
     function queryAllDeep(selector: string): Element[] {
@@ -356,7 +356,7 @@ async function collectInteractiveElements(page: Page): Promise<BrowserElement[]>
       const walk = (root: Document | ShadowRoot) => {
         for (const el of root.querySelectorAll(selector)) out.push(el)
         for (const host of root.querySelectorAll("*")) {
-          if (host.closest("[data-bountyreper-ui]")) continue
+          if (host.closest("[data-bountyreaper-ui]")) continue
           const sr = (host as HTMLElement).shadowRoot
           if (sr) walk(sr)
         }
@@ -525,10 +525,10 @@ async function collectInteractiveElements(page: Page): Promise<BrowserElement[]>
 
     // ---- Interactive sweep: native controls + ARIA roles + inline onclick ----
     for (const el of queryAllDeep(INTERACTIVE_SELECTORS)) {
-      // Skip anything inside the injected BountyReper telemetry panel — LLM
+      // Skip anything inside the injected BountyReaper telemetry panel — LLM
       // must never see its own UI. Shadow DOM normally hides it, but this is
       // a defensive guard for any panel DOM that leaks into the light tree.
-      if (el.closest("[data-bountyreper-ui]")) continue
+      if (el.closest("[data-bountyreaper-ui]")) continue
       const role = getRole(el)
       if (!role) continue
 
@@ -550,7 +550,7 @@ async function collectInteractiveElements(page: Page): Promise<BrowserElement[]>
     // truly bare clickable div (no cursor, no role, no tabindex) stays
     // undetectable — an accepted hard limit.
     for (const el of queryAllDeep("div, span, li")) {
-      if (el.closest("[data-bountyreper-ui]")) continue
+      if (el.closest("[data-bountyreaper-ui]")) continue
       if (el.getAttribute("role")) continue // explicit role → handled by the sweep above
       if (el.hasAttribute("onclick")) continue // inline onclick → handled by the sweep above
       if (!isStructurallyVisible(el)) continue
@@ -588,7 +588,7 @@ async function collectInteractiveElements(page: Page): Promise<BrowserElement[]>
     const interactiveLabels = new Set(elements.map((e) => e.label.toLowerCase()))
 
     for (const el of document.querySelectorAll<HTMLElement>("[aria-label]")) {
-      if (el.closest("[data-bountyreper-ui]")) continue // defensive: never leak panel UI into info elements
+      if (el.closest("[data-bountyreaper-ui]")) continue // defensive: never leak panel UI into info elements
       const tag = el.tagName.toLowerCase()
       const role = (el.getAttribute("role") || "").toLowerCase()
       if (INTERACTIVE_TAGS.has(tag) || INTERACTIVE_ROLES.has(role)) continue
@@ -770,14 +770,14 @@ export async function expandDisclosures(page: Page): Promise<void> {
       // Tier 1 — native <details>: reveal via attribute, no event dispatch.
       for (const d of Array.from(document.querySelectorAll("details:not([open])"))) {
         if (budget <= 0) break
-        if (d.closest("[data-bountyreper-ui]")) continue
+        if (d.closest("[data-bountyreaper-ui]")) continue
         ;(d as HTMLDetailsElement).open = true
         budget--
       }
       // Tier 2 — ARIA disclosures: click controls that semantically reveal a region.
       for (const c of Array.from(document.querySelectorAll('[aria-expanded="false"]'))) {
         if (budget <= 0) break
-        if (c.closest("[data-bountyreper-ui]")) continue
+        if (c.closest("[data-bountyreaper-ui]")) continue
         if (c.getAttribute("role") === "tab") continue // tabs mutate state → left to the LLM
         // A real disclosure reveals INLINE content; an `aria-haspopup` control instead
         // opens a FLOATING overlay (menu/listbox/dialog) whose backdrop intercepts all

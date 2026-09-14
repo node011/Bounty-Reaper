@@ -1,5 +1,5 @@
 {
-  "name": "@bountyreper-io/slack",
+  "name": "@bountyreaper-io/slack",
   "version": "1.2.1",
   "type": "module",
   "license": "MIT",
@@ -8,7 +8,7 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "@bountyreper-io/sdk": "workspace:*",
+    "@bountyreaper-io/sdk": "workspace:*",
     "@slack/bolt": "^3.17.1"
   },
   "devDependencies": {

@@ -7,16 +7,16 @@ import { THEME_OPENAUTH } from "@openauthjs/openauth/ui/theme"
 import { GithubProvider } from "@openauthjs/openauth/provider/github"
 import { GoogleOidcProvider } from "@openauthjs/openauth/provider/google"
 import { CloudflareStorage } from "@openauthjs/openauth/storage/cloudflare"
-import { Account } from "@bountyreper-io/console-core/account.js"
-import { Workspace } from "@bountyreper-io/console-core/workspace.js"
-import { Actor } from "@bountyreper-io/console-core/actor.js"
-import { Resource } from "@bountyreper-io/console-resource"
-import { User } from "@bountyreper-io/console-core/user.js"
-import { and, Database, eq, isNull, or } from "@bountyreper-io/console-core/drizzle/index.js"
-import { WorkspaceTable } from "@bountyreper-io/console-core/schema/workspace.sql.js"
-import { UserTable } from "@bountyreper-io/console-core/schema/user.sql.js"
-import { AuthTable } from "@bountyreper-io/console-core/schema/auth.sql.js"
-import { Identifier } from "@bountyreper-io/console-core/identifier.js"
+import { Account } from "@bountyreaper-io/console-core/account.js"
+import { Workspace } from "@bountyreaper-io/console-core/workspace.js"
+import { Actor } from "@bountyreaper-io/console-core/actor.js"
+import { Resource } from "@bountyreaper-io/console-resource"
+import { User } from "@bountyreaper-io/console-core/user.js"
+import { and, Database, eq, isNull, or } from "@bountyreaper-io/console-core/drizzle/index.js"
+import { WorkspaceTable } from "@bountyreaper-io/console-core/schema/workspace.sql.js"
+import { UserTable } from "@bountyreaper-io/console-core/schema/user.sql.js"
+import { AuthTable } from "@bountyreaper-io/console-core/schema/auth.sql.js"
+import { Identifier } from "@bountyreaper-io/console-core/identifier.js"
 
 type Env = {
   AuthStorage: KVNamespace
@@ -111,14 +111,14 @@ export default {
           const emails = (await fetch("https://api.github.com/user/emails", {
             headers: {
               Authorization: `Bearer ${response.tokenset.access}`,
-              "User-Agent": "bountyreper",
+              "User-Agent": "bountyreaper",
               Accept: "application/vnd.github+json",
             },
           }).then((x) => x.json())) as any
           const user = (await fetch("https://api.github.com/user", {
             headers: {
               Authorization: `Bearer ${response.tokenset.access}`,
-              "User-Agent": "bountyreper",
+              "User-Agent": "bountyreaper",
               Accept: "application/vnd.github+json",
             },
           }).then((x) => x.json())) as any

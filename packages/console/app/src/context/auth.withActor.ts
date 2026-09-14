@@ -1,4 +1,4 @@
-import { Actor } from "@bountyreper-io/console-core/actor.js"
+import { Actor } from "@bountyreaper-io/console-core/actor.js"
 import { getActor } from "./auth"
 
 export async function withActor<T>(fn: () => T, workspace?: string) {

@@ -4,8 +4,8 @@ import { IconWorkspaceLogo } from "../component/icon"
 import { WorkspacePicker } from "./workspace-picker"
 import { UserMenu } from "./user-menu"
 import { withActor } from "~/context/auth.withActor"
-import { User } from "@bountyreper-io/console-core/user.js"
-import { Actor } from "@bountyreper-io/console-core/actor.js"
+import { User } from "@bountyreaper-io/console-core/user.js"
+import { Actor } from "@bountyreaper-io/console-core/actor.js"
 import { useLanguage } from "~/context/language"
 
 const getUserEmail = query(async (workspaceID: string) => {

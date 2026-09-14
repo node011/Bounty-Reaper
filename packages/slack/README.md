@@ -1,6 +1,6 @@
-# @bountyreper-io/slack
+# @bountyreaper-io/slack
 
-Slack bot integration for bountyreper that creates threaded conversations.
+Slack bot integration for bountyreaper that creates threaded conversations.
 
 ## Setup
 
@@ -24,4 +24,4 @@ Slack bot integration for bountyreper that creates threaded conversations.
 bun dev
 ```
 
-The bot will respond to messages in channels where it's added, creating separate bountyreper sessions for each thread.
+The bot will respond to messages in channels where it's added, creating separate bountyreaper sessions for each thread.

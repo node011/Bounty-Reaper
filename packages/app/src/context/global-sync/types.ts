@@ -17,7 +17,7 @@ import type {
   Todo,
   VcsInfo,
   Vulnerability,
-} from "@bountyreper-io/sdk/v2/client"
+} from "@bountyreaper-io/sdk/v2/client"
 import type { Accessor } from "solid-js"
 import type { SetStoreFunction, Store } from "solid-js/store"
 

@@ -26,7 +26,7 @@ import {
   QuestionRequest,
   QuestionAnswer,
   QuestionInfo,
-} from "@bountyreper-io/sdk/v2"
+} from "@bountyreaper-io/sdk/v2"
 import { createStore } from "solid-js/store"
 import { useData } from "../context"
 import { useDiffComponent } from "../context/diff"
@@ -42,9 +42,9 @@ import { Checkbox } from "./checkbox"
 import { DiffChanges } from "./diff-changes"
 import { Markdown } from "./markdown"
 import { ImagePreview } from "./image-preview"
-import { findLast } from "@bountyreper-io/util/array"
-import { getDirectory as _getDirectory, getFilename } from "@bountyreper-io/util/path"
-import { checksum } from "@bountyreper-io/util/encode"
+import { findLast } from "@bountyreaper-io/util/array"
+import { getDirectory as _getDirectory, getFilename } from "@bountyreaper-io/util/path"
+import { checksum } from "@bountyreaper-io/util/encode"
 import { Tooltip } from "./tooltip"
 import { IconButton } from "./icon-button"
 import { createAutoScroll } from "../hooks"
