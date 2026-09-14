@@ -84,11 +84,15 @@ export const WebGetSessionContextTool = Tool.define("web_get_session_context", {
       })),
     }
 
-    // 4. vulnerabilities — last 30 confirmed (capped already).
+    // 4. vulnerabilities — last 30 confirmed. The count alone wasn't enough: an
+    // agent could treat the slice as the complete list and silently work with
+    // an incomplete picture. `older_not_shown` makes truncation explicit.
     const vulns = Vulnerability.confirmed(sessionID)
+    const vulnSlice = vulns.slice(-30)
     context.vulnerabilities = {
       count: vulns.length,
-      items: vulns.slice(-30).map((v) => ({
+      older_not_shown: Math.max(0, vulns.length - vulnSlice.length),
+      items: vulnSlice.map((v) => ({
         id: v.id,
         severity: v.severity,
         title: v.title,

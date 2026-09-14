@@ -545,15 +545,21 @@ export namespace Session {
   }
 
   export function root(sessionID: string): string {
+    // Unbounded walk with a cycle guard. The old 10-hop cap SILENTLY DROPPED
+    // findings from deep subagent trees: root() returned the 10th ancestor, so
+    // findings rooted there were invisible to true-root queries (reports,
+    // context, counts) with no error anywhere. Trees legitimately nest
+    // (orchestrator → tester → general → …), so the cap was a real loss path.
     let current = sessionID
-    for (let i = 0; i < 10; i++) {
+    const seen = new Set([current])
+    while (true) {
       const row = Database.use((db) =>
         db.select({ parent_id: SessionTable.parent_id }).from(SessionTable).where(eq(SessionTable.id, current)).get(),
       )
-      if (!row?.parent_id) return current
+      if (!row?.parent_id || seen.has(row.parent_id)) return current
+      seen.add(row.parent_id)
       current = row.parent_id
     }
-    return current
   }
 
   export const children = fn(Identifier.schema("session"), async (parentID) => {
