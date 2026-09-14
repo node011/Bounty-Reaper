@@ -25,8 +25,15 @@
   <a href="https://github.com/node011/Bounty-Reper/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/node011/Bounty-Reper?style=flat-square&color=1e40af" /></a>
   <a href="https://github.com/node011/Bounty-Reper/releases"><img alt="Release" src="https://img.shields.io/github/v/release/node011/Bounty-Reper?style=flat-square&color=1e40af&display_name=tag" /></a>
   <a href="https://github.com/node011/Bounty-Reper/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/node011/Bounty-Reper/publish.yml?style=flat-square&branch=main" /></a>
-  <a href="https://discord.gg/snunAaHf6U"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord&color=1e40af" /></a>
   <a href="https://github.com/node011/Bounty-Reper/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-1e40af?style=flat-square" /></a>
+</p>
+
+---
+
+<p align="center">
+  <img src="assets/tui-screenshot.png" alt="BountyReper TUI — Proxy-Agent live analysis with MCPBrowser" width="880">
+  <br>
+  <em>Proxy-Agent live analysis — captured with Playwright</em>
 </p>
 
 ---
@@ -150,5 +157,5 @@ Derived from [opencode](https://github.com/anomalyco/opencode) (MIT). See [NOTIC
 ---
 
 <p align="center">
-  <a href="https://bountyreper.io"><b>bountyreper.io</b></a> · <a href="https://docs.bountyreper.io"><b>Docs</b></a> · <a href="https://discord.gg/snunAaHf6U"><b>Discord</b></a> · <a href="https://x.com/bountyreperio"><b>X.com</b></a>
+  <a href="https://bountyreper.io"><b>bountyreper.io</b></a> · <a href="https://docs.bountyreper.io"><b>Docs</b></a> · <a href="https://x.com/bountyreperio"><b>X.com</b></a>
 </p>
