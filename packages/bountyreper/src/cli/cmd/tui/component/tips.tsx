@@ -58,7 +58,7 @@ const TIPS = [
   "Agents can {highlight}create custom tools at runtime{/highlight} with define_tool for adaptive testing",
   "Use {highlight}scope enforcement{/highlight} to restrict HTTP requests to authorized targets only",
   "BountyReper supports {highlight}HAR replay{/highlight} — replay captured traffic with modifications",
-  "Use {highlight}hackbrowser{/highlight} for web pentesting",
+  "Use {highlight}mcpbrowser{/highlight} for web pentesting",
 
   // MCP integrations
   "Use {highlight}cloud-audit-mcp{/highlight} for AWS, Azure, and GCP security audits (60+ checks)",

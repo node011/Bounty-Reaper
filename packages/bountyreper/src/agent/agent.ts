@@ -329,7 +329,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             bash: "allow",
-            hackbrowser: "allow",
+            mcpbrowser: "allow",
             read: "allow",
             glob: "allow",
             grep: "allow",
@@ -361,7 +361,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             bash: "allow",
-            hackbrowser: "allow",
+            mcpbrowser: "allow",
             read: "allow",
             glob: "allow",
             grep: "allow",
@@ -405,7 +405,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             bash: "allow",
-            hackbrowser: "allow",
+            mcpbrowser: "allow",
             read: "allow",
             glob: "allow",
             grep: "allow",
@@ -456,7 +456,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             bash: "allow",
-            hackbrowser: "allow",
+            mcpbrowser: "allow",
             read: "allow",
             glob: "allow",
             grep: "allow",
@@ -742,7 +742,7 @@ export namespace Agent {
         // automated OWASP LLM Top-10 scanner that posts crafted prompts to the
         // captured chat endpoint). Scoped to this agent only (not
         // vulnAgentPermission) to keep the blast radius narrow — no other vuln
-        // tester needs it. It does NOT get `hackbrowser`/`browser`: the endpoint
+        // tester needs it. It does NOT get `mcpbrowser`/`browser`: the endpoint
         // is already captured in the prepended request context, so there is
         // nothing to crawl.
         const llmAgentPermission = PermissionNext.merge(

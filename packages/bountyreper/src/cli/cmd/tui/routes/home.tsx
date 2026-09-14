@@ -64,11 +64,11 @@ export function Home() {
       // creates a fresh session on submit, kicks off the crawl, then
       // navigates the TUI to the new session so the sidebar + ingest
       // queue + Esc/stop slashes are all live.
-      title: "Launch hackbrowser crawl",
+      title: "Launch mcpbrowser crawl",
       value: "session.hackbrowser.launch",
       category: "Session",
       slash: {
-        name: "hackbrowser",
+        name: "mcpbrowser",
       },
       onSelect: async (dialog) => {
         const input = await DialogHackbrowserLaunch.show(dialog)
@@ -76,10 +76,10 @@ export function Home() {
         if (!input) return
         try {
           const created = await sdk.client.session
-            .create({ title: `hackbrowser - ${input.target}` })
+            .create({ title: `mcpbrowser - ${input.target}` })
             .then((x) => x.data)
           if (!created) {
-            toast.show({ message: "Failed to create session for hackbrowser crawl", variant: "error" })
+            toast.show({ message: "Failed to create session for mcpbrowser crawl", variant: "error" })
             return
           }
           const result = await sdk.client.session.hackbrowserLaunch({
@@ -92,12 +92,12 @@ export function Home() {
             headless: input.headless,
           })
           toast.show({
-            message: result?.data?.message ?? "Hackbrowser crawl started",
+            message: result?.data?.message ?? "MCPBrowser crawl started",
             variant: "info",
           })
           homeRoute.navigate({ type: "session", sessionID: created.id })
         } catch (err) {
-          const msg = err instanceof Error ? err.message : "Failed to launch hackbrowser crawl"
+          const msg = err instanceof Error ? err.message : "Failed to launch mcpbrowser crawl"
           toast.show({ message: msg, variant: "error" })
         }
       },

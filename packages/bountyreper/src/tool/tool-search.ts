@@ -15,7 +15,7 @@ export const ToolSearchTool = Tool.define("tool_search", async () => {
   return {
     description: [
       "Search for tools available from connected MCP servers, by capability or description.",
-      "Covers MCP server tools only — built-in tools (hackbrowser, bash, read, write, task, skill, webfetch, asset_record, planwrite, ...) are already callable directly. NEVER use tool_search (or the skill tool) for them.",
+      "Covers MCP server tools only — built-in tools (mcpbrowser, bash, read, write, task, skill, webfetch, asset_record, planwrite, ...) are already callable directly. NEVER use tool_search (or the skill tool) for them.",
       "Returns tool IDs that can be loaded with load_tools.",
       "",
       "Example queries:",
@@ -40,7 +40,7 @@ export const ToolSearchTool = Tool.define("tool_search", async () => {
             "No matching MCP server tools found.",
             "",
             "Reminder: tool_search only indexes tools from connected MCP servers.",
-            "Built-in tools (hackbrowser, bash, task, skill, web_*, asset_record, planwrite, ...) are already callable directly — do not search for them or try to load them via the skill tool.",
+            "Built-in tools (mcpbrowser, bash, task, skill, web_*, asset_record, planwrite, ...) are already callable directly — do not search for them or try to load them via the skill tool.",
           ].join("\n")
       const stats = LazyToolRegistry.stats()
 

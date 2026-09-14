@@ -20,7 +20,7 @@
   <a href="#agents">Agents</a> •
   <a href="#mcpbrowser">MCPBrowser</a> •
   <a href="#installation">Installation</a> •
-  <a href="https://docs.bountyreper.io">Docs</a>
+  <a href="./docs/SETUP.md">Docs</a>
 </p>
 
 <p align="center">
@@ -47,7 +47,7 @@ bun dev
 
 > Already have an LLM subscription? BountyReper sits on top of your existing subscription. No extra API costs.
 
-Full docs: **[docs.bountyreper.io](https://docs.bountyreper.io)** • **[bountyreper.io](https://bountyreper.io)**
+Full setup notes, MCP server configuration and troubleshooting: **[docs/SETUP.md](./docs/SETUP.md)**
 
 ---
 
@@ -89,9 +89,7 @@ Plus 8 proxy testers that run on intercepted traffic (IDOR, authz bypass, mass a
 
 ### MCPBrowser
 
-> Full docs: **[docs.bountyreper.io/docs/tools/hacker-browser](https://docs.bountyreper.io/docs/tools/hacker-browser/)**
-
-MCPBrowser is the built-in Chromium browser (formerly HackBrowser). Start it with `/mcpbrowser` in the TUI or `bountyreper mcpbrowser https://target.com`:
+MCPBrowser is the built-in Chromium browser. Start it with `/mcpbrowser` in the TUI or `bountyreper mcpbrowser https://target.com`:
 
 ```bash
 bountyreper mcpbrowser https://target.com --scope "*.target.com" --steps 50
@@ -153,5 +151,5 @@ Derived from [opencode](https://github.com/anomalyco/opencode) (MIT). See [NOTIC
 ---
 
 <p align="center">
-  <a href="https://bountyreper.io"><b>bountyreper.io</b></a> · <a href="https://docs.bountyreper.io"><b>Docs</b></a> · <a href="https://x.com/bountyreperio"><b>X.com</b></a>
+  <a href="https://x.com/bountyreperio"><b>X.com</b></a> · <a href="https://github.com/node011/Bounty-Reper"><b>GitHub</b></a>
 </p>

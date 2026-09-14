@@ -834,7 +834,7 @@ export namespace SessionPrompt {
           "# MCP Tools",
           `You have ${mcpLazyStats.available} tools available from MCP servers. These tools are NOT yet in your context.`,
           "Use `tool_search` to find tools by capability, then `load_tools` to make them usable.",
-          "This covers MCP server tools only: all built-in tools (hackbrowser, bash, task, skill, web_*, asset_record, planwrite, http_replay, ...) are already callable directly — never search for or try to load them.",
+          "This covers MCP server tools only: all built-in tools (mcpbrowser, bash, task, skill, web_*, asset_record, planwrite, http_replay, ...) are already callable directly — never search for or try to load them.",
           "",
           "Available servers:",
         ]

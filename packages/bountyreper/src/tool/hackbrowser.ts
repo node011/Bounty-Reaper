@@ -1,10 +1,10 @@
-// Hackbrowser tool — agent-callable wrapper around the hackbrowser library.
-// All bountyreper→hackbrowser plumbing (Provider, Server URL, log bridge,
+// Mcpbrowser tool — agent-callable wrapper around the browser crawler.
+// All bountyreper→crawler plumbing (Provider, Server URL, log bridge,
 // re-entrance) lives in hackbrowser-launcher.ts; this file is just the
 // Tool.define surface (parameters, permission gate, output shape).
 //
-// Surface is shared with the /hackbrowser slash command and the
-// `bountyreper hackbrowser` CLI subcommand — same fields, same semantics
+// Surface is shared with the /mcpbrowser slash command and the
+// `bountyreper mcpbrowser` CLI subcommand — same fields, same semantics
 // across all three entry points.
 
 import z from "zod"
@@ -13,13 +13,13 @@ import { launchHackbrowser } from "./hackbrowser-launcher"
 
 const DESCRIPTION = `Crawl a web application autonomously and capture HTTP requests with UI context.
 
-Use this when you have a target URL but no captured requests yet — hackbrowser will navigate the app, fill forms, click buttons, and stream every HTTP request into the current session for later vulnerability analysis. After captures arrive, the proxy-analyzer ingest pipeline analyzes them automatically.
+Use this when you have a target URL but no captured requests yet — mcpbrowser will navigate the app, fill forms, click buttons, and stream every HTTP request into the current session for later vulnerability analysis. After captures arrive, the proxy-analyzer ingest pipeline analyzes them automatically.
 
-This tool runs ASYNCHRONOUSLY: it returns immediately after starting the background crawl. Captures stream into the session over the next 30s–2min. Do NOT call this tool again to "wait" for results — use web_get_session_context to inspect captured endpoints when you actually need them. The hackbrowser status (running / completed / failed) appears in the TUI sidebar.
+This tool runs ASYNCHRONOUSLY: it returns immediately after starting the background crawl. Captures stream into the session over the next 30s–2min. Do NOT call this tool again to "wait" for results — use web_get_session_context to inspect captured endpoints when you actually need them. The mcpbrowser status (running / completed / failed) appears in the TUI sidebar.
 
 Defaults to anonymous headless mode. To crawl as authenticated user(s), pass \`credentials\` — the browser opens visibly and the user must log in manually before the crawl begins. Each credential ID in the array triggers its own login + crawl cycle, so multiple IDs run a sequence (role-based access tests). Auto-login (filling username/password in code) is intentionally not supported. Only invoke with credentials when a human is present to complete each login interactively; without a user, the crawl will hang at the login step.`
 
-export const HackbrowserTool = Tool.define("hackbrowser", {
+export const HackbrowserTool = Tool.define("mcpbrowser", {
   description: DESCRIPTION,
   parameters: z.object({
     target: z

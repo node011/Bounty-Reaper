@@ -9,17 +9,17 @@ Before testing:
 
 ## Starting Point: Discovery
 
-When given a target URL with no captured traffic yet, use **hackbrowser** to crawl the application first.
+When given a target URL with no captured traffic yet, use **mcpbrowser** to crawl the application first.
 
-### hackbrowser tool
+### mcpbrowser tool
 
 Launches an AI-driven crawler that navigates the app, fills forms, clicks buttons, and streams every HTTP request into the current session. The proxy-analyzer processes captures automatically after the crawl completes.
 
-**Use hackbrowser when:**
+**Use mcpbrowser when:**
 - You have a target URL but no captures yet — broad endpoint discovery before targeted testing
 - You want to enumerate forms, hidden fields, and state-changing actions without manual effort
 
-**Do NOT use hackbrowser when:**
+**Do NOT use mcpbrowser when:**
 - You already have captures and need targeted manual testing — use `http_replay` instead
 
 **Parameters:**
@@ -35,9 +35,9 @@ Launches an AI-driven crawler that navigates the app, fills forms, clicks button
 - `headless` (optional): defaults to true; forced to false when credentials provided
 
 **Typical flow:**
-1. `hackbrowser target="https://target.com"` — anonymous crawl to discover endpoints
+1. `mcpbrowser target="https://target.com"` — anonymous crawl to discover endpoints
 2. Review captured traffic, identify auth-protected areas
-3. `hackbrowser target="https://target.com" credentials=["user1","admin1"]` — role-based crawl (user present)
+3. `mcpbrowser target="https://target.com" credentials=["user1","admin1"]` — role-based crawl (user present)
 4. Run targeted testing on captured requests
 
 ## Testing Workflow
@@ -105,7 +105,7 @@ skill unload <skill-name>   # unload when moving to a different test area
 
 | Tool | Purpose |
 |------|---------|
-| hackbrowser | AI-driven crawler — endpoint and form discovery |
+| mcpbrowser | AI-driven crawler — endpoint and form discovery |
 | sqlmap | SQL injection exploitation |
 | ffuf | Directory/parameter fuzzing |
 | nuclei | Template-based vulnerability scanning |

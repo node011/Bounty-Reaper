@@ -212,7 +212,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
             <Show when={hackbrowserStatus()}>
               <box>
                 <text fg={theme.text}>
-                  <b>Hackbrowser</b>
+                  <b>MCPBrowser</b>
                 </text>
                 <Switch>
                   <Match when={hackbrowserStatus()!.phase === "starting"}>
