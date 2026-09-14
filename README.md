@@ -1,14 +1,9 @@
-
 <h1 align="center">Bounty Reaper</h1>
 <h3 align="center">The open-source AI agent for offensive security.</h3>
 
 <p align="center">
-
-<p align="center">
-  <img src="assets/tui-screenshot.png" alt="BountyReaper TUI — Palantir theme, Proxy-Agent live teardown" width="880">
+  <img src="assets/tui-screenshot.png" alt="BountyReaper TUI — Proxy-Agent live teardown" width="880">
 </p>
-
-<h3 align="center">The open-source AI agent for offensive security.</h3>
 
 <p align="center">
   Automated pentesting from your terminal — your LLM subscription + BountyReaper's security intelligence = autonomous red team.
@@ -29,8 +24,6 @@
   <a href="https://github.com/node011/Bounty-Reaper/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/node011/Bounty-Reaper/publish.yml?style=flat-square&branch=main" /></a>
   <a href="https://github.com/node011/Bounty-Reaper/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-1e40af?style=flat-square" /></a>
 </p>
-
----
 
 ---
 
@@ -73,6 +66,25 @@ Plus 8 proxy testers that run on intercepted traffic (IDOR, authz bypass, mass a
 
 ---
 
+### Findings Lifecycle & Runbooks
+
+Findings follow a proof-gated lifecycle — `candidate → observed → verified → reportable` (or `rejected`/`stale`) — so weak signals stay visible without being overclaimed. A finding only becomes reportable with evidence (PoC + reproducible steps). Every fact, relation, evidence item, and replay is recorded in an **operation ledger**, exportable as a bundle.
+
+**Runbooks** give the agent a recognizable task shape instead of random tool spam:
+
+```bash
+# AppSec triage — OWASP Top 10 with finding lifecycle
+/runbook run appsec-web-triage http://localhost:3000
+# Attack-surface mapping
+/runbook run web-surface https://target.com
+# Full scoped pentest (autonomous)
+/runbook run pwn https://target.com
+```
+
+Each runbook pins scope, opsec level (`strict/moderate/permissive`), and autonomy (`manual/assisted/autonomous`). A **knowledge broker** enriches observed components with KEV/EPSS and separates *possibility* from *applicability* — intelligence is never promoted to a finding without proof.
+
+---
+
 ### Use Cases
 
 **Bug Bounty Hunting** — Scope a program (`*.target.com`), let recon-hunter map subdomains, tech stack, and exposed secrets; proxy testers find IDOR/SSRF/XSS while you focus on chains. Consistent WSTG methodology across programs, even at 3am.
@@ -96,8 +108,6 @@ bountyreaper mcpbrowser https://target.com --scope "*.target.com" --steps 50
 ```
 
 Every request is intercepted and routed through the 8 proxy testers. Two modes: **manual** (browse as different users, trigger features) and **autonomous** (provide credentials, let it crawl and compare roles). Use `--scope` to limit testing, `--credential hunter1` for role-based crawling.
-
-*`hackbrowser` still works as an alias.*
 
 ```
 Browser traffic → Proxy intercept → Orchestrator → 8 sub-testers (parallel)

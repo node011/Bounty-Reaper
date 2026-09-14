@@ -34,7 +34,7 @@ need to create any virtualenv by hand.
    `pyproject.toml`. Each MCP server gets its own `.venv`; they never share
    dependencies and they never touch your global Python.
 3. `playwright install chromium chromium-headless-shell` for the workspace (the
-   `hackbrowser` crawler). Both targets are needed: `chromium.launch()` defaults
+   `mcpbrowser` crawler). Both targets are needed: `chromium.launch()` defaults
    to headless, which runs the separate `chrome-headless-shell` binary.
 4. `script/install-mcp.ts` — registers the bundled MCP servers with BountyReaper
    **globally** (see below).
@@ -105,14 +105,14 @@ nothing extra to install and nothing extra to trust.
 
 Two ways to get traffic in front of the agent:
 
-|            | [Browser extension](../plugins/browser-extension) | [`hackbrowser`](../packages/hackbrowser) |
+|            | [Browser extension](../plugins/browser-extension) | [`mcpbrowser`](../packages/mcpbrowser) |
 | ---------- | ------------------------------------------------- | ---------------------------------------- |
 | Who drives | you                                               | the agent                                |
 | Reaches    | logged-in, past MFA, deep SPA state               | whatever it navigates to unaided         |
 | Install    | load unpacked in `chrome://extensions/`           | bundled; nothing to install              |
 
 The extension is a Chromium DevTools panel: browse normally, pick a captured
-request, send it for testing. Use it for authenticated surface — hackbrowser
+request, send it for testing. Use it for authenticated surface — mcpbrowser
 needs a human present for those crawls anyway, so you were going to drive the
 browser regardless.
 
@@ -137,10 +137,10 @@ same engagement get the same scanners.
 
 ```bash
 bun turbo typecheck    # all packages
-bun turbo test         # all packages, including hackbrowser
+bun turbo test         # all packages, including mcpbrowser
 ```
 
-`hackbrowser`'s browser tests need Chromium. If you see
+`mcpbrowser`'s browser tests need Chromium. If you see
 `Looks like Playwright ... was just installed`, run
 `bunx playwright install chromium chromium-headless-shell` and re-run.
 
@@ -158,7 +158,7 @@ relative to your current directory. Launch from the repo root, or set
 **`uv: command not found` when a server starts.** Your editor or agent may not
 inherit your shell `PATH`. Launch it from a terminal where `which uv` works.
 
-**Chromium missing at runtime.** The `hackbrowser` tool auto-installs Chromium
+**Chromium missing at runtime.** The `mcpbrowser` tool auto-installs Chromium
 on first use, so this normally self-heals. To do it by hand:
 `bunx playwright install chromium chromium-headless-shell`.
 

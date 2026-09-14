@@ -15,6 +15,7 @@ export {
   WebRetestQueueTable,
   EndpointTemplateTable,
 } from "../session/session.sql"
+export { OperationLedgerTable } from "../session/operation-ledger.sql"
 export { SessionShareTable } from "../share/share.sql"
 export { ProjectTable } from "../project/project.sql"
 export {
