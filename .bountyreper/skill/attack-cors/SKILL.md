@@ -110,6 +110,25 @@ fetch('https://TARGET/api/user/profile', {
 - `curl` — manual header injection
 - Browser DevTools — verify CORS behavior
 
+## HowToHunt Advanced Supplement
+
+> **Source:** [KathanP19/HowToHunt — CORS_Bypasses](https://github.com/KathanP19/HowToHunt/tree/master/CORS) by tamimhasan404. Additional bypass payloads not covered above.
+
+**Extra bypass vectors to test when standard reflection fails:**
+
+```bash
+# Encoded dot bypass
+curl -H "Origin: https://attacker%target.com" https://target.com/api -D-
+# Method flip bypass (GET→POST, POST→GET)
+curl -H "Origin: https://attacker.com" -X POST https://target.com/api -D-
+# Path-trailing bypass
+curl -H "Origin: https://attacker.com/target.com" https://target.com/api -D-
+# Subdomain with underscore/dot tricks already covered, also try:
+curl -H "Origin: https://sub.attacker%20target.com" https://target.com/api -D-
+```
+
+These succeed when server does naive `contains(target.com)` or `endsWith` checks without proper Origin parsing. Always verify with `Access-Control-Allow-Credentials: true` for impact.
+
 ## References
 
 - [PortSwigger: CORS](https://portswigger.net/web-security/cors)

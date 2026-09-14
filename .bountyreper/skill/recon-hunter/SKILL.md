@@ -38,6 +38,31 @@ scope_set(include=["*.target.com", "203.0.113.0/24"], exclude=["blog.target.com"
 Every active call is appended to `audit.jsonl` in the output directory, before
 the packets go out.
 
+## HowToHunt Advanced Supplement — Sensitive Info & Origin Discovery
+
+> **Source:** [KathanP19/HowToHunt — Sensitive_Info_Leaks, FindOriginIP, Recon](https://github.com/KathanP19/HowToHunt) (1878+ lines of dorks). Licensed GPL-3.0.
+
+**After standard pipeline, run these HowToHunt dorks for extra coverage:**
+
+```bash
+# GitHub dorks (via GitHub search or gitleaks)
+# From Sensitive_Info_Leaks/Github_dorks_all.md
+org:target "api_key" OR "secret" OR "password"
+org:target filename:.env OR filename:config.json
+# Shodan (from Shodan_cve_dorks.md)
+http.favicon.hash:123456 target.com
+ssl:"target.com" http.html:"dashboard"
+# Google dorks (from Google_Dorks.md)
+site:target.com ext:env OR ext:sql OR ext:log
+site:target.com inurl:admin | inurl:dashboard
+# Origin IP (from FindOriginIP)
+dig +short target.com; curl -s https://ipinfo.io/<IP> | jq .org
+# Historical DNS: https://securitytrails.com/domain/target.com/dns
+subfinder -d target.com | dnsx -silent | grep -v "104.21."
+```
+
+These find secrets, exposed configs, and WAF bypass origins that `bb_recon` tools may miss. Log results as `intel` with tags `sensitive-data` and `origin-ip`.
+
 ---
 
 ## FAST PATH
