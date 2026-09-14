@@ -68,23 +68,57 @@ export default function Home() {
     }
   }
 
+  const stats = createMemo(() => {
+    const projects = sync.data.project.length
+    const recentCount = recent().length
+    return { sessions: recentCount, projects, vulns: 0, allSessions: recentCount }
+  })
+
   return (
-    <div class="mx-auto mt-55 w-full md:w-auto px-4">
-      <Logo class="md:w-xl opacity-12" />
-      <Button
-        size="large"
-        variant="ghost"
-        class="mt-4 mx-auto text-14-regular text-text-weak"
-        onClick={() => dialog.show(() => <DialogSelectServer />)}
-      >
-        <div
-          classList={{
-            "size-2 rounded-full": true,
-            [serverDotClass()]: true,
-          }}
-        />
-        {server.name}
-      </Button>
+    <div class="mx-auto w-full max-w-6xl px-6 py-8">
+      <div class="flex items-center justify-between">
+        <Logo class="opacity-12 w-32" />
+        <Button
+          size="normal"
+          variant="ghost"
+          class="text-12-regular text-text-weak"
+          onClick={() => dialog.show(() => <DialogSelectServer />)}
+        >
+          <div
+            classList={{
+              "size-2 rounded-full": true,
+              [serverDotClass()]: true,
+            }}
+          />
+          {server.name}
+        </Button>
+      </div>
+
+      {/* Artex-style dashboard stats */}
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="rounded-lg border border-border-weak bg-background-weak p-4">
+          <div class="text-12-regular text-text-weak">Active Sessions</div>
+          <div class="text-24-medium text-text-strong mt-1">{stats().sessions}</div>
+          <div class="text-12-regular text-text-weak mt-1">{stats().allSessions} total including subagents</div>
+        </div>
+        <div class="rounded-lg border border-border-weak bg-background-weak p-4">
+          <div class="text-12-regular text-text-weak">Vulnerabilities</div>
+          <div class="text-24-medium text-text-strong mt-1">{stats().vulns}</div>
+          <div class="text-12-regular text-text-weak mt-1">Across all projects</div>
+        </div>
+        <div class="rounded-lg border border-border-weak bg-background-weak p-4">
+          <div class="text-12-regular text-text-weak">Projects</div>
+          <div class="text-24-medium text-text-strong mt-1">{stats().projects}</div>
+          <div class="text-12-regular text-text-weak mt-1">Workspaces tracked</div>
+        </div>
+        <div class="rounded-lg border border-border-weak bg-background-weak p-4">
+          <div class="text-12-regular text-text-weak">Status</div>
+          <div class="text-14-medium text-text-strong mt-2 flex items-center gap-2">
+            <div classList={{ "size-2 rounded-full": true, [serverDotClass()]: true }} />
+            {server.healthy() === true ? "Connected" : server.healthy() === false ? "Disconnected" : "Connecting"}
+          </div>
+        </div>
+      </div>
       <Switch>
         <Match when={sync.data.project.length > 0}>
           <div class="mt-20 w-full flex flex-col gap-4">
