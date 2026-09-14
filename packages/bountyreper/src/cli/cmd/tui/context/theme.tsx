@@ -284,7 +284,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
     const [store, setStore] = createStore({
       themes: DEFAULT_THEMES,
       mode: kv.get("theme_mode", props.mode),
-      active: (sync.data.config.theme ?? kv.get("theme", "bountyreper")) as string,
+      active: (sync.data.config.theme ?? kv.get("theme", "solarized")) as string,
       ready: false,
     })
 
@@ -304,7 +304,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
           )
         })
         .catch(() => {
-          setStore("active", "bountyreper")
+          setStore("active", "solarized")
         })
         .finally(() => {
           if (store.active !== "system") {
@@ -322,10 +322,10 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         })
         .then((colors) => {
           if (!colors.palette[0]) {
-            if (store.active === "system") {
+              if (store.active === "system") {
               setStore(
                 produce((draft) => {
-                  draft.active = "bountyreper"
+                  draft.active = "solarized"
                   draft.ready = true
                 }),
               )
@@ -350,7 +350,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
     })
 
     const values = createMemo(() => {
-      return resolveTheme(store.themes[store.active] ?? store.themes.bountyreper, store.mode)
+      return resolveTheme(store.themes[store.active] ?? store.themes.solarized, store.mode)
     })
 
     const syntax = createMemo(() => generateSyntax(values()))
