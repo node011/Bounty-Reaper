@@ -117,7 +117,43 @@ Browser traffic → Proxy intercept → Orchestrator → 8 sub-testers (parallel
 
 ### Installation
 
-**Clone and build — only supported method:**
+**Option 1 — GitHub Releases (prebuilt binary, no toolchain needed):**
+
+1. Go to [Releases](https://github.com/node011/Bounty-Reaper/releases) and download the archive for your platform:
+
+   | Platform | File |
+   |----------|------|
+   | macOS Apple Silicon | `bountyreaper-darwin-arm64.zip` |
+   | macOS Intel | `bountyreaper-darwin-x64.zip` |
+   | Linux x64 | `bountyreaper-linux-x64.tar.gz` (musl: `bountyreaper-linux-x64-musl.tar.gz`) |
+   | Linux ARM64 | `bountyreaper-linux-arm64.tar.gz` (musl: `bountyreaper-linux-arm64-musl.tar.gz`) |
+   | Windows x64 | `bountyreaper-windows-x64.zip` |
+
+2. Extract and run the install script from the repo (it puts the binary on your `PATH`):
+
+   ```bash
+   # macOS example
+   unzip ~/Downloads/bountyreaper-darwin-arm64.zip -d bountyreaper-darwin-arm64
+   git clone https://github.com/node011/Bounty-Reaper.git && cd Bounty-Reaper
+   ./install --binary ../bountyreaper-darwin-arm64/bin/bountyreaper
+   ```
+
+   Or manually:
+
+   ```bash
+   mkdir -p ~/.bountyreaper/bin
+   cp bountyreaper-darwin-arm64/bin/bountyreaper ~/.bountyreaper/bin/
+   chmod +x ~/.bountyreaper/bin/bountyreaper
+   echo 'export PATH="$HOME/.bountyreaper/bin:$PATH"' >> ~/.zshrc   # or ~/.bashrc
+   ```
+
+3. Verify:
+
+   ```bash
+   bountyreaper --version
+   ```
+
+**Option 2 — Clone and build:**
 
 ```bash
 git clone https://github.com/node011/Bounty-Reaper.git
@@ -126,7 +162,7 @@ cd Bounty-Reaper
 bun dev
 ```
 
-Or build a binary:
+Or build a binary from source:
 
 ```bash
 cd packages/bountyreaper && bun run build && cd ../..
