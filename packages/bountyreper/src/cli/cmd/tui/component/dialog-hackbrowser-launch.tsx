@@ -1,7 +1,7 @@
-// Hackbrowser launch dialog — multi-field form for the /hackbrowser slash
-// command. Surface mirrors the LLM tool and the CLI subcommand: target,
-// credentials, scope, exclude, headless. Same fields, same semantics across
-// all three entry points.
+// MCPBrowser launch dialog — multi-field form for the /mcpbrowser slash
+// command (alias: /hackbrowser). Surface mirrors the LLM tool and the CLI
+// subcommand: target, credentials, scope, exclude, headless. Same fields,
+// same semantics across all three entry points.
 //
 // Modeled after dialog-export-options.tsx: tab cycles fields, space toggles
 // the headless checkbox, return submits. Submission resolves the Promise
@@ -153,7 +153,7 @@ export function DialogHackbrowserLaunch(props: DialogHackbrowserLaunchProps) {
     <box paddingLeft={2} paddingRight={2} gap={1}>
       <box flexDirection="row" justifyContent="space-between">
         <text attributes={TextAttributes.BOLD} fg={theme.text}>
-          Launch hackbrowser crawl
+          Launch mcpbrowser crawl
         </text>
         <text fg={theme.textMuted} onMouseUp={() => props.onCancel?.()}>
           esc
@@ -272,7 +272,7 @@ export function DialogHackbrowserLaunch(props: DialogHackbrowserLaunchProps) {
 
       <Show when={store.credentialsPresent}>
         <text fg={theme.warning ?? theme.textMuted} paddingLeft={1}>
-          ⚠ Manual login: Esc and /hackbrowser-stop cannot cancel during the login wait. Close the browser window
+          ⚠ Manual login: Esc and /mcpbrowser-stop cannot cancel during the login wait. Close the browser window
           manually to abort. (INTEGRATION.md §10.10)
         </text>
       </Show>

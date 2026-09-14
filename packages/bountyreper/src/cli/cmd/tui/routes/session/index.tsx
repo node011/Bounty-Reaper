@@ -471,11 +471,12 @@ export function Session() {
       },
     },
     {
-      title: "Launch hackbrowser crawl",
+      title: "Launch mcpbrowser crawl",
       value: "session.hackbrowser.launch",
       category: "Session",
       slash: {
-        name: "hackbrowser",
+        name: "mcpbrowser",
+        aliases: ["hackbrowser"],
       },
       onSelect: async (dialog) => {
         const input = await DialogHackbrowserLaunch.show(dialog)
@@ -492,17 +493,17 @@ export function Session() {
             headless: input.headless,
           })
           toast.show({
-            message: result?.data?.message ?? "Hackbrowser crawl started",
+            message: result?.data?.message ?? "MCPBrowser crawl started",
             variant: "info",
           })
         } catch (err) {
-          const msg = err instanceof Error ? err.message : "Failed to launch hackbrowser crawl"
+          const msg = err instanceof Error ? err.message : "Failed to launch mcpbrowser crawl"
           toast.show({ message: msg, variant: "error" })
         }
       },
     },
     {
-      title: "Stop hackbrowser crawl",
+      title: "Stop mcpbrowser crawl",
       value: "session.hackbrowser.stop",
       category: "Session",
       // Visible only while a hackbrowser run is active for this session
@@ -513,7 +514,8 @@ export function Session() {
         return phase === "starting" || phase === "crawling"
       })(),
       slash: {
-        name: "hackbrowser-stop",
+        name: "mcpbrowser-stop",
+        aliases: ["hackbrowser-stop"],
       },
       onSelect: async (dialog) => {
         try {
@@ -522,12 +524,12 @@ export function Session() {
           })
           toast.show({
             message: stopped?.data
-              ? "Hackbrowser cancellation requested — finishing current page"
-              : "No active hackbrowser run",
+              ? "MCPBrowser cancellation requested — finishing current page"
+              : "No active mcpbrowser run",
             variant: stopped?.data ? "info" : "warning",
           })
         } catch {
-          toast.show({ message: "Failed to stop hackbrowser crawl", variant: "error" })
+          toast.show({ message: "Failed to stop mcpbrowser crawl", variant: "error" })
         }
         dialog.clear()
       },
