@@ -6,9 +6,10 @@ import { launchHackbrowser, stopHackbrowser } from "../../tool/hackbrowser-launc
 import { tui } from "./tui/app"
 import { UI } from "../ui"
 
-export const HackbrowserCommand = cmd({
-  command: "hackbrowser <target>",
-  describe: "crawl a web app and open TUI for live analysis",
+export const McpbrowserCommand = cmd({
+  command: "mcpbrowser <target>",
+  aliases: ["hackbrowser"],
+  describe: "crawl a web app and open TUI for live analysis (alias: hackbrowser)",
   builder: (yargs) =>
     yargs
       .positional("target", {
@@ -48,7 +49,7 @@ export const HackbrowserCommand = cmd({
       const serverUrl = server.url.toString().replace(/\/$/, "")
       const sdk = createBountyreperClient({ baseUrl: serverUrl, directory: process.cwd() })
 
-      const sessionResult = await sdk.session.create({ title: `hackbrowser: ${args.target}` })
+      const sessionResult = await sdk.session.create({ title: `mcpbrowser: ${args.target}` })
       const sessionID = sessionResult.data?.id
       if (!sessionID) {
         UI.error("Failed to create session")
@@ -65,12 +66,12 @@ export const HackbrowserCommand = cmd({
         credentials,
         headless: credentials.length > 0 ? false : !args.headfull,
       }).catch((err: unknown) => {
-        UI.error(`hackbrowser: ${err instanceof Error ? err.message : String(err)}`)
+        UI.error(`mcpbrowser: ${err instanceof Error ? err.message : String(err)}`)
         process.exit(1)
       })
 
       if (!kickOff.started) {
-        UI.error(`hackbrowser: ${kickOff.message}`)
+        UI.error(`mcpbrowser: ${kickOff.message}`)
         process.exit(1)
       }
 
@@ -87,3 +88,6 @@ export const HackbrowserCommand = cmd({
     })
   },
 })
+
+// Backward compat: hackbrowser as alias
+export const HackbrowserCommand = McpbrowserCommand
