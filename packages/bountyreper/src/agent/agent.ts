@@ -20,6 +20,16 @@ import PROMPT_MOBILE_APPLICATION from "./prompt/mobile-application.txt"
 import PROMPT_NORMALIZE_REQUEST from "./prompt/normalize-request.txt"
 import PROMPT_BOUNTYREPER from "./prompt/bountyreper.txt"
 import PROMPT_GENERAL from "./prompt/general.txt"
+
+// Maturity labels (numasec-inspired): mature = production-ready, experimental = use with review
+export const MATURITY: Record<string, "mature" | "experimental" | "planned"> = {
+  "web-application": "mature",
+  "proxy-agent": "mature",
+  bountyreper: "mature",
+  "cloud-security": "experimental",
+  "internal-network": "experimental",
+  "mobile-application": "experimental",
+}
 import PROMPT_PROXY_TESTER_LLM from "./prompt/vuln/llm/prompt.txt"
 import DESC_PROXY_TESTER_LLM from "./prompt/vuln/llm/description.txt"
 

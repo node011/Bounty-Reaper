@@ -28,6 +28,7 @@ export namespace Identifier {
     chain_candidate: "chn",
     agent_performance: "apf",
     validation_violation: "vvl",
+    operation_ledger: "opl",
   } as const
 
   export function schema(prefix: keyof typeof prefixes) {
