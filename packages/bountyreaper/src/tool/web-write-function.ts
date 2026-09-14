@@ -4,6 +4,7 @@ import { WebFunction } from "../session/web/web-function"
 import { WebRole } from "../session/web/web-role"
 import { WebObject } from "../session/web/web-object"
 import { Session } from "../session"
+import { Request } from "../session/request"
 
 const description = `Record an application function (endpoint purpose) discovered during analysis.
 
@@ -29,12 +30,23 @@ export const WebWriteFunctionTool = Tool.define("web_write_function", {
   parameters: z.object({
     name: z.string().describe("Descriptive function name (e.g., 'Create_Order', 'Get_User_Profile')"),
     action_type: z.enum(["create", "read", "update", "delete"]).describe("Type of action this endpoint performs"),
-    request_id: z.string().describe("ID of the request/endpoint this function maps to"),
+    request_id: z
+      .string()
+      .optional()
+      .describe(
+        "ID of the request/endpoint this function maps to. Omit to attach to the most recently captured request.",
+      ),
     role_name: z.string().optional().describe("Role required to access this function (if known)"),
     object_names: z.array(z.string()).optional().describe("Objects this function operates on"),
   }),
   async execute(params, ctx) {
     const sessionID = Session.root(ctx.sessionID)
+    // Auto-resolve: the analyzer usually means "the request I just analyzed".
+    // Same fallback shape as task.ts request-context resolution.
+    const requestID = params.request_id ?? Request.get(sessionID).sort((a, b) => b.time.updated - a.time.updated)[0]?.id
+    if (!requestID) {
+      throw new Error("web_write_function: no request captured yet — crawl/ingest a request before recording functions")
+    }
     let roleID: string | undefined
     if (params.role_name) {
       const role = WebRole.getByName(sessionID, params.role_name)
@@ -52,7 +64,7 @@ export const WebWriteFunctionTool = Tool.define("web_write_function", {
       sessionID,
       name: params.name,
       actionType: params.action_type,
-      requestID: params.request_id,
+      requestID,
       roleID,
       objects: objectIDs,
     })
@@ -66,6 +78,7 @@ export const WebWriteFunctionTool = Tool.define("web_write_function", {
         role_id: func.role_id,
         objects: func.objects,
       },
+      resolved_request_id: params.request_id ? undefined : requestID,
     }
 
     return {

@@ -248,13 +248,20 @@ export namespace ProviderError {
     }
 
     const metadata = input.error.url ? { url: input.error.url } : undefined
+    const msgText = m
+    // Rate limits are inherently transient — some gateways (OpenCode Zen "Console",
+    // openai-compatible free tiers) return 429s with isRetryable unset. Retryability
+    // must not depend on the SDK flag for these; SessionRetry backs off properly.
+    const rateLimited = /rate limit|rate-limit|rate_limit|too many requests|try again later/i.test(msgText)
     return {
       type: "api_error",
-      message: m,
+      message: msgText,
       statusCode: input.error.statusCode,
-      isRetryable: input.providerID.startsWith("openai")
-        ? isOpenAiErrorRetryable(input.error)
-        : input.error.isRetryable || isServerError(input.error.statusCode),
+      isRetryable:
+        rateLimited ||
+        (input.providerID.startsWith("openai")
+          ? isOpenAiErrorRetryable(input.error)
+          : input.error.isRetryable || isServerError(input.error.statusCode)),
       responseHeaders: input.error.responseHeaders,
       responseBody: input.error.responseBody,
       metadata,
