@@ -1,3 +1,9 @@
+
+<h1 align="center">Bounty Reaper</h1>
+<h3 align="center">The open-source AI agent for offensive security.</h3>
+
+<p align="center">
+
 <p align="center">
   <img src="assets/tui-screenshot.png" alt="BountyReper TUI — Palantir theme, Proxy-Agent live teardown" width="880">
 </p>
