@@ -49,7 +49,7 @@ export namespace Phase {
       id: "passive_recon",
       name: "Passive Reconnaissance",
       prerequisites: ["scope_analysis"],
-      requiredTags: ["passive-recon", "subdomain", "osint", "recon"],
+      requiredTags: ["passive-recon", "subdomain", "osint", "recon", "js-recon"],
       minDeliverables: 1,
       relatedVrtCategories: [],
       appliesTo: ["wildcard", "single"],

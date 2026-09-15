@@ -38,7 +38,7 @@ Use this as your primary routing guide. The Agent Delegation Briefing (injected 
 | Phase | Primary Agent | Secondary Agent |
 |-------|--------------|-----------------|
 | scope_analysis | GHOST (explore) | — |
-| passive_recon | GHOST (explore) | — |
+| passive_recon | GHOST (explore) | STRIKER (web-application, js_recon) |
 | active_recon | GHOST (explore) | STRIKER (web-application) |
 | technology_profiling | GHOST (explore) | STRIKER (web-application) |
 | authentication_testing | STRIKER (web-application) | INTERCEPTOR (proxy-agent) |
