@@ -15,6 +15,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic"
 import type { LanguageModel } from "ai"
 import { BUNDLED_PROVIDERS } from "../provider/bundled-providers"
+import { Flag } from "../flag/flag"
 import {
   exchangeCopilotToken,
   invalidateCopilotToken,
@@ -298,6 +299,14 @@ function buildCrawlOptions(opts: WorkerOptions, signal: AbortSignal): CrawlOptio
   }
 
   const model = createModelFromDescriptor(opts.model)
+
+  // OpenCode Go's gateway requires x-opencode-session on every LLM request —
+  // the crawler worker makes its own planner LLM calls (navigator.planPage)
+  // that bypass the main binary's llm.ts header injection, which triggered
+  // "Request is missing x-opencode-session" provider errors (and the 09/06
+  // enforcement warning). Expose them via env for the navigator's requests.
+  process.env.X_OPENCODE_SESSION = opts.sessionID
+  process.env.X_OPENCODE_CLIENT = Flag.BOUNTYREAPER_CLIENT
 
   const credentialFields: Partial<CrawlOptions> = (() => {
     const d = opts.credentialDispatch

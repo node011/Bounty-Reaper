@@ -49,6 +49,7 @@ export function Header() {
   const session = createMemo(() => sync.session.get(route.sessionID)!)
   const messages = createMemo(() => sync.data.message[route.sessionID] ?? [])
   const queueStatus = createMemo(() => sync.data.session_queue_status?.[route.sessionID])
+  const sessionStatus = createMemo(() => sync.data.session_status?.[route.sessionID])
 
   const cost = createMemo(() => {
     const total = pipe(
@@ -159,6 +160,13 @@ export function Header() {
                   <text fg={theme.textMuted} wrapMode="none" flexShrink={0}>
                     ⏸ Queue paused — {queueStatus()!.pending} pending
                   </text>
+                </Show>
+                <Show when={sessionStatus()?.type === "retry" ? sessionStatus() : undefined}>
+                  {(status) => (
+                    <text fg={theme.warning} wrapMode="none" flexShrink={0}>
+                      ⟳ provider error — attempt {(status() as { attempt: number }).attempt}, retrying
+                    </text>
+                  )}
                 </Show>
                 <ContextInfo context={context} cost={cost} usage={treeUsage} />
               </box>

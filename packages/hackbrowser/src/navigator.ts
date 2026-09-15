@@ -13,6 +13,17 @@ import type { PlannerSnapshot } from "./state.ts"
 // into the bundle, identical behavior across both modes.
 import plannerPromptText from "./prompt/planner.txt" with { type: "text" }
 
+/** OpenCode Go gateway routing/caching headers (optional — set by the crawl
+ *  worker; absent when running the planner standalone). */
+function goSessionHeaders(): Record<string, string> | undefined {
+  const session = process.env.X_OPENCODE_SESSION
+  if (!session) return undefined
+  return {
+    "x-opencode-session": session,
+    "x-opencode-client": process.env.X_OPENCODE_CLIENT ?? "bountyreaper",
+  }
+}
+
 const log = Log.create({ service: "hackbrowser:navigator" })
 
 /**
@@ -111,6 +122,10 @@ export async function planPage(
       messages: [{ role: "user", content: userMessage }],
       maxOutputTokens: 16384,
       temperature: 0,
+      // OpenCode Go gateway: requests without x-opencode-session can't be
+      // routed/cached and error out post-2026-09-06 enforcement. The crawl
+      // worker exports these env vars at startup.
+      headers: goSessionHeaders(),
       providerOptions: {
         openai: { reasoningEffort: "low" },
       },
@@ -194,6 +209,7 @@ export async function planUnexploredElements(
       messages: [{ role: "user", content: userMessage }],
       maxOutputTokens: 16384,
       temperature: 0,
+      headers: goSessionHeaders(),
       providerOptions: {
         openai: { reasoningEffort: "low" },
       },
