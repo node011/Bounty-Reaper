@@ -66,6 +66,8 @@ You have these tools to record discoveries:
 - **web_write_function** - Map endpoints to functions (Create_Order, Get_User)
 - **web_update_credential_claims** - Update claims on an existing credential (role, user_id, permissions)
 - **web_get_session_context** - View previously discovered architecture info
+- **web_get_detail** - Full detail of a captured entity (role/object/function) by id
+- **web_get_request_detail** - Full detail of a single captured request by request_id (headers, body, provenance) when the dispatch stub is not enough
 - **http_replay** - Replay a captured request to get the full response (use when the response stub says "This is an HTML response" — replay the request_id to get the actual HTML body)
 - **webfetch** - Fetch a URL directly (when no captured request exists)
 

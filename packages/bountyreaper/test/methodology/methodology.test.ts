@@ -18,11 +18,13 @@ describe("Methodology — Phase Computation", () => {
         const session = await Session.create({})
 
         const state = Methodology.computeState(session.id)
-        // Empty session → "single" scope → 12 phases (no infrastructure)
+        // Empty session → "single" scope → 12 phases (no infrastructure).
+        // Optional phases (minDeliverables=0) are complete with zero entries —
+        // otherwise a clean target could never unblock `reporting`.
         const singlePhaseCount = Phase.forScope("single").length
+        const optionalCount = Phase.forScope("single").filter((p) => p.minDeliverables === 0).length
         expect(state.phases.length).toBe(singlePhaseCount)
-        expect(state.completionPercent).toBe(0)
-        expect(state.completedCount).toBe(0)
+        expect(state.completedCount).toBe(optionalCount)
         expect(state.totalCount).toBe(singlePhaseCount)
 
         await Session.remove(session.id)

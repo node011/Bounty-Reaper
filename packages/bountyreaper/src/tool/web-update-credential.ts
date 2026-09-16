@@ -4,7 +4,7 @@ import { WebCredential } from "../session/web/web-credential"
 import { Session } from "../session"
 
 export const WebUpdateCredentialTool = Tool.define("web_update_credential", {
-  description: `Update a credential's auth headers in the session store. Use this after minting fresh tokens via curl — write the new headers here, then use http_replay with the credential parameter to send test requests with the fresh auth. Only headers you provide are updated; other credential fields are preserved.`,
+  description: `Update a credential's auth headers in the session store. Use this after minting fresh tokens via http_replay (e.g. replaying the login/refresh request) — write the new headers here, then use http_replay with the credential parameter to send test requests with the fresh auth. Only headers you provide are updated; other credential fields are preserved.`,
   parameters: z.object({
     credential_id: z.string().describe("The credential ID to update (from web_get_session_context)"),
     headers: z

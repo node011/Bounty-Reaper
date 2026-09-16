@@ -106,13 +106,12 @@ skill unload <skill-name>   # unload when moving to a different test area
 | Tool | Purpose |
 |------|---------|
 | mcpbrowser | AI-driven crawler — endpoint and form discovery |
-| sqlmap | SQL injection exploitation |
-| ffuf | Directory/parameter fuzzing |
-| nuclei | Template-based vulnerability scanning |
-| jwt_tool | JWT analysis and exploitation |
-| tplmap | SSTI detection and exploitation |
-| testssl.sh | TLS/SSL configuration testing |
-| curl | Raw HTTP request crafting |
+| http_replay | Sanctioned HTTP sender — all crafted/raw requests go through this, never curl |
+| inject_probe | Injection payload battery (xss/ssti/cmd/sqli/nosql/ldap/xpath/lfi) |
+| sqlmap | SQL injection exploitation (via bash; provision with `ensure_tools`) |
+| ffuf | Directory/parameter fuzzing (via bash; provision with `ensure_tools`) |
+| nuclei | Template-based vulnerability scanning (via bash; provision with `ensure_tools`) |
+| dalfox | XSS scanning (via bash; provision with `ensure_tools`) |
 
 ## Reporting
 

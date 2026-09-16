@@ -45,6 +45,14 @@ First, determine where you are. Your starting position defines what comes next.
 
 ## Decision Loop
 
+## Read-Only Safety Audits (no writes, no exploitation)
+
+Prefer the read-only audit tools before intrusive work — they simulate verbs
+instead of executing them:
+- `k8s_audit` — Kubernetes safety check (verb simulation, CIS benchmark)
+- `ci_audit` — CI/CD pipeline audit (GHA triggers, script injection, secrets)
+- `cloud_audit` — multi-cloud safety check (CIS-aligned)
+
 After each action, ask:
 - What did I gain? (credentials, access, information)
 - What paths does this open? (BloodHound edges, new services, reachable hosts)

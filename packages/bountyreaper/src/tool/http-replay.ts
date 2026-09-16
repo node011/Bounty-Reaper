@@ -212,7 +212,7 @@ async function sendGoverned(
     () =>
       BackendFetch.send(msg, {
         origin,
-        rejectUnauthorized: opts.insecure_tls === false,
+        rejectUnauthorized: opts.insecure_tls !== true,
         totalTimeoutMs: opts.total_timeout_ms,
         followRedirects: opts.follow_redirects,
         signal: opts.signal,
@@ -344,7 +344,7 @@ export const HttpReplayTool = Tool.define("http_replay", {
     insecure_tls: z
       .boolean()
       .optional()
-      .describe("Accept invalid/self-signed certs (default true — pentest targets often have bad certs)."),
+      .describe("Accept invalid/self-signed certs (default false — opt in only for self-signed pentest targets)."),
     total_timeout_ms: z
       .number()
       .int()
@@ -530,7 +530,7 @@ export const HttpReplayRawTool = Tool.define("http_replay_raw", {
       .describe(
         "Exact raw HTTP request bytes to send. Omit to send the captured request's raw bytes unchanged (required when using target_url).",
       ),
-    insecure_tls: z.boolean().optional().describe("Accept invalid/self-signed certs (default true)."),
+    insecure_tls: z.boolean().optional().describe("Accept invalid/self-signed certs (default false)."),
     total_timeout_ms: z.number().int().positive().optional(),
   }),
   async execute(params, ctx) {
@@ -585,7 +585,7 @@ export const HttpReplayRawTool = Tool.define("http_replay_raw", {
       host: url.hostname,
       port,
       tls: useTls,
-      rejectUnauthorized: params.insecure_tls === false,
+      rejectUnauthorized: params.insecure_tls !== true,
       totalTimeoutMs: params.total_timeout_ms,
       signal: ctx.abort,
     })

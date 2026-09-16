@@ -108,12 +108,12 @@ export namespace Methodology {
         deliverableCount: matching.length,
       }
 
-    // For phases with minDeliverables=0, check related VRT categories
-    if (def.minDeliverables === 0 && def.relatedVrtCategories.length > 0) {
-      const hasTaggedEntry = matching.length > 0
-      if (hasTaggedEntry)
-        return { completed: true, evidence: `${matching.length} tagged entries`, deliverableCount: matching.length }
-    }
+    // Optional phases (minDeliverables=0) are complete when nothing is
+    // required of them — otherwise a clean target with zero findings in an
+    // optional phase (e.g. business_logic) would deadlock `reporting`,
+    // which lists it as a prerequisite.
+    if (def.minDeliverables === 0 && matching.length === 0)
+      return { completed: true, evidence: "optional phase, no deliverables required", deliverableCount: 0 }
 
     return {
       completed: false,

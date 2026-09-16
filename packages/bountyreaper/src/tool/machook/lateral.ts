@@ -1,14 +1,31 @@
 import { run, argVal, hasFlag } from "./shared"
 import type { Finding, HookResult } from "./shared"
+import { Shell } from "@/util/shell"
 
 export async function sshPivot(args: string[], timeout: number): Promise<HookResult> {
-  const target = argVal(args, "--target")
-  const user = argVal(args, "--user") || "root"
-  const key = argVal(args, "--key")
+  const rawTarget = argVal(args, "--target")
+  const rawUser = argVal(args, "--user") || "root"
+  const rawKey = argVal(args, "--key")
   const command = argVal(args, "--command")
   const tunnel = argVal(args, "--tunnel")
   const findings: Finding[] = []
   const output: string[] = ["=== SSH Pivot ==="]
+  // argv-spawned ssh still interprets option-looking operands (-oProxyCommand
+  // smuggling), so validate before pushing onto sshArgs.
+  let target = ""
+  let user = "root"
+  let key = ""
+  try {
+    if (rawTarget) target = Shell.host(rawTarget, "--target")
+    if (!/^[A-Za-z0-9._-]{1,64}$/.test(rawUser)) throw new Error("invalid --user")
+    user = rawUser
+    if (rawKey) {
+      if (!/^[/A-Za-z0-9._-]+$/.test(rawKey)) throw new Error("invalid --key: unsafe path characters")
+      key = rawKey
+    }
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   const agent = await run("ssh-add", ["-l"], timeout)
   if (agent.exitCode === 0 && !agent.stdout.includes("no identities")) {
@@ -65,6 +82,12 @@ export async function sshPivot(args: string[], timeout: number): Promise<HookRes
     if (parts.length < 2) {
       output.push("[!] Invalid tunnel format. Use --tunnel LOCAL_PORT:REMOTE_PORT")
       return { output: output.join("\n"), findings }
+    }
+    try {
+      parts[0] = Shell.port(parts[0], "--tunnel local port")
+      parts[1] = Shell.port(parts[1], "--tunnel remote port")
+    } catch (e) {
+      return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
     }
     const sshArgs = ["-o", "StrictHostKeyChecking=no", "-L", `${parts[0]}:localhost:${parts[1]}`, "-N", "-f"]
     if (key) sshArgs.push("-i", key)

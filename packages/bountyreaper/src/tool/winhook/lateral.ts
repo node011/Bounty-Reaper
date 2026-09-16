@@ -1,5 +1,6 @@
 import { ps, cmd, wmic, activeExec, argVal, hasFlag } from "./shared"
 import type { Finding, HookResult } from "./shared"
+import { Shell } from "@/util/shell"
 
 export async function wmiExec(args: string[], timeout: number): Promise<HookResult> {
   const target = argVal(args, "--target")
@@ -101,6 +102,15 @@ export async function winrmExec(args: string[], timeout: number): Promise<HookRe
   const output: string[] = [`[*] WinRM/PSRemoting execution on ${target}\n`]
 
   if (!target || !command) return { output: "[!] Required: --target HOST --command CMD", findings }
+  // target interpolates into the LOCAL PowerShell/cmd strings below — validate
+  // so a quote/metachar can't break out (command itself runs on the remote
+  // engagement target by design). user is single-quoted into PS: charset-guard.
+  try {
+    Shell.host(target, "--target")
+    if (user && !/^[A-Za-z0-9._\\-]{1,64}$/.test(user)) throw new Error("invalid --user")
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   if (activeExec === "cmd" || activeExec === "bat") {
     const credPart = user && password ? `-u:${user} -p:${password}` : ""

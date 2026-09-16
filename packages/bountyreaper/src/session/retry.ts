@@ -6,6 +6,10 @@ export namespace SessionRetry {
   export const RETRY_INITIAL_DELAY = 2000
   export const RETRY_BACKOFF_FACTOR = 2
   export const RETRY_MAX_DELAY_NO_HEADERS = 30_000 // 30 seconds
+  export const RETRY_MAX_ATTEMPTS = 10
+  export const RETRY_MAX_TOTAL_MS = 10 * 60 * 1000 // 10 minutes of retries, then fail fast
+  export const RETRY_MAX_DELAY_WITH_HEADERS = 120_000 // clamp provider retry-after to 2 minutes
+  export const RETRY_FAIL_FAST_AFTER_MS = 10 * 60 * 1000 // retry-after beyond this fails fast
   export const RETRY_MAX_DELAY = 2_147_483_647 // max 32-bit signed integer for setTimeout
 
   const RETRYABLE_MESSAGE_PATTERNS = [
@@ -40,32 +44,30 @@ export namespace SessionRetry {
     })
   }
 
+  function headerDelayMs(headers: Record<string, string>): number | undefined {
+    const ms = headers["retry-after-ms"]
+    if (ms) {
+      const parsed = Number.parseFloat(ms)
+      if (!Number.isNaN(parsed)) return Math.max(0, parsed)
+    }
+    const after = headers["retry-after"]
+    if (after) {
+      const secs = Number.parseFloat(after)
+      if (!Number.isNaN(secs)) return Math.max(0, Math.ceil(secs * 1000))
+      const date = Date.parse(after) - Date.now()
+      if (!Number.isNaN(date) && date > 0) return Math.ceil(date)
+    }
+    return undefined
+  }
+
   export function delay(attempt: number, error?: MessageV2.APIError) {
     if (error) {
       const headers = error.data.responseHeaders
       if (headers) {
-        const retryAfterMs = headers["retry-after-ms"]
-        if (retryAfterMs) {
-          const parsedMs = Number.parseFloat(retryAfterMs)
-          if (!Number.isNaN(parsedMs)) {
-            return parsedMs
-          }
-        }
-
-        const retryAfter = headers["retry-after"]
-        if (retryAfter) {
-          const parsedSeconds = Number.parseFloat(retryAfter)
-          if (!Number.isNaN(parsedSeconds)) {
-            // convert seconds to milliseconds
-            return Math.ceil(parsedSeconds * 1000)
-          }
-          // Try parsing as HTTP date format
-          const parsed = Date.parse(retryAfter) - Date.now()
-          if (!Number.isNaN(parsed) && parsed > 0) {
-            return Math.ceil(parsed)
-          }
-        }
-
+        // Clamp provider-driven delays: a hours-long retry-after would park
+        // the turn indefinitely ("running, 0 tool calls").
+        const headerMs = headerDelayMs(headers)
+        if (headerMs !== undefined) return Math.min(headerMs, RETRY_MAX_DELAY_WITH_HEADERS)
         return RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1)
       }
     }
@@ -91,6 +93,12 @@ export namespace SessionRetry {
       // would park the turn essentially forever ("running, 0 tool calls").
       // Fail fast so the caller surfaces the quota error immediately.
       if (error.data.responseBody?.includes("FreeUsageLimitError")) return undefined
+      // Same for any absurd retry-after: treat as fail-fast, not a parking spot.
+      const headers = error.data.responseHeaders
+      if (headers) {
+        const wait = headerDelayMs(headers)
+        if (wait !== undefined && wait > RETRY_FAIL_FAST_AFTER_MS) return undefined
+      }
       return error.data.message.includes("Overloaded") ? "Provider is overloaded" : error.data.message
     }
 

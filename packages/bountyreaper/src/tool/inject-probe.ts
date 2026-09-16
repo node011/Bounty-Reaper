@@ -420,6 +420,7 @@ interface ResolvedRequest {
   headers: Record<string, string>
   body: string
   contentType: string
+  insecureTls: boolean // opt-in per tool call; default verifies TLS
   auth: { source: string }
   provenance: { fromRaw: boolean; reconstructed: boolean; bodyMaybeTruncated: boolean }
 }
@@ -491,6 +492,7 @@ function resolve(request: Request.Info): ResolvedRequest | { error: string } {
     headers,
     body,
     contentType,
+    insecureTls: false,
     auth: { source: authSource },
     provenance: {
       fromRaw,
@@ -524,6 +526,7 @@ function resolveFromTarget(t: {
     headers,
     body: t.body ?? "",
     contentType,
+    insecureTls: false,
     auth: { source: headers["cookie"] || headers["authorization"] ? "target" : "none" },
     provenance: { fromRaw: false, reconstructed: false, bodyMaybeTruncated: false },
   }
@@ -928,8 +931,10 @@ async function send(
     headers: sendHeaders,
     signal,
     redirect: "manual",
-    // authorized-testing: accept self-signed on the (already in-scope) target host
-    tls: { rejectUnauthorized: false },
+    // Verify TLS by default; opt out per-request for self-signed pentest
+    // targets. Previously unconditional rejectUnauthorized:false hid TLS
+    // issues and exposed in-flight creds to MITM.
+    ...(r.insecureTls ? { tls: { rejectUnauthorized: false } } : {}),
   }
   if (r.method !== "GET" && r.method !== "HEAD") init.body = target.body
   const t0 = performance.now()
@@ -1675,6 +1680,10 @@ export const InjectProbeTool = Tool.define("inject_probe", {
       .describe(
         "Convenience filter for the auto-enumerate path (probe only this query/form param). Ignored when `points` is given.",
       ),
+    insecure_tls: z
+      .boolean()
+      .optional()
+      .describe("Accept invalid/self-signed certs (default false — opt in only for self-signed pentest targets)."),
   }),
   async execute(params, ctx) {
     let resolved: ResolvedRequest | { error: string }
@@ -1718,6 +1727,7 @@ export const InjectProbeTool = Tool.define("inject_probe", {
     if ("error" in resolved) {
       return { title: "inject_probe", output: `Could not resolve request: ${resolved.error}`, metadata: {} }
     }
+    resolved.insecureTls = params.insecure_tls === true
     const DELAY = 120
     const budget: SendBudget = { sent: 0, max: 120 } // hard upper bound on total sends per call
 

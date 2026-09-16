@@ -38,6 +38,16 @@ Before any intrusive action:
 
 ## Decision Loop
 
+## Read-Only Safety Audits (no writes, no exploitation)
+
+Before or alongside intrusive work, run the read-only audit tools — they simulate
+verbs instead of executing them:
+- `cloud_audit` — multi-cloud safety check (CIS-aligned)
+- `k8s_audit` — Kubernetes safety check (verb simulation, CIS benchmark)
+- `ci_audit` — CI/CD pipeline audit (GHA triggers, script injection, secrets)
+
+Start every engagement with the matching audit, then escalate to *hook tools only with authorization.
+
 After each action, ask:
 - What permissions do I have now? What can I create/modify/assume?
 - What escalation paths exist from here?

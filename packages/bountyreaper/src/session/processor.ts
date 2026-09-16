@@ -34,6 +34,7 @@ export namespace SessionProcessor {
     let snapshot: string | undefined
     let blocked = false
     let attempt = 0
+    let retryStart = 0
     let needsCompaction = false
 
     const result = {
@@ -408,7 +409,13 @@ export namespace SessionProcessor {
               break
             }
             const retry = SessionRetry.retryable(error)
-            if (retry !== undefined) {
+            // Bounded retries: a persistently failing provider must surface an
+            // error, not spin the turn forever ("running, 0 tool calls").
+            if (retryStart === 0) retryStart = Date.now()
+            const exhausted =
+              attempt >= SessionRetry.RETRY_MAX_ATTEMPTS ||
+              Date.now() - retryStart >= SessionRetry.RETRY_MAX_TOTAL_MS
+            if (retry !== undefined && !exhausted) {
               attempt++
               const delay = SessionRetry.delay(attempt, error.name === "APIError" ? error : undefined)
               SessionStatus.set(input.sessionID, {
@@ -420,6 +427,7 @@ export namespace SessionProcessor {
               await SessionRetry.sleep(delay, input.abort).catch(() => {})
               continue
             }
+            if (exhausted) log.warn("retry budget exhausted, failing turn", { attempt, sessionID: input.sessionID })
             input.assistantMessage.error = error
             Bus.publish(Session.Event.Error, {
               sessionID: input.assistantMessage.sessionID,

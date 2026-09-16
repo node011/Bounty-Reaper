@@ -26,6 +26,17 @@ function goSessionHeaders(): Record<string, string> | undefined {
 
 const log = Log.create({ service: "hackbrowser:navigator" })
 
+// Consecutive planner-call failure streak. A systematic outage (bad key scope,
+// gateway enforcement, persistent 5xx) degrades every page to an empty plan —
+// without this the crawl "succeeds" having found nothing. The agent loops
+// abort once the streak hits MAX_PLAN_ERROR_STREAK. Successful plans
+// (including legitimate empty ones) reset it.
+let errorStreak = 0
+export const MAX_PLAN_ERROR_STREAK = 5
+export function planErrorStreak(): number {
+  return errorStreak
+}
+
 /**
  * Auth/credential failures (missing key, 401/403) never recover within a run,
  * so they must NOT be masked by the empty-plan fallback below — otherwise a
@@ -151,16 +162,20 @@ export async function planPage(
 
   try {
     const plan = await attempt()
+    errorStreak = 0
     log.debug("page plan", { tasks: plan.tasks.length })
     return plan
   } catch (err) {
     if (isAuthError(err)) throw err
     log.warn("planPage failed, retrying once", { err: String(err) })
     try {
-      return await attempt()
+      const plan = await attempt()
+      errorStreak = 0
+      return plan
     } catch (err2) {
       if (isAuthError(err2)) throw err2
-      log.error("planPage failed after retry, returning empty plan", { err: String(err2) })
+      errorStreak++
+      log.error("planPage failed after retry, returning empty plan", { err: String(err2), errorStreak })
       return { tasks: [] }
     }
   }

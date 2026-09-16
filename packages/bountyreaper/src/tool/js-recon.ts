@@ -109,8 +109,17 @@ export const JsReconTool = Tool.define("js_recon", {
     }
 
     const outDir = `/tmp/js-recon-${sessionID.slice(-8)}-${Date.now()}`
-    const args = ["scan", "-t", params.target, "-o", outDir, "--no-active"]
-    for (const extra of params.scope_extra ?? []) args.push(extra)
+    // scope_extra is documented as domains but lands on the BundleBleed argv —
+    // validate so a flag-looking value (--output, --exec, ...) can't smuggle
+    // BundleBleed options (argument injection via LLM-supplied params).
+    const extra: string[] = []
+    for (const domain of params.scope_extra ?? []) {
+      const clean = domain.trim().toLowerCase().replace(/^https?:\/\//, "").split("/")[0]
+      if (!/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/.test(clean))
+        return { title: "js_recon rejected", output: `Invalid scope_extra domain: ${domain}`, metadata: meta }
+      extra.push(clean)
+    }
+    const args = ["scan", "-t", params.target, "-o", outDir, "--no-active", ...extra]
     if (params.download === false) args.push("--no-download")
     if (params.concurrency) args.push("--concurrency", String(params.concurrency))
 

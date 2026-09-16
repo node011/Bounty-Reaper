@@ -686,7 +686,11 @@ export namespace SessionPrompt {
         log.warn("stripped stale seeded task deny — running agent can delegate", { sessionID, agent: agent.name })
         await Session.setPermission({ sessionID, permission: repaired })
       }
-      const maxSteps = agent.steps ?? Infinity
+      // Uncapped agents previously ran with Infinity — a model making varied
+      // no-progress calls could spin forever. 100 single-turn steps is far
+      // above legitimate use (hunts span many turns); the wrap-up below
+      // still lets the model finish with text instead of hard-cutting.
+      const maxSteps = agent.steps ?? 100
       const isLastStep = step >= maxSteps
       // Hard backstop (loop-termination Layer 1): the forced wrap-up turn strips
       // tools (below) so the model finishes with text. If a provider STILL returned a

@@ -281,6 +281,9 @@ export interface AgentConfig {
   scope?: string[]
   // Max navigation steps before stopping
   maxSteps?: number
+  // Hard wall-clock budget for the whole crawl (ms). Default 45 minutes —
+  // without it a large maxSteps plus 1.5–30s network waits can run for hours.
+  deadlineMs?: number
   // Show browser window
   headless?: boolean
   // Dry-run mode: crawl without LLM calls, print captures to console instead of sending to BountyReaper

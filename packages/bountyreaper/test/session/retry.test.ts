@@ -57,12 +57,12 @@ describe("session.retry.delay", () => {
     expect(SessionRetry.delay(1, error)).toBe(2000)
   })
 
-  test("uses retry-after values even when exceeding 10 minutes with headers", () => {
+  test("clamps retry-after values to 2 minutes so a huge header can't park the turn", () => {
     const error = apiError({ "retry-after": "50" })
     expect(SessionRetry.delay(1, error)).toBe(50000)
 
     const longError = apiError({ "retry-after-ms": "700000" })
-    expect(SessionRetry.delay(1, longError)).toBe(700000)
+    expect(SessionRetry.delay(1, longError)).toBe(SessionRetry.RETRY_MAX_DELAY_WITH_HEADERS)
   })
 
   test("sleep caps delay to max 32-bit signed integer to avoid TimeoutOverflowWarning", async () => {
@@ -130,6 +130,17 @@ describe("session.retry.retryable", () => {
     const error = new MessageV2.ContextOverflowError({
       message: "Input exceeds context window of this model",
       responseBody: '{"error":{"code":"context_length_exceeded"}}',
+    }).toObject() as ReturnType<NamedError["toObject"]>
+
+    expect(SessionRetry.retryable(error)).toBeUndefined()
+  })
+
+  test("fails fast on absurd retry-after instead of parking the turn", () => {
+    const error = new MessageV2.APIError({
+      message: "Rate limit exceeded.",
+      isRetryable: true,
+      statusCode: 429,
+      responseHeaders: { "retry-after": "99999" },
     }).toObject() as ReturnType<NamedError["toObject"]>
 
     expect(SessionRetry.retryable(error)).toBeUndefined()

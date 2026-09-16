@@ -28,7 +28,7 @@ import {
   initAuth,
 } from "./ingest.ts"
 import { loadSession, autoLogin, handle2FA, waitForManualLogin } from "./auth.ts"
-import { resolveModel, planPage, planUnexploredElements, isAuthError } from "./navigator.ts"
+import { resolveModel, planPage, planUnexploredElements, isAuthError, planErrorStreak, MAX_PLAN_ERROR_STREAK } from "./navigator.ts"
 import {
   collectElements,
   isViewportCenterBlocked,
@@ -1895,6 +1895,8 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
   const maxPages = config.maxSteps ?? 50
   const dryRun = config.dryRun ?? false
   const panelOn = config.panel ?? true
+  const deadlineMs = config.deadlineMs ?? 45 * 60 * 1000
+  const crawlStart = Date.now()
   setPanelEnabled(panelOn)
   const usageAcc: CrawlUsage = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 }
 
@@ -2083,6 +2085,15 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
 
   // BFS Loop — single loop, N contexts
   while (pageQueue.length > 0 && pagesExplored < maxPages) {
+    if (Date.now() - crawlStart >= deadlineMs) {
+      log.warn("crawl deadline reached, stopping", { pagesExplored, deadlineMs })
+      break
+    }
+    if (planErrorStreak() >= MAX_PLAN_ERROR_STREAK) {
+      throw new Error(
+        `planner failed on ${MAX_PLAN_ERROR_STREAK} consecutive pages — aborting instead of finishing empty (check provider key/gateway)`,
+      )
+    }
     if (isBrowserDead(health)) {
       log.error("browser died, terminating multi-credential crawl", {
         reason: health.reason,
@@ -2372,6 +2383,8 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
   const serverUrl = config.bountyreaper.serverUrl ?? "http://127.0.0.1:4096"
   const maxPages = config.maxSteps ?? 50
   const dryRun = config.dryRun ?? false
+  const deadlineMs = config.deadlineMs ?? 45 * 60 * 1000
+  const crawlStart = Date.now()
   const usageAcc: CrawlUsage = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 }
   let credentialId = config.bountyreaper.credentialId
   const panelOn = config.panel ?? true
@@ -2545,6 +2558,15 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
     let pagesExplored = 0
 
     while (globalState.pageQueue.length > 0 && pagesExplored < maxPages) {
+      if (Date.now() - crawlStart >= deadlineMs) {
+        log.warn("crawl deadline reached, stopping", { pagesExplored, deadlineMs })
+        break
+      }
+      if (planErrorStreak() >= MAX_PLAN_ERROR_STREAK) {
+        throw new Error(
+          `planner failed on ${MAX_PLAN_ERROR_STREAK} consecutive pages — aborting instead of finishing empty (check provider key/gateway)`,
+        )
+      }
       if (isBrowserDead(health)) {
         log.error("browser died, terminating crawl", {
           reason: health.reason,

@@ -1,5 +1,6 @@
 import { bash, sh, python3, activeExec, argVal, hasFlag } from "./shared"
 import type { Finding, HookResult } from "./shared"
+import { Shell } from "@/util/shell"
 
 export async function arpSpoof(args: string[], timeout: number): Promise<HookResult> {
   const findings: Finding[] = []
@@ -140,9 +141,18 @@ export async function packetCapture(args: string[], timeout: number): Promise<Ho
   const findings: Finding[] = []
   const output: string[] = ["=== Packet Capture ==="]
 
-  const iface = argVal(args, "--interface") || "any"
-  const duration = argVal(args, "--duration") || "30"
-  const outFile = argVal(args, "--output") || "/dev/shm/cs_capture.pcap"
+  let iface = "any"
+  let duration = "30"
+  let outFile = "/dev/shm/cs_capture.pcap"
+  try {
+    iface = Shell.iface(argVal(args, "--interface") || "any")
+    duration = Shell.port(argVal(args, "--duration") || "30", "--duration")
+    const rawOut = argVal(args, "--output") || outFile
+    if (!/^[/A-Za-z0-9._-]+$/.test(rawOut) || rawOut.includes("..")) throw new Error("invalid --output path")
+    outFile = rawOut
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   const script = `
 echo "[*] Interface: ${iface}"
@@ -156,25 +166,25 @@ echo ""
 
 if command -v tcpdump >/dev/null 2>&1; then
   echo "[*] Using tcpdump"
-  timeout ${duration} tcpdump -i ${iface} -w "${outFile}" "$BPF" -c 10000 2>&1 &
+  timeout ${duration} tcpdump -i ${Shell.quote(iface)} -w ${Shell.quote(outFile)} "$BPF" -c 10000 2>&1 &
   TCPID=$!
   echo "[+] tcpdump started (PID: $TCPID)"
   echo "[*] Waiting ${duration}s..."
   wait $TCPID 2>/dev/null
-  if [ -f "${outFile}" ]; then
-    SIZE=$(wc -c < "${outFile}" 2>/dev/null)
-    echo "[+] Capture saved: ${outFile} ($SIZE bytes)"
+  if [ -f ${Shell.quote(outFile)} ]; then
+    SIZE=$(wc -c < ${Shell.quote(outFile)} 2>/dev/null)
+    echo "[+] Capture saved: ${Shell.quote(outFile)} ($SIZE bytes)"
     echo ""
     echo "--- Quick Analysis ---"
-    tcpdump -r "${outFile}" -n 2>/dev/null | head -20
+    tcpdump -r ${Shell.quote(outFile)} -n 2>/dev/null | head -20
   fi
 elif command -v tshark >/dev/null 2>&1; then
   echo "[*] Using tshark"
-  timeout ${duration} tshark -i ${iface} -w "${outFile}" -f "$BPF" -c 10000 2>&1 &
+  timeout ${duration} tshark -i ${Shell.quote(iface)} -w ${Shell.quote(outFile)} -f "$BPF" -c 10000 2>&1 &
   TSPID=$!
   echo "[+] tshark started (PID: $TSPID)"
   wait $TSPID 2>/dev/null
-  [ -f "${outFile}" ] && echo "[+] Capture saved: ${outFile}" || echo "[-] Capture failed"
+  [ -f ${Shell.quote(outFile)} ] && echo "[+] Capture saved: ${Shell.quote(outFile)}" || echo "[-] Capture failed"
 else
   echo "[-] No packet capture tool found (tcpdump or tshark required)"
   echo ""
@@ -207,34 +217,39 @@ export async function portScanNative(args: string[], timeout: number): Promise<H
   const findings: Finding[] = []
   const output: string[] = ["=== Port Scan ==="]
 
-  const target = argVal(args, "--target") || "127.0.0.1"
-  const ports =
-    argVal(args, "--ports") ||
+  let target = "127.0.0.1"
+  let ports =
     "21,22,23,25,53,80,110,111,135,139,143,443,445,993,995,1433,1521,3306,3389,5432,5900,6379,8080,8443,9200,27017"
+  try {
+    target = Shell.host(argVal(args, "--target") || target, "--target")
+    ports = Shell.portList(argVal(args, "--ports") || ports, "--ports")
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
+  }
 
   const script = `
-echo "[*] Target: ${target}"
-echo "[*] Ports: ${ports}"
+echo "[*] Target: ${Shell.quote(target)}"
+echo "[*] Ports: ${Shell.quote(ports)}"
 echo ""
 
 if command -v nmap >/dev/null 2>&1; then
   echo "[*] Using nmap"
-  nmap -sT -sV --top-ports 100 -T4 ${target} 2>/dev/null | grep -E "^(PORT|[0-9])" | head -50
+  nmap -sT -sV --top-ports 100 -T4 ${Shell.quote(target)} 2>/dev/null | grep -E "^(PORT|[0-9])" | head -50
 elif command -v nc >/dev/null 2>&1 || command -v ncat >/dev/null 2>&1; then
   NC=$(command -v ncat 2>/dev/null || command -v nc 2>/dev/null)
   echo "[*] Using $NC"
-  IFS=',' read -ra PORTS <<< "${ports}"
+  IFS=',' read -ra PORTS <<< ${Shell.quote(ports)}
   for p in "\${PORTS[@]}"; do
-    result=$($NC -zv -w 2 ${target} $p 2>&1)
+    result=$($NC -zv -w 2 ${Shell.quote(target)} $p 2>&1)
     if echo "$result" | grep -qi "open\|succeed\|connected"; then
-      echo "[+] ${target}:$p OPEN"
+      echo "[+] ${Shell.quote(target)}:$p OPEN"
     fi
   done
 else
   echo "[*] Using bash /dev/tcp (slowest but always available)"
-  IFS=',' read -ra PORTS <<< "${ports}"
+  IFS=',' read -ra PORTS <<< ${Shell.quote(ports)}
   for p in "\${PORTS[@]}"; do
-    (echo >/dev/tcp/${target}/$p) 2>/dev/null && echo "[+] ${target}:$p OPEN" &
+    (echo >/dev/tcp/${target}/$p) 2>/dev/null && echo "[+] ${Shell.quote(target)}:$p OPEN" &
   done
   wait
 fi
@@ -468,14 +483,25 @@ export async function trafficRedirect(args: string[], timeout: number): Promise<
   const findings: Finding[] = []
   const output: string[] = ["=== Traffic Redirect ==="]
 
-  const fromPort = argVal(args, "--from-port")
-  const toPort = argVal(args, "--to-port")
-  const targetIp = argVal(args, "--target-ip")
+  const rawFrom = argVal(args, "--from-port")
+  const rawTo = argVal(args, "--to-port")
+  const rawIp = argVal(args, "--target-ip")
 
-  if (!fromPort || !toPort) {
+  if (!rawFrom || !rawTo) {
     output.push("Usage: linuxhook traffic_redirect --from-port 80 --to-port 8080 [--target-ip <remote-ip>]")
     output.push("Redirect traffic using iptables REDIRECT (local) or DNAT (remote)")
     return { output: output.join("\n"), findings }
+  }
+
+  let fromPort = ""
+  let toPort = ""
+  let targetIp = ""
+  try {
+    fromPort = Shell.port(rawFrom, "--from-port")
+    toPort = Shell.port(rawTo, "--to-port")
+    if (rawIp) targetIp = Shell.host(rawIp, "--target-ip")
+  } catch (e) {
+    return { output: `ERROR: ${e instanceof Error ? e.message : e}`, findings }
   }
 
   const script = `
