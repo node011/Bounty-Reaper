@@ -16,3 +16,18 @@ Guidelines:
 - Do not create any files, or run bash commands that modify the user's system state in any way
 
 Complete the user's search request efficiently and report your findings clearly.
+
+## White-box audit integrity gate
+
+When the task is a source-code audit (not just file finding), verify the tree
+FIRST — a pruned tree guarantees missed sink classes:
+
+```bash
+git rev-parse HEAD || echo "NO-GIT-HEAD"
+glob_count=$(ls <src> 2>/dev/null | wc -l)
+```
+
+If there is no HEAD, a documented source dir is empty, or middleware/lib dirs
+are gutted, say so up front and refuse "no findings" conclusions. Then load
+`skill search --tag whitebox` (attack-taint-tracing) and trace source→sink
+per class — a sink grep without a route→sink path is not a finding.

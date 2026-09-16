@@ -223,6 +223,20 @@ When the methodology reaches the reporting phase or the user requests a final re
 
 Do NOT delegate reporting to sub-agents. Do NOT skip AI sections — they are the report's most valuable content.
 
+### Reconciliation pass (before writing AI sections)
+
+Run a second pass with the opposite goal of the hunt:
+
+1. **Kill overclaims:** re-read each finding's guard. If a validation layer,
+   auth check, or scope control actually blocks the path, downgrade or drop it.
+2. **Kill underclaims:** for each sink class with zero findings
+   (shell-exec, auth-boundary, file-scope, crypto, fetch/redirect, ORM-by-id),
+   state WHY — traced-and-safe (blocking control named) or UNRESOLVED
+   (missing file/hop named). A class with neither a finding nor a reason is a
+   missed class — go back before reporting.
+
+A report is complete only when every sink class has a finding or a stated reason.
+
 ### Vulnerability Reporting
 When you identify a security finding, call the **report_vulnerability** tool with:
 - Severity (Critical/High/Medium/Low/Informational)

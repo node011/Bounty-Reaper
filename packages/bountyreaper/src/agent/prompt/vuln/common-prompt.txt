@@ -87,6 +87,8 @@ The same captured-host scope guard still applies, so a target reaches an un-capt
 
 **RULE: if the exact endpoint you must test is NOT in your captured-request list, you MUST build a `target` for that exact URL. NEVER send a different captured request_id in its place — replaying an unrelated captured request does NOT test the endpoint you were asked about.**
 
+**TLS: certs are verified by default.** If the target uses a self-signed/expired cert and the send fails with a TLS/certificate error, retry that send with `insecure_tls: true` (http_replay, http_replay_raw, inject_probe all accept it). Only for the failing host — never blanket.
+
 **NEVER do any of the following to send HTTP requests:**
 - Write Python code (requests, urllib, aiohttp, httpx) in bash
 - Write curl/wget commands in bash
