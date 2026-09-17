@@ -35,7 +35,7 @@ import type {
   LanguageModelV3Usage,
 } from "@ai-sdk/provider"
 import { createGitLab, VERSION as GITLAB_PROVIDER_VERSION } from "@gitlab/gitlab-ai-provider"
-import { BUNDLED_PROVIDERS, type BundledSDK as SDK } from "./bundled-providers"
+import { BUNDLED_PROVIDERS, BUNDLED_OPENCODE_FRAMEWORK_UA, type BundledSDK as SDK } from "./bundled-providers"
 import { ProviderTransform } from "./transform"
 import { Installation } from "../installation"
 import { HeaderTimeoutError, ResponseStreamError } from "./error"
@@ -196,12 +196,8 @@ function asLanguageModelV3(model: LanguageModelV2 | LanguageModelV3): LanguageMo
 export namespace Provider {
   const log = Log.create({ service: "provider" })
 
-  // Framework UA sent on opencode-gateway requests. We ARE the opencode
-  // framework (direct fork — same SDK, same request pipeline, same
-  // x-opencode-* shape), and per upstream guidance the free-tier standard
-  // is framework usage, which a fork satisfies. Bump alongside official
-  // releases; mirrored in hackbrowser navigator (X_OPENCODE_UA env).
-  export const OPENCODE_FRAMEWORK_UA = "opencode/1.18.31"
+  // Re-exported from the leaf bundled-providers module (worker-safe).
+  export const OPENCODE_FRAMEWORK_UA = BUNDLED_OPENCODE_FRAMEWORK_UA
 
   function isGpt5OrLater(modelID: string): boolean {
     const match = /^gpt-(\d+)/.exec(modelID)

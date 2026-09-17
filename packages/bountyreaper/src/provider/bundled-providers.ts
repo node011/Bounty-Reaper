@@ -46,6 +46,14 @@ export type BundledSDK = {
   responses?: (modelId: string) => LanguageModelV3 | LanguageModelV2
 }
 
+// Framework UA sent on opencode-gateway requests. Lives here (not in
+// provider.ts) because this module is a LEAF: the hackbrowser worker
+// subprocess imports it, and importing provider.ts would drag the whole
+// main-process graph (bun builtins, DB, TUI) into the worker's
+// browser-targeted bundle and break the build. Bump alongside official
+// releases; Provider.OPENCODE_FRAMEWORK_UA re-exports this.
+export const BUNDLED_OPENCODE_FRAMEWORK_UA = "opencode/1.18.31"
+
 export const BUNDLED_PROVIDERS: Record<string, (options: any) => BundledSDK> = {
   "@ai-sdk/amazon-bedrock": createAmazonBedrock,
   "@ai-sdk/anthropic": createAnthropic,
