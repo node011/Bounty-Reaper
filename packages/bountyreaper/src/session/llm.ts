@@ -222,13 +222,12 @@ export namespace LLM {
               "x-opencode-session": input.sessionID,
               "x-opencode-request": input.user.id,
               "x-opencode-client": Flag.BOUNTYREAPER_CLIENT,
-              // Free-tier gate: the upstream Console provider only serves
-              // -free models to the official client, identified by the
-              // User-Agent prefix (see sst/opencode request.ts:
-              // USER_AGENT = `opencode/${InstallationVersion}`). Without it,
-              // free-tier calls fail with "can only be used from within
-              // OpenCode" / FreeUsageLimitError regardless of key or IP.
-              "User-Agent": "opencode/1.18.31",
+              // Identify honestly as a third-party client. Do NOT spoof the
+              // official `opencode/<version>` UA: impersonating it to pass
+              // the free-tier gate got accounts flagged for policy
+              // violations. Anonymous free-tier calls will be rejected by
+              // upstream — use logged-in (opencode-go) or BYOK models.
+              "User-Agent": `bountyreaper/${Installation.VERSION}`,
             }
           : input.model.providerID !== "anthropic"
             ? {
