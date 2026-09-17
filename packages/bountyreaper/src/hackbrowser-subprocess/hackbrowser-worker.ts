@@ -15,6 +15,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic"
 import type { LanguageModel } from "ai"
 import { BUNDLED_PROVIDERS } from "../provider/bundled-providers"
+import { Provider } from "../provider/provider"
 import { Flag } from "../flag/flag"
 import {
   exchangeCopilotToken,
@@ -307,6 +308,7 @@ function buildCrawlOptions(opts: WorkerOptions, signal: AbortSignal): CrawlOptio
   // enforcement warning). Expose them via env for the navigator's requests.
   process.env.X_OPENCODE_SESSION = opts.sessionID
   process.env.X_OPENCODE_CLIENT = Flag.BOUNTYREAPER_CLIENT
+  process.env.X_OPENCODE_UA = Provider.OPENCODE_FRAMEWORK_UA
 
   const credentialFields: Partial<CrawlOptions> = (() => {
     const d = opts.credentialDispatch

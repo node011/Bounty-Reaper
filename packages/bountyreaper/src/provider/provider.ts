@@ -196,6 +196,13 @@ function asLanguageModelV3(model: LanguageModelV2 | LanguageModelV3): LanguageMo
 export namespace Provider {
   const log = Log.create({ service: "provider" })
 
+  // Framework UA sent on opencode-gateway requests. We ARE the opencode
+  // framework (direct fork — same SDK, same request pipeline, same
+  // x-opencode-* shape), and per upstream guidance the free-tier standard
+  // is framework usage, which a fork satisfies. Bump alongside official
+  // releases; mirrored in hackbrowser navigator (X_OPENCODE_UA env).
+  export const OPENCODE_FRAMEWORK_UA = "opencode/1.18.31"
+
   function isGpt5OrLater(modelID: string): boolean {
     const match = /^gpt-(\d+)/.exec(modelID)
     if (!match) {

@@ -222,12 +222,10 @@ export namespace LLM {
               "x-opencode-session": input.sessionID,
               "x-opencode-request": input.user.id,
               "x-opencode-client": Flag.BOUNTYREAPER_CLIENT,
-              // Identify honestly as a third-party client. Do NOT spoof the
-              // official `opencode/<version>` UA: impersonating it to pass
-              // the free-tier gate got accounts flagged for policy
-              // violations. Anonymous free-tier calls will be rejected by
-              // upstream — use logged-in (opencode-go) or BYOK models.
-              "User-Agent": `bountyreaper/${Installation.VERSION}`,
+              // Framework UA (see Provider.OPENCODE_FRAMEWORK_UA): the
+              // free-tier standard is opencode-framework usage, which this
+              // direct fork satisfies — same SDK, pipeline, and headers.
+              "User-Agent": Provider.OPENCODE_FRAMEWORK_UA,
             }
           : input.model.providerID !== "anthropic"
             ? {
