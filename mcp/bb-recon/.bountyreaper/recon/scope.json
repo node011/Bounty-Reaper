@@ -1,26 +1,9 @@
 {
   "include": [
-    "*.allianz.com",
-    "*.allianz.cz",
-    "*.allianz.de",
-    "*.allianz.fr",
-    "allianz.com",
-    "allianz.cz",
-    "allianz.de",
-    "allianz.fr"
+    "0a6400a003c81ec187be4d9400750038.web-security-academy.net"
   ],
-  "exclude": [
-    "agent-search-bff-test.allianz.cz",
-    "pensionportal.allianz.de",
-    "support.passeport-dfud.com",
-    "www.adac.de",
-    "www.allianz-riviera.fr",
-    "www.allianz.de/auto/kfz-versicherung/rechner",
-    "www.allianz.de/auto/tools/rabattverlustrechner",
-    "www.allianz.de/service/tools/kilometerstandsmeldung",
-    "www.risikolebensversicherungen.com"
-  ],
+  "exclude": [],
   "allow_private": false,
-  "source": "/Users/joyojoyalappat/Documents/repo/bounty-reaper/mcp/bb-recon/.bountyreaper/recon/scope.json",
-  "updated": "2026-09-13T20:26:21Z"
+  "source": "/Users/joyojoyalappat/Documents/repo/bounty-reper/mcp/bb-recon/.bountyreaper/recon/scope.json",
+  "updated": "2026-09-17T06:21:15Z"
 }
