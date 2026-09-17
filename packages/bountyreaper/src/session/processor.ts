@@ -141,7 +141,10 @@ export namespace SessionProcessor {
                       tool: value.toolName,
                       state: {
                         status: "running",
-                        input: value.input,
+                        // Default: a call arriving without args must still
+                        // serialize with `arguments` later (strict providers
+                        // 400 on function_call items missing it).
+                        input: value.input ?? {},
                         time: match.state.status === "running" ? match.state.time : { start: Date.now() },
                       },
                       metadata: value.providerMetadata,

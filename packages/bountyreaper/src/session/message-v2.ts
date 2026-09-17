@@ -666,7 +666,10 @@ export namespace MessageV2 {
                 type: ("tool-" + part.tool) as `tool-${string}`,
                 state: "output-available",
                 toolCallId: part.callID,
-                input: part.state.input,
+                // Strict providers (Console Responses API) reject function_call
+                // items missing `arguments` with a 400 that poisons every later
+                // request replaying this history — default, never omit.
+                input: part.state.input ?? {},
                 output,
                 ...(differentModel ? {} : { callProviderMetadata: part.metadata }),
               })
@@ -676,7 +679,7 @@ export namespace MessageV2 {
                 type: ("tool-" + part.tool) as `tool-${string}`,
                 state: "output-error",
                 toolCallId: part.callID,
-                input: part.state.input,
+                input: part.state.input ?? {},
                 errorText: part.state.error,
                 ...(differentModel ? {} : { callProviderMetadata: part.metadata }),
               })
@@ -687,7 +690,7 @@ export namespace MessageV2 {
                 type: ("tool-" + part.tool) as `tool-${string}`,
                 state: "output-error",
                 toolCallId: part.callID,
-                input: part.state.input,
+                input: part.state.input ?? {},
                 errorText: "[Tool execution was interrupted]",
                 ...(differentModel ? {} : { callProviderMetadata: part.metadata }),
               })
