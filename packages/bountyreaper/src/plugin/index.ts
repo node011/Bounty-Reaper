@@ -12,6 +12,7 @@ import { Session } from "../session"
 import { NamedError } from "@bountyreaper-io/util/error"
 import { CopilotAuthPlugin } from "./copilot"
 import { AnthropicAuthPlugin } from "./anthropic"
+import { OpencodeAuthPlugin } from "./opencode"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "@gitlab/opencode-gitlab-auth"
 
 export namespace Plugin {
@@ -24,6 +25,7 @@ export namespace Plugin {
     CodexAuthPlugin,
     CopilotAuthPlugin,
     AnthropicAuthPlugin,
+    OpencodeAuthPlugin,
     GitlabAuthPlugin as unknown as PluginInstance,
   ]
 
