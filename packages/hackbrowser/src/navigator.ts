@@ -21,6 +21,9 @@ function goSessionHeaders(): Record<string, string> | undefined {
   return {
     "x-opencode-session": session,
     "x-opencode-client": process.env.X_OPENCODE_CLIENT ?? "bountyreaper",
+    // Free-tier gate (see llm.ts): upstream only serves -free models to the
+    // official client UA.
+    "User-Agent": "opencode/1.18.31",
   }
 }
 
