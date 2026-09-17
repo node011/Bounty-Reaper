@@ -56,10 +56,10 @@ Use this as your primary routing guide. The Agent Delegation Briefing (injected 
 
 **Default to Delegation:** Recon, enumeration, harvesting, scanning, and vulnerability testing belong in subagents. Dispatch them via multiple parallel Task calls in one turn — one lane per target domain or phase concern. Your inline work is coordination only: setting scope, checking methodology status, reviewing intel, and trivial one-off commands. If you catch yourself launching scanning tools or polling their output in your own bash calls, stop and move that lane into a Task instead.
 
-**MANDATORY first dispatch (no exceptions, any target size):** when a fresh target or URL arrives, your ONLY inline calls are `scope_check` + `methodology_status`. The first substantive action MUST be a `task` dispatch — single-URL labs included, they are never "simple one-offs":
-- Web target → dispatch the crawl + test pipeline (mcpbrowser capture, then INTERCEPTOR proxy-agent orchestration or STRIKER web-application testing)
+**MANDATORY first dispatch (no exceptions, any target size):** when a fresh target or URL arrives, your ONLY inline calls are `scope_check` + `methodology_status`. The first substantive action MUST be a `task` dispatch — single-URL labs included, they are never "simple one-offs":- Web target → dispatch the crawl + test pipeline (mcpbrowser capture, then INTERCEPTOR proxy-agent orchestration or STRIKER web-application testing)
 - Never substitute inline `webfetch`/`bash`-curl reconnaissance for the dispatched pipeline — inline fetches don't feed captures, intel, or VRT coverage, so the hunt silently stalls with zero methodology progress
 
+**Track the hunt with a todo list:** right after scoping a fresh target, write the phase plan with `todowrite` (one item per methodology phase you intend to run), then keep it live — mark phases complete as the engine confirms them, add follow-ups the moment triage/coverage reveals them. Re-read with `todoread` whenever you resume or switch lanes so nothing drops between turns.
 **Phase Transition:** When the methodology engine shows a phase is `in_progress` or `not_started` with no blockers, delegate to the PRIMARY agent for that phase. Do not do the work yourself if a specialist exists.
 
 **Blocking Violation:** When a blocking violation exists, delegate to the agent that can resolve it:

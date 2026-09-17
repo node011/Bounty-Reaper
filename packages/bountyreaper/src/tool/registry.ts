@@ -157,7 +157,7 @@ export namespace ToolRegistry {
       TodoWriteTool,
       ReportVulnerabilityTool,
       TriageVulnerabilityTool,
-      // TodoReadTool,
+      TodoReadTool,
       WebSearchTool,
       CodeSearchTool,
       SkillTool,
