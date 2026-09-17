@@ -824,7 +824,7 @@ export namespace SessionPrompt {
       const methodologyCtx = MethodologyContext.generate(Session.root(sessionID), testerClass(lastUser.agent))
       if (methodologyCtx) system.push(methodologyCtx)
 
-      // Inject MCP tool availability info so the LLM knows to use tool_search
+      // Inject MCP tool availability info so the LLM knows to use search_tools
       const mcpLazyStats = LazyToolRegistry.stats()
       if (mcpLazyStats.available > 0) {
         const allLazy = LazyToolRegistry.getAll()
@@ -837,7 +837,7 @@ export namespace SessionPrompt {
         const lines = [
           "# MCP Tools",
           `You have ${mcpLazyStats.available} tools available from MCP servers. These tools are NOT yet in your context.`,
-          "Use `tool_search` to find tools by capability, then `load_tools` to make them usable.",
+          "Use `search_tools` to find tools by capability, then `load_tools` to make them usable.",
           "This covers MCP server tools only: all built-in tools (mcpbrowser, bash, task, skill, web_*, asset_record, planwrite, http_replay, ...) are already callable directly — never search for or try to load them.",
           "",
           "Available servers:",

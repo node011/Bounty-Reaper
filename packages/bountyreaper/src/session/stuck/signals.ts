@@ -52,7 +52,7 @@ export const READ_ONLY_TOOLS: ReadonlySet<string> = new Set([
   "codesearch",
   "list",
   "lsp",
-  "tool_search",
+  "search_tools",
   "list_loaded_tools",
 ])
 

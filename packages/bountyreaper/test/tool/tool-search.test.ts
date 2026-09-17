@@ -12,7 +12,10 @@ const baseCtx: Omit<Tool.Context, "ask"> = {
   metadata: () => {},
 }
 
-describe("tool.tool_search", () => {
+describe("tool.search_tools", () => {
+  test("tool id avoids the OpenAI hosted tool_search name collision", async () => {
+    expect(ToolSearchTool.id).toBe("search_tools")
+  })
   test("description states MCP-only scope", async () => {
     const tool = await ToolSearchTool.init()
     expect(tool.description).toContain("MCP")

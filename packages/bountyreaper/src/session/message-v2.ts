@@ -636,7 +636,13 @@ export namespace MessageV2 {
               type: "step-start",
             })
           if (part.type === "tool") {
-            toolNames.add(part.tool)
+            // Legacy rename: stored "tool_search" calls predate the
+            // search_tools rename (OpenAI hosted-tool name collision — the
+            // SDK hijacks "tool_search" into an argument-less
+            // tool_search_call that strict models 400 on). Remap at replay
+            // so old sessions heal; pairing survives via call ID.
+            const toolName = part.tool === "tool_search" ? "search_tools" : part.tool
+            toolNames.add(toolName)
             if (part.state.status === "completed") {
               const outputText = part.state.time.compacted
                 ? `[Compacted — ${part.tool} call completed, see summary above]`
@@ -663,7 +669,7 @@ export namespace MessageV2 {
                   : outputText
 
               assistantMessage.parts.push({
-                type: ("tool-" + part.tool) as `tool-${string}`,
+                type: ("tool-" + toolName) as `tool-${string}`,
                 state: "output-available",
                 toolCallId: part.callID,
                 // Strict providers (Console Responses API) reject function_call
@@ -676,7 +682,7 @@ export namespace MessageV2 {
             }
             if (part.state.status === "error")
               assistantMessage.parts.push({
-                type: ("tool-" + part.tool) as `tool-${string}`,
+                type: ("tool-" + toolName) as `tool-${string}`,
                 state: "output-error",
                 toolCallId: part.callID,
                 input: part.state.input ?? {},
@@ -687,7 +693,7 @@ export namespace MessageV2 {
             // Anthropic/Claude APIs require every tool_use to have a corresponding tool_result
             if (part.state.status === "pending" || part.state.status === "running")
               assistantMessage.parts.push({
-                type: ("tool-" + part.tool) as `tool-${string}`,
+                type: ("tool-" + toolName) as `tool-${string}`,
                 state: "output-error",
                 toolCallId: part.callID,
                 input: part.state.input ?? {},

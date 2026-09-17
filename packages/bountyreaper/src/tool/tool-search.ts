@@ -11,11 +11,16 @@ const log = Log.create({ service: "tool.tool-search" })
  * Enables AI agents to work with hundreds of MCP tools
  * without overwhelming the context window.
  */
-export const ToolSearchTool = Tool.define("tool_search", async () => {
+// NOTE: this tool must NOT be named "tool_search" — the AI SDK's OpenAI
+// Responses converter hijacks that exact name for OpenAI's hosted
+// tool_search (emitting a `tool_search_call` item whose `arguments` come
+// from the hosted-tool schema, not our input), which strict Console models
+// reject with 400 `missing required field arguments`, wedging the session.
+export const ToolSearchTool = Tool.define("search_tools", async () => {
   return {
     description: [
       "Search for tools available from connected MCP servers, by capability or description.",
-      "Covers MCP server tools only — built-in tools (mcpbrowser, bash, read, write, task, skill, webfetch, asset_record, planwrite, ...) are already callable directly. NEVER use tool_search (or the skill tool) for them.",
+      "Covers MCP server tools only — built-in tools (mcpbrowser, bash, read, write, task, skill, webfetch, asset_record, planwrite, ...) are already callable directly. NEVER use search_tools (or the skill tool) for them.",
       "Returns tool IDs that can be loaded with load_tools.",
       "",
       "Example queries:",
@@ -39,7 +44,7 @@ export const ToolSearchTool = Tool.define("tool_search", async () => {
         : [
             "No matching MCP server tools found.",
             "",
-            "Reminder: tool_search only indexes tools from connected MCP servers.",
+            "Reminder: search_tools only indexes tools from connected MCP servers.",
             "Built-in tools (mcpbrowser, bash, task, skill, web_*, asset_record, planwrite, ...) are already callable directly — do not search for them or try to load them via the skill tool.",
           ].join("\n")
       const stats = LazyToolRegistry.stats()
@@ -66,13 +71,13 @@ export const LoadToolsTool = Tool.define("load_tools", async () => {
   return {
     description: [
       "Load tools into context so they can be used.",
-      "Use tool_search first to find tool IDs.",
+      "Use search_tools first to find tool IDs.",
       "Loaded tools will be available in the next turn.",
       "",
       "Note: Loading too many tools may exceed context budget.",
     ].join("\n"),
     parameters: z.object({
-      tool_ids: z.array(z.string()).describe("Tool IDs to load (from tool_search results)"),
+      tool_ids: z.array(z.string()).describe("Tool IDs to load (from search_tools results)"),
     }),
     async execute(params, _ctx) {
       const { tool_ids } = params
@@ -173,7 +178,7 @@ export const ListLoadedToolsTool = Tool.define("list_loaded_tools", async () => 
           for (const name of toolNames) lines.push(`  - ${name}`)
           lines.push("")
         }
-        lines.push("Use `tool_search` to find tools by capability, then `load_tools` to activate them.")
+        lines.push("Use `search_tools` to find tools by capability, then `load_tools` to activate them.")
       } else {
         lines.push("No MCP tools available. Connect an MCP server first.")
       }
