@@ -9,7 +9,7 @@ import { Bus } from "@/bus"
 import { SessionRetry } from "./retry"
 import { SessionStatus } from "./status"
 import { Plugin } from "@/plugin"
-import type { Provider } from "@/provider/provider"
+import { Provider } from "@/provider/provider"
 import { LLM } from "./llm"
 import { Config } from "@/config/config"
 import { SessionCompaction } from "./compaction"
@@ -35,6 +35,7 @@ export namespace SessionProcessor {
     let blocked = false
     let attempt = 0
     let retryStart = 0
+    let failedOver = false
     let needsCompaction = false
 
     const result = {
@@ -412,6 +413,33 @@ export namespace SessionProcessor {
               break
             }
             const retry = SessionRetry.retryable(error)
+            // Free-tier entitlement failure: retrying the same model can never
+            // succeed (gated pool, not throttle). Fail OVER once per turn to
+            // the subscription twin (same wire API, messages stay valid)
+            // instead of burning the retry budget or failing the turn.
+            if (SessionRetry.freeTierBlocked(error) && !failedOver) {
+              failedOver = true
+              const twin = await Provider.goTwin(input.model).catch(() => undefined)
+              if (twin) {
+                log.warn("free tier blocked, failing over", {
+                  from: `${input.model.providerID}/${input.model.id}`,
+                  to: `${twin.providerID}/${twin.id}`,
+                  sessionID: input.sessionID,
+                })
+                input.model = twin
+                input.assistantMessage.modelID = twin.id
+                input.assistantMessage.providerID = twin.providerID
+                streamInput.model = twin
+                await Session.updateMessage(input.assistantMessage).catch(() => {})
+                SessionStatus.set(input.sessionID, {
+                  type: "retry",
+                  attempt: 0,
+                  message: `Free tier blocked — continued on ${twin.providerID}/${twin.id}`,
+                  next: Date.now(),
+                })
+                continue
+              }
+            }
             // Bounded retries: a persistently failing provider must surface an
             // error, not spin the turn forever ("running, 0 tool calls").
             if (retryStart === 0) retryStart = Date.now()

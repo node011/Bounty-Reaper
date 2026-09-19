@@ -145,6 +145,26 @@ describe("session.retry.retryable", () => {
 
     expect(SessionRetry.retryable(error)).toBeUndefined()
   })
+
+  test("detects free-tier entitlement blocks for failover (not retry)", () => {
+    const blocked = new MessageV2.APIError({
+      message: "Error from provider (Console): OpenCode's free tier can only be used from within OpenCode",
+      isRetryable: false,
+      statusCode: 403,
+      responseBody: '{"type":"error","error":{"type":"FreeTierError"}}',
+    }).toObject() as ReturnType<NamedError["toObject"]>
+
+    expect(SessionRetry.freeTierBlocked(blocked)).toBe(true)
+    expect(SessionRetry.retryable(blocked)).toBeUndefined()
+
+    const quota = new MessageV2.APIError({
+      message: "Rate limit exceeded.",
+      isRetryable: true,
+      statusCode: 429,
+    }).toObject() as ReturnType<NamedError["toObject"]>
+
+    expect(SessionRetry.freeTierBlocked(quota)).toBe(false)
+  })
 })
 
 describe("session.message-v2.fromError", () => {

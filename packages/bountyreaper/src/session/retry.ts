@@ -75,6 +75,19 @@ export namespace SessionRetry {
     return Math.min(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1), RETRY_MAX_DELAY_NO_HEADERS)
   }
 
+  // Free-tier entitlement failures (403) will NEVER succeed on retry —
+  // the model/pool is gated, not throttled. Distinct from quota
+  // FreeUsageLimitError (429, retryable). Callers should fail OVER to an
+  // entitled twin (e.g. the opencode-go same-name model), not retry.
+  const FREETIER_BLOCKED_PATTERNS = [/FreeTierError/i, /free tier can only be used from within OpenCode/i]
+
+  export function freeTierBlocked(error: ReturnType<NamedError["toObject"]>) {
+    const texts = [error.data?.message, error.data?.responseBody].filter(
+      (v): v is string => typeof v === "string",
+    )
+    return texts.some((t) => FREETIER_BLOCKED_PATTERNS.some((p) => p.test(t)))
+  }
+
   export function retryable(error: ReturnType<NamedError["toObject"]>) {
     // context overflow errors should not be retried
     if (MessageV2.ContextOverflowError.isInstance(error)) return undefined

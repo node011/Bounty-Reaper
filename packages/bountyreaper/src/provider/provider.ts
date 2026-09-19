@@ -1639,6 +1639,31 @@ export namespace Provider {
     }
   }
 
+  // Subscription twin for a free-tier model: the same-name model on the
+  // opencode-go (subscription) gateway, e.g. deepseek-v4-flash-free (Zen)
+  // -> deepseek-v4-flash (Go). Used to fail OVER (not retry) when the free
+  // pool gates with FreeTierError. Only returns twins on the same wire API
+  // so already-built messages/tools stay valid. Undefined when no twin.
+  export async function goTwin(model: Model): Promise<Model | undefined> {
+    const base = model.id.replace(/-free$/, "").replace(/:free$/, "")
+    if (base === model.id) return undefined
+    const s = await state()
+    const go = s.providers["opencode-go"]
+    if (!go) return undefined
+    // Exact same-name twin first (closest() is substring-ordered and can
+    // return e.g. deepseek-v4-flash-vision-exp for deepseek-v4-flash).
+    const exactID = Object.keys(go.models).find((id) => id === base)
+    const hit = exactID ? { providerID: "opencode-go", modelID: exactID } : await closest("opencode-go", [base])
+    if (!hit) return undefined
+    try {
+      const twin = await getModel(hit.providerID, hit.modelID)
+      if (twin.api.npm !== model.api.npm) return undefined
+      return twin
+    } catch {
+      return undefined
+    }
+  }
+
   export async function getSmallModel(providerID: string) {
     const cfg = await Config.get()
 
