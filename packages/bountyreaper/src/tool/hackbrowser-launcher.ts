@@ -34,6 +34,7 @@ import { Log } from "../util/log"
 import { Identifier } from "../id/id"
 import { Agent } from "../agent/agent"
 import { Session } from "../session"
+import { SessionPrompt } from "../session/prompt"
 import { HackbrowserStatus } from "../session/hackbrowser-status"
 import { Global } from "../global"
 import type {
@@ -201,7 +202,12 @@ async function prepareCrawl(opts: LauncherOptions): Promise<PreparedWorker> {
 
   // 3. Resolve LLM via bountyreaper Provider — extract serializable descriptor
   //    instead of a LanguageModel instance (subprocess.md: model resolution).
-  const modelInfo = await Provider.defaultModel()
+  //    Use the SESSION's model (the one whose turns demonstrably work), not
+  //    the global default: the default can point at a dead free pool while
+  //    the session runs an entitled model, and the crawl would then fail
+  //    while chat succeeds. Falls back to the default for sessions with no
+  //    model history (same as task.ts delegation).
+  const modelInfo = await SessionPrompt.lastModel(opts.sessionID).catch(() => undefined) ?? (await Provider.defaultModel())
 
   // The worker is a separate subprocess and can only receive a *serializable*
   // credential (an api key or the Anthropic Bearer token). For non-anthropic

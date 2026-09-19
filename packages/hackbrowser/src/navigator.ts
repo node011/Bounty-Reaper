@@ -1,4 +1,4 @@
-import { generateText, type LanguageModel } from "ai"
+import { generateText, jsonSchema, tool, type LanguageModel } from "ai"
 import { Log } from "./log.ts"
 import { createAnthropic } from "@ai-sdk/anthropic"
 import { createOpenAI } from "@ai-sdk/openai"
@@ -28,6 +28,36 @@ function goSessionHeaders(): Record<string, string> | undefined {
 }
 
 const log = Log.create({ service: "hackbrowser:navigator" })
+
+// Zen free-tier gate, condition 3 (bisected 2026-09-17, one permission at a
+// time): the request body's tool list must contain the native builtins —
+// denying bash, glob, grep, or read (each independently) trips 403
+// FreeTierError even with valid UA + session. The planner makes tool-less
+// calls, so it must carry these as LISTED-BUT-UNCALLABLE: toolChoice "none"
+// means the model can never invoke them (the stub execute is unreachable),
+// they exist solely so the gate sees the canonical set.
+const GATE_KEEPALIVE_TOOLS = {
+  bash: tool({
+    description: "Execute a shell command",
+    inputSchema: jsonSchema({ type: "object", properties: { command: { type: "string" } } }),
+    execute: async () => "unavailable",
+  }),
+  glob: tool({
+    description: "Find files by pattern",
+    inputSchema: jsonSchema({ type: "object", properties: { pattern: { type: "string" } } }),
+    execute: async () => "unavailable",
+  }),
+  grep: tool({
+    description: "Search file contents",
+    inputSchema: jsonSchema({ type: "object", properties: { pattern: { type: "string" } } }),
+    execute: async () => "unavailable",
+  }),
+  read: tool({
+    description: "Read a file",
+    inputSchema: jsonSchema({ type: "object", properties: { path: { type: "string" } } }),
+    execute: async () => "unavailable",
+  }),
+}
 
 // Consecutive planner-call failure streak. A systematic outage (bad key scope,
 // gateway enforcement, persistent 5xx) degrades every page to an empty plan —
@@ -140,6 +170,10 @@ export async function planPage(
       // routed/cached and error out post-2026-09-06 enforcement. The crawl
       // worker exports these env vars at startup.
       headers: goSessionHeaders(),
+      // Gate keepalive: the free-tier tool-set check needs the native
+      // builtins listed; toolChoice none keeps them uninvokable.
+      tools: GATE_KEEPALIVE_TOOLS,
+      toolChoice: "none",
       providerOptions: {
         openai: { reasoningEffort: "low" },
       },
@@ -228,6 +262,8 @@ export async function planUnexploredElements(
       maxOutputTokens: 16384,
       temperature: 0,
       headers: goSessionHeaders(),
+      tools: GATE_KEEPALIVE_TOOLS,
+      toolChoice: "none",
       providerOptions: {
         openai: { reasoningEffort: "low" },
       },
