@@ -1360,6 +1360,13 @@ export namespace Provider {
 
       if (!options["baseURL"]) options["baseURL"] = model.api.url
       if (options["apiKey"] === undefined && provider.key) options["apiKey"] = provider.key
+      // Same fresh-auth fallback as getModelDescriptor: a login landing after
+      // process start must take effect without restart. The SDK cache key
+      // below includes options, so a refreshed key correctly misses cache.
+      if (options["apiKey"] === undefined || options["apiKey"] === "public") {
+        const fresh = await Auth.get(model.providerID)
+        if (fresh?.type === "api" && fresh.key && fresh.key !== "public") options["apiKey"] = fresh.key
+      }
       if (model.headers)
         options["headers"] = {
           ...options["headers"],
@@ -1537,6 +1544,16 @@ export namespace Provider {
     const options = { ...provider.options }
     if (!options["baseURL"]) options["baseURL"] = model.api.url
     if (options["apiKey"] === undefined && provider.key) options["apiKey"] = provider.key
+    // Fresh-auth fallback: provider state (options.apiKey baked as "public",
+    // provider.key) is computed once per process. A login that lands AFTER
+    // process start (auth login in a running TUI) would otherwise leave every
+    // crawl descriptor anonymous until restart — and anonymous gateway calls
+    // are rejected. Re-read the auth store per descriptor so crawls always
+    // carry the current key.
+    if (options["apiKey"] === undefined || options["apiKey"] === "public") {
+      const fresh = await Auth.get(model.providerID)
+      if (fresh?.type === "api" && fresh.key && fresh.key !== "public") options["apiKey"] = fresh.key
+    }
     const mergedHeaders: Record<string, string> | undefined =
       model.headers || options["headers"]
         ? { ...(options["headers"] as Record<string, string> | undefined), ...model.headers }
