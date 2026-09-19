@@ -53,3 +53,8 @@ __pycache__/
 
 # Local backups
 *.bak
+
+# Live hunt runtime data (per-target recon state, never source)
+mcp/bb-recon/.bountyreaper/
+# Scratch probe scripts
+*.tmp.ts
