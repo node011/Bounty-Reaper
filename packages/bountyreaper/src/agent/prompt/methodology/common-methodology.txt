@@ -50,7 +50,8 @@ cases (JWT crypto, race conditions, file uploads, SSRF callbacks), use `attack_s
 
 Use `attack_script` for specialized capabilities beyond http_replay:
 - `jwt_tamper` — JWT token crypto attacks (alg=none, key confusion)
-- `ssrf_listener` — SSRF callback server for OOB evidence
+- `oob_interactsh` — DEFAULT blind-OOB channel (DNS/HTTP exfil, callbacks). Burp Collaborator ONLY when the operator explicitly names it — never default, never assume.
+- `ssrf_listener` — self-hosted TCP callback server (target must reach YOUR host directly)
 - `race_tester` — Race conditions (async concurrency)
 - `file_upload_tester` — Upload bypass with binary polyglots
 - `cloud_storage_enum` — Bucket enumeration

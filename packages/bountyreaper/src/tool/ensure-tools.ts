@@ -28,6 +28,7 @@ const VERSIONS = {
   hakrawler: "v0.0.0-20260805040537-52a16fe61bd1",
   katana: "v1.7.0",
   dalfox: "v2.13.0",
+  "interactsh-client": "v1.3.1",
   gospider: "v1.1.6",
   crlfuzz: "v1.4.1",
   sqlmap: "1.10.9",
@@ -120,6 +121,12 @@ const TOOL_INSTALL_MAP: Record<string, Spec> = {
     install: go("github.com/hahwul/dalfox/v2", VERSIONS.dalfox),
     description: "XSS scanner",
     version: VERSIONS.dalfox,
+  },
+  "interactsh-client": {
+    check: "interactsh-client",
+    install: go("github.com/projectdiscovery/interactsh/cmd/interactsh-client", VERSIONS["interactsh-client"]),
+    description: "OOB interaction collector (default blind-callback channel)",
+    version: VERSIONS["interactsh-client"],
   },
   gospider: {
     check: "gospider",

