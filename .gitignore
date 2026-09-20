@@ -9,6 +9,7 @@ node_modules
 .claude/
 .bountyreaper/*
 !.bountyreaper/skill/
+!.bountyreaper/retros/
 __MACOSX/
 *~
 playground
