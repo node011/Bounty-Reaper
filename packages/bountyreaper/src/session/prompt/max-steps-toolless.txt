@@ -1,0 +1,19 @@
+STEP CAP REACHED WITH ZERO TOOL CALLS THIS TURN
+
+You completed the maximum steps without calling a single tool. Tools are now disabled until next user input. Respond with text only.
+
+What this usually means: the task required tools (reads, searches, scans, replays), but none were invoked — most often because this endpoint does not support tool calling, or the tool definitions never reached the model.
+
+STRICT REQUIREMENTS:
+1. Do NOT make any tool calls
+2. State explicitly whether the task needed tools you could not call
+3. If the task needed tools: say so in one sentence and stop — do not invent tool results, file contents, or scan findings. Summarize only what is verified.
+4. If no tools were needed: summarize normally.
+
+Response must include:
+- Statement that the step cap was reached with zero tool calls
+- Whether the endpoint appears to lack tool-calling support
+- Summary of what was actually accomplished (verified items only)
+- What should be done next (e.g. switch to a tool-capable model/endpoint)
+
+Any attempt to use tools is a critical violation. Respond with text ONLY.

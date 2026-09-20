@@ -19,6 +19,7 @@ import { InstructionPrompt } from "./instruction"
 import { Plugin } from "../plugin"
 import BUILD_SWITCH from "../session/prompt/build-switch.txt"
 import MAX_STEPS from "../session/prompt/max-steps.txt"
+import MAX_STEPS_TOOLLESS from "../session/prompt/max-steps-toolless.txt"
 import { defer } from "../util/defer"
 import { clone } from "remeda"
 import { ToolRegistry } from "../tool/registry"
@@ -328,6 +329,11 @@ export namespace SessionPrompt {
     let structuredOutput: unknown | undefined
 
     let step = 0
+    // Quiet-turn tracking (per turn, outside the step loop): consecutive steps
+    // with zero tool calls. See uses below (mid-turn nudge, toolless wrap-up).
+    let quietSteps = 0
+    let turnToolCalls = 0
+    let quietNudged = false
     const session = await Session.get(sessionID)
     // Loop-termination Layer 2: one stuck-detector per subagent run (monologue rule).
     // Only observed for native subagents (gated below). `forceWrapUpNext` carries a
@@ -687,10 +693,12 @@ export namespace SessionPrompt {
         await Session.setPermission({ sessionID, permission: repaired })
       }
       // Uncapped agents previously ran with Infinity — a model making varied
-      // no-progress calls could spin forever. 100 single-turn steps is far
-      // above legitimate use (hunts span many turns); the wrap-up below
-      // still lets the model finish with text instead of hard-cutting.
-      const maxSteps = agent.steps ?? 100
+      // no-progress calls could spin forever. The default single-turn cap
+      // (overridable via BOUNTYREAPER_MAX_STEPS, explicit agent.steps wins)
+      // is far above legitimate use (hunts span many turns); the wrap-up
+      // below still lets the model finish with text instead of hard-cutting.
+      const envCap = Number(process.env.BOUNTYREAPER_MAX_STEPS)
+      const maxSteps = agent.steps ?? (Number.isInteger(envCap) && envCap > 0 ? envCap : 100)
       const isLastStep = step >= maxSteps
       // Hard backstop (loop-termination Layer 1): the forced wrap-up turn strips
       // tools (below) so the model finishes with text. If a provider STILL returned a
@@ -702,6 +710,11 @@ export namespace SessionPrompt {
       const stuckWrapUp = forceWrapUpNext
       forceWrapUpNext = false
       const wrapUp = isLastStep || stuckWrapUp
+      // Mid-turn quiet nudge (fires once): half the budget burned with zero
+      // tool calls. Harmless for pure chat (ignored); redirects a stuck
+      // agent before it meets the cap with nothing done.
+      const quietNudge = !quietNudged && !wrapUp && quietSteps >= Math.floor(maxSteps / 2)
+      if (quietNudge) quietNudged = true
       msgs = await insertReminders({
         messages: msgs,
         agent,
@@ -945,11 +958,21 @@ export namespace SessionPrompt {
         system,
         messages: [
           ...modelMessages,
-          ...(wrapUp
+          ...(wrapUp || quietNudge
             ? [
                 {
                   role: "assistant" as const,
-                  content: stuckWrapUp ? STUCK_WRAP_UP : MAX_STEPS,
+                  content:
+                    // A cap met with zero tool calls all turn is a different
+                    // failure than a busy turn running long: diagnose the
+                    // endpoint instead of reciting the generic cap text.
+                    wrapUp && turnToolCalls === 0 && !stuckWrapUp
+                      ? MAX_STEPS_TOOLLESS
+                      : stuckWrapUp
+                        ? STUCK_WRAP_UP
+                        : quietNudge
+                          ? `NOTICE: ${quietSteps} steps this turn with zero tool calls. If the task needs tools (reads, searches, scans, replays), call one now. If you are only chatting, ignore this and continue.`
+                          : MAX_STEPS,
                 },
               ]
             : []),
@@ -958,6 +981,19 @@ export namespace SessionPrompt {
         model,
         toolChoice: format.type === "json_schema" ? "required" : undefined,
       })
+
+      // Quiet-turn tracking: did this step produce any tool call? A model on
+      // an endpoint without tool support (or stuck in monologue) burns the
+      // whole budget on chat. Count consecutive tool-less steps; the wrap-up
+      // text below diagnoses specifically when the whole turn was quiet.
+      const thisStepParts = await MessageV2.parts(processor.message.id)
+      const thisStepTools = thisStepParts.filter((p) => p.type === "tool").length
+      if (thisStepTools > 0) {
+        quietSteps = 0
+        turnToolCalls += thisStepTools
+      } else {
+        quietSteps++
+      }
 
       // Fail-safe: the small-tier call failed (quota wall / transient error that
       // in-session retry could not recover) — rerun the turn on the main model.
