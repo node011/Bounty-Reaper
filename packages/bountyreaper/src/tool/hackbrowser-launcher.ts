@@ -333,12 +333,31 @@ async function backgroundRun(
   const decoder = new TextDecoder()
   let buffer = ""
   let receivedResult = false
+  // Idle watchdog: a worker that goes silent (hung browser launch, parked
+  // planner, orphaned Chromium keeping stdout open) used to park the reader
+  // below forever — "started" with zero diagnostics, ever. Any stdout line
+  // resets the clock; total silence past the budget fails loudly instead.
+  const IDLE_TIMEOUT_MS = 180_000
+  let lastActivity = Date.now()
+  let idleTimedOut = false
 
   try {
     const reader = (proc.stdout as ReadableStream<Uint8Array>).getReader()
 
     outer: while (true) {
-      const { done, value } = await reader.read()
+      const read = await Promise.race([
+        reader.read(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), IDLE_TIMEOUT_MS)),
+      ])
+      if (read === null) {
+        // Woke without input: only fail if truly silent since last activity.
+        if (Date.now() - lastActivity >= IDLE_TIMEOUT_MS) {
+          idleTimedOut = true
+          break outer
+        }
+        continue
+      }
+      const { done, value } = read
       if (done) break outer
       buffer += decoder.decode(value, { stream: true })
       const lines = buffer.split("\n")
@@ -347,6 +366,7 @@ async function backgroundRun(
       for (const line of lines) {
         const trimmed = line.trim()
         if (!trimmed) continue
+        lastActivity = Date.now()
         let msg: WorkerMessage
         try {
           msg = JSON.parse(trimmed) as WorkerMessage
@@ -460,8 +480,10 @@ async function backgroundRun(
       } catch {}
       const exitCode = await proc.exited.catch(() => -1)
       const stderr = await Bun.readableStreamToText(proc.stderr as ReadableStream).catch(() => "")
-      const message =
-        `hackbrowser worker exited unexpectedly (code ${exitCode})` + (stderr.trim() ? `: ${stderr.trim()}` : "")
+      const message = idleTimedOut
+        ? `hackbrowser worker went silent (no output for ${Math.round(IDLE_TIMEOUT_MS / 1000)}s) — hung browser launch or stalled planner. Killed (code ${exitCode}). Check chromium + provider quota, then retry.`
+        : `hackbrowser worker exited unexpectedly (code ${exitCode})` +
+          (stderr.trim() ? `: ${stderr.trim()}` : "")
       log.error("hackbrowser worker crashed", { sessionID, exitCode, stderr })
       const prev = HackbrowserStatus.get(sessionID)
       HackbrowserStatus.set(sessionID, {
