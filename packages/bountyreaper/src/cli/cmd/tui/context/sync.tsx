@@ -28,6 +28,7 @@ import { useExit } from "./exit"
 import { useArgs } from "./args"
 import { batch, onMount } from "solid-js"
 import { Log } from "@/util/log"
+import { singleflight } from "@/util/singleflight"
 import type { Path } from "@bountyreaper-io/sdk"
 
 export const { use: useSync, provider: SyncProvider } = createSimpleContext({
@@ -578,6 +579,10 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
     const args = useArgs()
 
     async function bootstrap() {
+      return bootstrapped()
+    }
+
+    const bootstrapped = singleflight(async function () {
       const start = Date.now() - 30 * 24 * 60 * 60 * 1000
       const sessionListPromise = sdk.client.session
         .list({ start: start, roots: true })
@@ -663,7 +668,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           })
           await exit(e)
         })
-    }
+    })
 
     onMount(() => {
       bootstrap()
