@@ -22,6 +22,7 @@ import MAX_STEPS from "../session/prompt/max-steps.txt"
 import { defer } from "../util/defer"
 import { clone } from "remeda"
 import { ToolRegistry } from "../tool/registry"
+import { sanitizeToolDescription } from "../tool/description-sanitizer"
 import { LazyToolRegistry } from "../tool/lazy-registry"
 import { MCP } from "../mcp"
 import { LSP } from "../lsp"
@@ -1236,7 +1237,7 @@ export namespace SessionPrompt {
       const schema = ProviderTransform.schema(input.model, z.toJSONSchema(item.parameters))
       tools[item.id] = tool({
         id: item.id as any,
-        description: item.description,
+        description: sanitizeToolDescription(item.id, item.description),
         inputSchema: jsonSchema(schema as any),
         async execute(args, options) {
           const ctx = context(args, options)
