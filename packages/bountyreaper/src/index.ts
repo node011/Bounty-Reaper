@@ -34,6 +34,12 @@ import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
 import { Database } from "./storage/db"
+import { Network } from "./network/network"
+
+// Also here, not only in InstanceBootstrap: a few CLI paths (auth, upgrade)
+// reach the network without bootstrapping a project. Idempotent, so the two
+// call sites cannot disagree.
+Network.installGlobalTransport()
 
 process.on("unhandledRejection", (e) => {
   Log.Default.error("rejection", {

@@ -1,5 +1,9 @@
 import { existsSync } from "fs"
 import { chromium, type Browser, type LaunchOptions, type BrowserContextOptions } from "playwright"
+import { Log } from "./log.ts"
+import type { NetworkConfig } from "./types.ts"
+
+const log = Log.create({ service: "hackbrowser:stealth" })
 
 const PLATFORM_ARGS =
   process.platform === "linux"
@@ -43,14 +47,32 @@ export function findSystemChrome(): string | undefined {
   return candidates.find((p) => existsSync(p))
 }
 
-export async function connect(opts: { cdp?: string; headless: boolean }): Promise<Browser> {
-  if (opts.cdp) return chromium.connectOverCDP(opts.cdp)
+export async function connect(opts: { cdp?: string; headless: boolean; network?: NetworkConfig }): Promise<Browser> {
+  // Chromium needs the proxy at LAUNCH: --proxy-server is a process-level switch,
+  // so setting it here covers every context the crawl later creates (including
+  // the per-credential ones in multi-credential mode).
+  const proxy = opts.network?.proxy
+
+  if (opts.cdp) {
+    // Attaching to a browser someone else already started — its proxy was fixed
+    // when that process launched and cannot be changed from here. Say so loudly:
+    // silently ignoring it would look like the proxy config simply "doesn't work".
+    if (proxy) {
+      log.warn("proxy config ignored: connecting to an already-running browser over CDP", {
+        server: proxy.server,
+        hint: "start that browser with its own --proxy-server, or drop the cdp option to let hackbrowser launch one",
+      })
+    }
+    return chromium.connectOverCDP(opts.cdp)
+  }
+
+  const launch: LaunchOptions = { ...launchOptions(opts.headless), ...(proxy ? { proxy } : {}) }
   const chrome = findSystemChrome()
-  if (chrome) return chromium.launch({ ...launchOptions(opts.headless), executablePath: chrome })
-  return chromium.launch(launchOptions(opts.headless))
+  if (chrome) return chromium.launch({ ...launch, executablePath: chrome })
+  return chromium.launch(launch)
 }
 
-export function contextOptions(headless = true): BrowserContextOptions {
+export function contextOptions(headless = true, network?: NetworkConfig): BrowserContextOptions {
   // Report the REAL Chrome UA (no spoof). A faked Windows UA over the real macOS/Linux
   // navigator.platform is a glaring cross-check mismatch that makes detection easier, not
   // harder; only automation tells are hidden (INIT_SCRIPT). The real host stays consistent.
@@ -60,6 +82,22 @@ export function contextOptions(headless = true): BrowserContextOptions {
     locale: "en-US",
     timezoneId: "America/New_York",
     extraHTTPHeaders: { "Accept-Language": "en-US,en;q=0.9" },
+    // The proxy is repeated here, not just at launch. Playwright can insert a
+    // local interceptor that overrides the process-level --proxy-server and
+    // takes ITS upstream from the CONTEXT proxy — measured, with the proxy only
+    // at launch such a context connects to targets DIRECTLY while the operator
+    // believes it is proxied. The host no longer sends the option that triggered
+    // that (client certificates), so this is now belt-and-braces; it stays
+    // because a silent direct connection is the worst failure this code has.
+    ...(network?.proxy ? { proxy: network.proxy } : {}),
+    // Certificate errors are IGNORED by default. A crawler aimed at staging
+    // apps, self-signed dev hosts and traffic behind an intercepting proxy hits
+    // untrusted certificates constantly, and refusing to load the page turns a
+    // testable target into a blank run. This matches what the replay engine
+    // already does (http_replay accepts bad certs unless told otherwise);
+    // the browser being the one strict component was the inconsistency.
+    // Set network.tls.rejectUnauthorized=true to opt back into strict checking.
+    ignoreHTTPSErrors: network?.ignoreHTTPSErrors ?? true,
   }
 }
 

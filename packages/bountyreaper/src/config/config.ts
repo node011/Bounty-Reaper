@@ -1046,6 +1046,112 @@ export namespace Config {
       ref: "ServerConfig",
     })
 
+  // ── Outbound network: proxy + TLS ───────────────────────────────────────────
+  // One place to describe how BountyReaper reaches the outside world, so the
+  // crawler and the replay engine share the same answer instead of each growing
+  // their own flag. Everything is optional: absent config means today's
+  // behavior. Secrets should use the {env:VAR} interpolation the loader already
+  // supports, so no credential has to sit in the file in plaintext.
+
+  export const Proxy = z
+    .object({
+      url: z
+        .string()
+        .optional()
+        .describe(
+          'Proxy server URL including the scheme, e.g. "http://127.0.0.1:8080". SOCKS ("socks5://...") works ONLY for the crawler browser and only without credentials — replayed requests cannot use a SOCKS proxy, so prefer http for full coverage',
+        ),
+      enabled: z
+        .boolean()
+        .optional()
+        .describe("Turn the proxy off without deleting the config. Defaults to true when `url` is set"),
+      auth: z
+        .object({
+          username: z.string(),
+          password: z.string(),
+        })
+        .strict()
+        .optional()
+        .describe(
+          "Proxy credentials, sent as Basic. Use {env:VAR} to keep the password out of the config file. Not supported with a SOCKS proxy, and NTLM/Negotiate proxies cannot be satisfied — a 407 from those is reported as such rather than retried",
+        ),
+      bypass: z
+        .array(z.string())
+        .optional()
+        .describe(
+          'Hosts that skip the proxy. Accepts a bare host or a "*.example.com" wildcard. Loopback also skips it unless `includeLoopback` says otherwise',
+        ),
+      includeLoopback: z
+        .boolean()
+        .optional()
+        .describe(
+          "Send localhost traffic through the proxy too, so a target on 127.0.0.1 can be tested through it. Off by default. This is all-or-nothing — it covers BountyReaper's own local traffic as well, so it only makes sense when the proxy runs on this machine; an external proxy cannot reach back here",
+        ),
+      includeInternal: z
+        .boolean()
+        .optional()
+        .describe(
+          "Also route BountyReaper's OWN outbound traffic through the proxy — LLM/provider API calls, the OAuth token refreshes that keep them alive, and the rest of its HTTP. Off by default: when on, whoever operates the proxy can read the API keys and tokens in those requests. Traffic aimed at the target is proxied by `url` alone and is not affected by this",
+        ),
+    })
+    .strict()
+    .meta({
+      ref: "ProxyConfig",
+    })
+  export type Proxy = z.infer<typeof Proxy>
+
+  export const ClientCertificate = z
+    .object({
+      host: z.string().describe('Host this certificate is used for. Give "host:port" to scope it to one port'),
+      certPath: z.string().optional().describe("Path to the client certificate (PEM)"),
+      keyPath: z.string().optional().describe("Path to the private key (PEM)"),
+      pfxPath: z.string().optional().describe("Path to a PFX/PKCS#12 bundle, instead of certPath + keyPath"),
+      passphrase: z.string().optional().describe("Passphrase for the key or PFX. Use {env:VAR}"),
+    })
+    .strict()
+    .meta({
+      ref: "ClientCertificateConfig",
+    })
+  export type ClientCertificate = z.infer<typeof ClientCertificate>
+
+  export const Tls = z
+    .object({
+      caPath: z
+        .string()
+        .optional()
+        .describe(
+          "Path to an extra CA certificate to trust (PEM) — e.g. an intercepting proxy's CA. Preferred over turning verification off. Note: this applies to replayed requests; the browser trusts the OS store instead",
+        ),
+      rejectUnauthorized: z
+        .boolean()
+        .optional()
+        .describe(
+          "Verify TLS certificates for outbound requests. Unset leaves the pentest-friendly default in place: both the crawler and http_replay accept invalid or self-signed certificates, since targets routinely have them and an intercepting proxy always does. Set true for strict checking — note the crawler browser cannot use caPath for that (Chromium trusts the OS store), so an intercepting proxy's CA must be installed there. A per-call insecure_tls still overrides this for that one call",
+        ),
+      clientCertificates: z
+        .array(ClientCertificate)
+        .optional()
+        .describe(
+          "Client certificates for mutual-TLS targets, matched per host. Applies to replayed requests only — the crawler browser cannot use them (Playwright hangs on every page load when they are set), so a mutual-TLS host cannot be crawled",
+        ),
+    })
+    .strict()
+    .meta({
+      ref: "TlsConfig",
+    })
+  export type Tls = z.infer<typeof Tls>
+
+  export const Network = z
+    .object({
+      proxy: Proxy.optional().describe("Route outbound traffic through a proxy"),
+      tls: Tls.optional().describe("TLS trust and client-certificate settings for outbound traffic"),
+    })
+    .strict()
+    .meta({
+      ref: "NetworkConfig",
+    })
+  export type Network = z.infer<typeof Network>
+
   export const Layout = z.enum(["auto", "stretch"]).meta({
     ref: "LayoutConfig",
   })
@@ -1112,6 +1218,7 @@ export namespace Config {
       logLevel: Log.Level.optional().describe("Log level"),
       tui: TUI.optional().describe("TUI specific settings"),
       server: Server.optional().describe("Server configuration for bountyreaper serve and web commands"),
+      network: Network.optional().describe("Proxy and TLS settings for outbound traffic (crawler + replay engine)"),
       command: z
         .record(z.string(), Command)
         .optional()
@@ -1461,6 +1568,71 @@ export namespace Config {
 
   export async function get() {
     return state().then((x) => x.config)
+  }
+
+  const REDACTED = "[redacted]"
+
+  /**
+   * A copy of the config with outbound-network secrets masked, for anything that
+   * SHOWS the configuration rather than uses it.
+   *
+   * `{env:VAR}` keeps a password out of the config FILE, but the loader expands
+   * it into the in-memory config — which is then served verbatim by GET /config
+   * and printed by `debug config`. The field description promises the file, and
+   * a reader can easily hear it as a promise about the process; this closes that
+   * gap for the secrets this feature introduced.
+   *
+   * Returns the original object when there is nothing to mask, and never mutates
+   * it — `get()` hands back the live cached config, so a mutation here would
+   * blank the credential the running process still needs.
+   */
+  export function redactSecrets(info: Info): Info {
+    const net = info.network
+    if (!net) return info
+    const proxyPassword = net.proxy?.auth?.password
+    // Credentials can also ride inside proxy.url ("http://user:pass@host") with no
+    // separate auth block — mask those too, or they leak through GET /config.
+    let proxyUrlSecret = false
+    if (net.proxy?.url) {
+      try {
+        proxyUrlSecret = !!new URL(net.proxy.url).password
+      } catch {}
+    }
+    const certs = net.tls?.clientCertificates
+    const hasPassphrase = certs?.some((c) => !!c.passphrase) ?? false
+    if (!proxyPassword && !proxyUrlSecret && !hasPassphrase) return info
+    const redactProxyUrl = (url: string): string => {
+      try {
+        const u = new URL(url)
+        u.password = REDACTED
+        return u.toString()
+      } catch {
+        return url
+      }
+    }
+    return {
+      ...info,
+      network: {
+        ...net,
+        ...(proxyPassword || proxyUrlSecret
+          ? {
+              proxy: {
+                ...net.proxy!,
+                ...(proxyPassword ? { auth: { ...net.proxy!.auth!, password: REDACTED } } : {}),
+                ...(proxyUrlSecret ? { url: redactProxyUrl(net.proxy!.url!) } : {}),
+              },
+            }
+          : {}),
+        ...(hasPassphrase
+          ? {
+              tls: {
+                ...net.tls!,
+                clientCertificates: certs!.map((c) => (c.passphrase ? { ...c, passphrase: REDACTED } : c)),
+              },
+            }
+          : {}),
+      },
+    }
   }
 
   export async function getGlobal() {

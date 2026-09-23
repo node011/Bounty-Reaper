@@ -30,6 +30,7 @@ import { existsSync } from "fs"
 import { Provider } from "../provider/provider"
 import { Auth } from "../auth"
 import { Server } from "../server/server"
+import { Network } from "../network/network"
 import { Log } from "../util/log"
 import { Identifier } from "../id/id"
 import { Agent } from "../agent/agent"
@@ -42,6 +43,7 @@ import type {
   WorkerMessage,
   ParentMessage,
   CredentialDispatch,
+  ModelDescriptor,
 } from "../hackbrowser-subprocess/worker-ipc"
 
 const log = Log.create({ service: "hackbrowser-launcher" })
@@ -239,6 +241,25 @@ async function prepareCrawl(opts: LauncherOptions): Promise<PreparedWorker> {
 
   const modelDetails = await Provider.getModel(modelInfo.providerID, modelInfo.modelID)
   const modelDescriptor = await Provider.getModelDescriptor(modelDetails)
+  // The worker runs in its own process and cannot read config, so the planner's
+  // model calls would otherwise ignore the proxy that governs everything else.
+  // Resolved here, against the model's own endpoint, so the bypass list applies —
+  // and only under the same opt-in that governs provider traffic in-process.
+  let providerNetwork: ModelDescriptor["network"]
+  if (await Network.includeInternal()) {
+    const endpoint = modelDescriptor.baseURL ?? modelDetails.api?.url
+    if (endpoint) {
+      const net = await Network.forUrl(endpoint)
+      providerNetwork = {
+        proxy: net.proxy,
+        ca: net.ca,
+        rejectUnauthorized: net.rejectUnauthorized,
+        cert: net.clientCertificate?.cert,
+        key: net.clientCertificate?.key,
+        passphrase: net.clientCertificate?.passphrase,
+      }
+    }
+  }
   log.info("resolved model for hackbrowser run", {
     provider: modelInfo.providerID,
     model: modelInfo.modelID,
@@ -273,9 +294,11 @@ async function prepareCrawl(opts: LauncherOptions): Promise<PreparedWorker> {
     headless: opts.headless ?? true,
     panel: opts.headless === false,
     bountyreaperUrl,
-    model: modelDescriptor,
+    model: { ...modelDescriptor, ...(providerNetwork ? { network: providerNetwork } : {}) },
     credentialDispatch,
     cdp: opts.cdp,
+    // Resolved here because the parent owns the config; the worker only applies it.
+    network: await Network.forBrowser(),
   }
 
   return { workerOptions, modelInfo, workerPath, runtime }
@@ -570,11 +593,19 @@ export async function launchHackbrowser(opts: LauncherOptions): Promise<KickOffR
   // Inherits full parent env so AWS/GCP/other provider credentials
   // (AWS_ACCESS_KEY_ID, GOOGLE_APPLICATION_CREDENTIALS, etc.) are
   // available to the worker without explicit forwarding.
+  // The worker posts every captured request back to our local server. If the
+  // operator's shell exports HTTP_PROXY the runtime picks it up at process
+  // start, that POST goes to their proxy instead, and the crawl silently
+  // captures nothing. The worker cannot undo that from the inside — but this
+  // is the process that builds its environment, so the bypass rule can be
+  // enforced right here. The worker's real outbound traffic is unaffected: its
+  // browser gets the proxy through Playwright and its model calls through the
+  // transport in its ModelDescriptor, both explicit.
   const proc = Bun.spawn([prepared.runtime, prepared.workerPath], {
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env },
+    env: { ...process.env, ...(await Network.childProtectedEnv()) },
   })
 
   activeRuns.set(opts.sessionID, { proc, modelInfo: prepared.modelInfo })

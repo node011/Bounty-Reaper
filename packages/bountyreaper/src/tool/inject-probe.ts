@@ -4,6 +4,9 @@ import { Tool } from "./tool"
 import { Request } from "../session/request"
 import { WebCredential } from "../session/web/web-credential"
 import { Session } from "../session"
+import { HttpMessage } from "../replay/message"
+import { Governor } from "../replay/governor"
+import { WebSend } from "./web-send"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // inject_probe (v1 — XSS only) — an EVIDENCE ENGINE, NOT an oracle.
@@ -869,9 +872,13 @@ function guardHost(r: ResolvedRequest, target: URL): { ok: true } | { ok: false;
 
 // Hard upper bound on total sends per tool call (WAF-ban + DoS + context guard). When hit,
 // remaining probes are skipped and reported as truncated rather than exploding silently.
+// `gov` carries ONE governor for the whole battery (created once per tool call), so the
+// GlobalBudget / CircuitBreaker accumulate across all sends and can trip mid-battery — the
+// session-wide sharing across tools is deferred to the governor-wiring issue (#91).
 interface SendBudget {
   sent: number
   max: number
+  gov: { budget: Governor.GlobalBudget; breaker: Governor.CircuitBreaker }
 }
 
 // A curated subset of response headers the agent needs to reason about (DB/engine fingerprint,
@@ -921,32 +928,61 @@ async function send(
   const guard = guardHost(r, u)
   if (!guard.ok) return { error: guard.reason }
   const sendHeaders: Record<string, string> = { ...(target.headers ?? r.headers) }
-  delete sendHeaders["content-length"] // recomputed by fetch
-  delete sendHeaders["host"]
-  // combine the caller's abort with a per-request deadline — the deadline signal governs BOTH the
-  // fetch (connect/headers) and the streamed `resp.text()` body read, so neither can hang forever.
+  delete sendHeaders["content-length"] // HttpMessage.build recomputes it
+  delete sendHeaders["host"] // HttpMessage.build sets Host from the URL
+  // Combine the caller's abort with a per-request deadline so neither connect/headers nor the
+  // body read can hang forever (tarpit / rate-limit). A hit surfaces as a timeout (WAF/tarpit
+  // signal), never a clean "safe".
   const signal = AbortSignal.any([abort, AbortSignal.timeout(SEND_TIMEOUT_MS)])
-  const init: RequestInit & { tls?: { rejectUnauthorized: boolean } } = {
+
+  // Send through WebSend — the ONE core sender http_replay also uses — so proxy/TLS,
+  // governance and proxy-aware error framing are identical across both tools and any
+  // future change reaches both at once. One governor is shared across the whole battery
+  // (passed below) so a failing host trips the breaker mid-run.
+  const msg = HttpMessage.build({
     method: r.method,
+    url: u,
     headers: sendHeaders,
+    body: r.method !== "GET" && r.method !== "HEAD" ? target.body : undefined,
+  })
+  // Route through the shared core sender: proxy/TLS/auth and the proxy-aware error
+  // framing come from WebSend, identical to http_replay. The per-battery governor is
+  // passed in; rejectUnauthorized defaults to accepting bad certs (authorized-testing)
+  // unless config pins strict TLS — WebSend owns that precedence now.
+  const result = await WebSend.send(msg, `${u.protocol}//${u.host}`, {
+    governors: budget ? { budget: budget.gov.budget, breaker: budget.gov.breaker } : {},
+    totalTimeoutMs: SEND_TIMEOUT_MS,
+    bodyCapBytes: 200_000,
     signal,
-    redirect: "manual",
-    // Verify TLS by default; opt out per-request for self-signed pentest
-    // targets. Previously unconditional rejectUnauthorized:false hid TLS
-    // issues and exposed in-flight creds to MITM.
-    ...(r.insecureTls ? { tls: { rejectUnauthorized: false } } : {}),
-  }
-  if (r.method !== "GET" && r.method !== "HEAD") init.body = target.body
-  const t0 = performance.now()
-  try {
-    const resp = await fetch(u.toString(), init as RequestInit)
-    const text = (await resp.text()).slice(0, 200_000)
-    return { status: resp.status, text, ms: Math.round(performance.now() - t0), headers: extractHeaders(resp.headers) }
-  } catch (e: any) {
-    const msg = String(e?.message ?? e)
+  })
+
+  // A breaker/budget skip mid-battery is a stop signal (host failing / DoS-guard), NOT a clean safe.
+  if (result.skipped) return { error: `governor skip: ${result.skipped}`, timeout: true }
+  if (result.error) {
+    const emsg = String((result.error as { message?: string })?.message ?? result.error)
     // a dropped/reset/timed-out connection is a common WAF response — flag it, don't treat as clean
-    const timeout = /timeout|timed ?out|aborted|reset|ECONNRESET|ETIMEDOUT|socket|EOF|closed/i.test(msg)
-    return { error: msg, timeout }
+    const timeout = /timeout|timed ?out|aborted|reset|ECONNRESET|ETIMEDOUT|socket|EOF|closed/i.test(emsg)
+    return { error: emsg, timeout }
+  }
+  // A proxy refusal (e.g. 407) is the PROXY's response, not the target's. Reading it as a
+  // target response would make the marker "not reflected" → a false clean negative. WebSend
+  // sets proxyNote precisely for this, so surface it as a stop signal instead.
+  if (result.proxyNote) return { error: result.proxyNote, timeout: true }
+  const res = result.response!
+  // Reuse the curated header extraction (Header[] → the KEEP_HEADERS subset) via a Headers view.
+  const h = new Headers()
+  for (const { name, value } of res.headers) {
+    try {
+      h.append(name, value)
+    } catch {
+      // fetch forbids a few header names (e.g. Host); skip rather than fail the extraction.
+    }
+  }
+  return {
+    status: res.status,
+    text: new TextDecoder().decode(res.body).slice(0, 200_000),
+    ms: Math.round(result.timing.totalMs),
+    headers: extractHeaders(h),
   }
 }
 
@@ -956,7 +992,10 @@ const WAF_BODY =
   /cloudflare|attention required|just a moment|checking your browser|access denied|request unsuccessful|mod_?security|incapsula|sucuri|akamai|captcha|are you a robot|ddos protection/i
 const WAF_SERVER = /cloudflare|sucuri|akamai|incapsula|mod_?security|awselb|barracuda|f5|big-?ip/i
 function looksBlocked(status: number): boolean {
-  return status === 403 || status === 406 || status === 429 || status === 503
+  // 407 = Proxy Authentication Required: the request never reached the target, so it must
+  // never read as a clean negative (proxy-set 407s are already caught upstream via proxyNote;
+  // this covers a bare 407 that reaches the observation).
+  return status === 403 || status === 406 || status === 407 || status === 429 || status === 503
 }
 // Returns a short reason string when the response looks WAF/challenge-shaped, else undefined.
 function blockSignal(res: SendOk): string | undefined {
@@ -1700,19 +1739,14 @@ export const InjectProbeTool = Tool.define("inject_probe", {
       // the SSRF-shaped hole where a model could aim probes at an arbitrary host. An
       // empty allowlist (no captured requests) is refused, not waved through.
       const sessionID = Session.root(ctx.sessionID)
-      const allowedHosts = new Set(
-        Request.get(sessionID)
-          .map((r) => r.host)
-          .filter(Boolean),
-      )
       let targetHost = ""
       try {
         targetHost = new URL(params.target.url).hostname
       } catch {}
-      if (!targetHost || allowedHosts.size === 0 || !allowedHosts.has(targetHost)) {
+      if (!targetHost || !Request.hostInScope(sessionID, targetHost)) {
         return {
           title: "inject_probe — refused (out of scope)",
-          output: `Refusing target host "${targetHost || params.target.url}": not among this session's in-scope hosts [${[...allowedHosts].join(", ") || "none captured"}]. inject_probe only reaches hosts the crawl already captured.`,
+          output: `Refusing target host "${targetHost || params.target.url}": not among this session's in-scope hosts. inject_probe only reaches hosts the crawl already captured.`,
           metadata: {},
         }
       }
@@ -1729,7 +1763,12 @@ export const InjectProbeTool = Tool.define("inject_probe", {
     }
     resolved.insecureTls = params.insecure_tls === true
     const DELAY = 120
-    const budget: SendBudget = { sent: 0, max: 120 } // hard upper bound on total sends per call
+    const budget: SendBudget = {
+      sent: 0,
+      max: 120, // hard upper bound on total sends per call
+      // one governor for the whole battery — accumulates across sends so a failing host trips the breaker mid-run
+      gov: { budget: new Governor.GlobalBudget(), breaker: new Governor.CircuitBreaker() },
+    }
 
     const targetInfo = {
       method: resolved.method,

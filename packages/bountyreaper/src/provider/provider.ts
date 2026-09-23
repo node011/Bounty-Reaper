@@ -1424,6 +1424,9 @@ export namespace Provider {
           }
         }
 
+        // No proxy/TLS handling here: Network.installGlobalTransport hooks the
+        // process's fetch, so provider traffic is routed by the same rule as
+        // every other outbound request instead of by a copy kept in this file.
         const res = await fetchFn(input, {
           ...opts,
           // @ts-ignore see here: https://github.com/oven-sh/bun/issues/16682

@@ -17,7 +17,8 @@ import { HttpMessage } from "../replay/message"
 import { Apply } from "../replay/apply"
 import { Send } from "../replay/send"
 import { Governor } from "../replay/governor"
-import { BackendFetch } from "../replay/backend-fetch"
+import { WebSend } from "./web-send"
+import { Network } from "../network/network"
 import { BackendSocket } from "../replay/backend-socket"
 import { ReplayResponse } from "../replay/response"
 import { Observe } from "../replay/observe"
@@ -102,21 +103,9 @@ function safeURL(u: string): URL | undefined {
   }
 }
 
-// Every attack request must target a host the crawl already captured — closes
-// the SSRF-shaped hole where a mutated Host/target could aim at an arbitrary
-// host. Empty allowlist is refused, not waved through.
-function inScope(sessionID: string, host: string): boolean {
-  const allowed = new Set(
-    Request.get(sessionID)
-      .map((r) => r.host)
-      .filter((h): h is string => Boolean(h)),
-  )
-  return allowed.size > 0 && allowed.has(host)
-}
-
 // Build a base message + origin from a constructed target (the FALLBACK source
-// when no captured request_id is given). Mirrors what HttpMessage.parse would
-// produce for a captured request, so all downstream modes treat it identically.
+// when no captured request_id is given). Message construction lives in
+// HttpMessage.build; here we only validate the URL and derive the origin.
 function buildFromTarget(t: {
   method: string
   url: string
@@ -125,25 +114,17 @@ function buildFromTarget(t: {
 }): { baseMsg: HttpMessage.Request; origin: string } | { error: string } {
   const url = safeURL(t.url)
   if (!url) return { error: `Invalid target url "${t.url}".` }
-  const headers: HttpMessage.Header[] = [{ name: "Host", value: url.host }]
-  if (t.headers) for (const [name, value] of Object.entries(t.headers)) headers.push({ name, value: String(value) })
-  const body = t.body != null ? new TextEncoder().encode(t.body) : new Uint8Array(0)
-  if (body.length > 0 && !headers.some((h) => h.name.toLowerCase() === "content-length")) {
-    headers.push({ name: "Content-Length", value: String(body.length) })
+  return {
+    baseMsg: HttpMessage.build({ method: t.method, url, headers: t.headers, body: t.body }),
+    origin: `${url.protocol}//${url.host}`,
   }
-  const baseMsg: HttpMessage.Request = {
-    method: t.method.toUpperCase(),
-    target: (url.pathname || "/") + url.search,
-    version: "HTTP/1.1",
-    headers,
-    body,
-  }
-  return { baseMsg, origin: `${url.protocol}//${url.host}` }
 }
 
 const BODY_PREVIEW = 4096
 
 function summarize(result: ReplayResponse.Result, marker?: string): Record<string, unknown> {
+  // Attached by sendGoverned when the PROXY answered instead of the target.
+  const proxyNote = (result as Send.Result).proxyNote
   if (result.error) {
     return { sent: true, error: result.error, timing: result.timing, attempts: (result as Send.Result).attempts }
   }
@@ -162,6 +143,7 @@ function summarize(result: ReplayResponse.Result, marker?: string): Record<strin
     attempts: (result as Send.Result).attempts,
   }
   if (marker) out.reflection = Observe.reflection(res.body, marker)
+  if (proxyNote) out.proxy_note = proxyNote
   return out
 }
 
@@ -206,21 +188,17 @@ async function sendGoverned(
     signal?: AbortSignal
   },
 ): Promise<Send.Result> {
-  const budget = new Governor.GlobalBudget()
-  const breaker = new Governor.CircuitBreaker()
-  return Send.governed(
-    () =>
-      BackendFetch.send(msg, {
-        origin,
-        rejectUnauthorized: opts.insecure_tls !== true,
-        totalTimeoutMs: opts.total_timeout_ms,
-        followRedirects: opts.follow_redirects,
-        signal: opts.signal,
-      }),
-    msg.method,
-    { budget, breaker },
-    {},
-  )
+  // Route through the shared core sender (WebSend) — proxy/TLS/auth and the
+  // proxy-aware error framing live there, so this tool and inject_probe stay in
+  // lockstep. This adapter only owns http_replay's per-call governor and its
+  // parameter names.
+  return WebSend.send(msg, origin, {
+    governors: { budget: new Governor.GlobalBudget(), breaker: new Governor.CircuitBreaker() },
+    insecureTls: opts.insecure_tls,
+    followRedirects: opts.follow_redirects,
+    totalTimeoutMs: opts.total_timeout_ms,
+    signal: opts.signal,
+  })
 }
 
 // ── Diff builder ──────────────────────────────────────────────────────────────
@@ -387,7 +365,7 @@ export const HttpReplayTool = Tool.define("http_replay", {
     // Scope guard applies to BOTH sources — a constructed target must resolve to a
     // host the crawl already captured (it can reach an un-captured PATH, not a new host).
     const originHost = safeURL(origin)?.hostname ?? ""
-    if (!inScope(sessionID, originHost)) {
+    if (!Request.hostInScope(sessionID, originHost)) {
       return {
         title: "http_replay — refused (out of scope)",
         output: `Refusing host "${originHost}": not among this session's captured in-scope hosts.`,
@@ -563,7 +541,7 @@ export const HttpReplayRawTool = Tool.define("http_replay_raw", {
 
     // Scope guard applies to BOTH sources — a constructed target_url must resolve to
     // a host the crawl already captured.
-    if (!inScope(sessionID, url.hostname)) {
+    if (!Request.hostInScope(sessionID, url.hostname)) {
       return {
         title: "http_replay_raw — refused (out of scope)",
         output: `Refusing host "${url.hostname}": not among this session's captured in-scope hosts.`,
@@ -581,16 +559,34 @@ export const HttpReplayRawTool = Tool.define("http_replay_raw", {
     const useTls = url.protocol === "https:"
     const port = url.port ? Number.parseInt(url.port, 10) : useTls ? 443 : 80
 
+    // TLS trust material applies here; the proxy deliberately does not. An
+    // intercepting proxy re-frames HTTP/1.1, which would silently invalidate the
+    // byte-exact tests this path exists for. Report the bypass so a configured
+    // proxy that shows no traffic for this send is explained, not mysterious.
+    const net = await Network.forUrl(`${url.protocol}//${url.hostname}:${port}`)
     const result = await BackendSocket.send(new TextEncoder().encode(raw), {
       host: url.hostname,
       port,
       tls: useTls,
-      rejectUnauthorized: params.insecure_tls !== true,
+      // Honour config's tls.rejectUnauthorized here too (per-call → config → default),
+      // not just ca/clientCertificate — a global strict-TLS setting was being dropped.
+      rejectUnauthorized: Network.tlsRejectUnauthorized(params.insecure_tls, net),
+      ca: net.ca,
+      clientCertificate: net.clientCertificate,
       totalTimeoutMs: params.total_timeout_ms,
       signal: ctx.abort,
     })
 
-    const output = { target: { host: url.hostname, port, tls: useTls }, ...summarize(result) }
+    const output = {
+      target: { host: url.hostname, port, tls: useTls },
+      ...(net.proxy
+        ? {
+            proxy_bypassed:
+              "Sent directly, not through the configured proxy — a proxy would re-frame these bytes and invalidate a byte-exact test.",
+          }
+        : {}),
+      ...summarize(result),
+    }
     return {
       title: `http_replay_raw ${url.hostname}:${port}`,
       output: JSON.stringify(output, null, 2),

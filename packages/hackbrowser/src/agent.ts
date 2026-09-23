@@ -114,6 +114,22 @@ const NETWORK_IDLE_TIMEOUT = 1500
  *  session-timeout), so it must be explored in place. Bounded to avoid runaway. */
 const MAX_INLINE_DEPTH = 2
 const LOGIN_SUCCESS_PATTERN = /POST\s+.*\/(login|signin|authenticate)\S*\s+\[200\]/i
+
+/**
+ * A TLS-trust failure while a proxy is configured is almost always the proxy's
+ * own certificate, not the target's: an intercepting proxy re-signs with a CA
+ * the browser does not know. Without this the operator reads
+ * `ERR_CERT_AUTHORITY_INVALID` and goes looking at the target. Returns "" when
+ * the error is unrelated or no proxy is in play, so nothing is invented.
+ */
+const CERT_ERROR = /ERR_CERT|CERT_AUTHORITY|ERR_SSL|SSL_ERROR/i
+function certHint(message: string, config: AgentConfig): string {
+  if (!config.network?.proxy || !CERT_ERROR.test(message)) return ""
+  return (
+    " — this request went through the configured proxy. If the proxy intercepts TLS, the browser must trust its CA" +
+    " (install it in the OS certificate store) or be told to accept untrusted certificates."
+  )
+}
 const SKIP_AUTO_DISCOVERY = /\b(logout|sign.?out|log.?out|delete.?account|reset.?data|revoke)\b/i
 
 /**
@@ -190,21 +206,41 @@ function createBrowserHealth(): BrowserHealth {
   return { dead: false, reason: "" }
 }
 
+// Best-effort context for a browser lifecycle log — every read is guarded so a lifecycle
+// handler (especially crash/disconnect) can never throw while gathering diagnostics.
+function lifecycleContext(browser: import("playwright").Browser, page?: Page): Record<string, unknown> {
+  try {
+    const ctx: Record<string, unknown> = { connected: browser.isConnected() }
+    if (page) {
+      ctx.url = page.url()
+      ctx.openPages = page.context().pages().length
+    }
+    return ctx
+  } catch {
+    return {}
+  }
+}
+
 function attachLifecycleHandlers(browser: import("playwright").Browser, page: Page, health: BrowserHealth): void {
   browser.on("disconnected", () => {
     health.dead = true
     health.reason = "browser process disconnected"
-    log.error("browser disconnected — crawl will terminate")
+    log.error("browser disconnected — crawl will terminate", lifecycleContext(browser, page))
   })
   page.on("close", () => {
     health.dead = true
     health.reason = "page closed unexpectedly"
-    log.error("page closed — crawl will terminate")
+    log.error("page closed — crawl will terminate", lifecycleContext(browser, page))
   })
   page.on("crash", () => {
     health.dead = true
     health.reason = "page renderer crashed"
-    log.error("page crashed — crawl will terminate")
+    log.error("page crashed — crawl will terminate", lifecycleContext(browser, page))
+  })
+  // A new page/popup/tab opened in this context — logged (debug) so a partial crawl caused
+  // by a popup can be traced. Additive; there is no other context "page" listener.
+  page.context().on("page", (p) => {
+    log.debug("new page/popup opened", lifecycleContext(browser, p))
   })
 }
 
@@ -2057,12 +2093,16 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
     throw new Error(`AI model required: ${String(err)}`)
   }
 
-  const browser = await Stealth.connect({ cdp: config.cdp, headless: config.headless ?? false })
+  const browser = await Stealth.connect({
+    cdp: config.cdp,
+    headless: config.headless ?? false,
+    network: config.network,
+  })
   const health = createBrowserHealth()
   browser.on("disconnected", () => {
     health.dead = true
     health.reason = "browser process disconnected"
-    log.error("browser disconnected — multi-credential crawl will terminate")
+    log.error("browser disconnected — multi-credential crawl will terminate", lifecycleContext(browser))
   })
 
   // Single BountyReaper session for ALL credentials. Honor a host-provided
@@ -2088,19 +2128,28 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
   const lastAuthHeaders = new Map<string, Record<string, string>>()
 
   for (const [credIndex, cred] of credentials.entries()) {
-    const browserContext = await browser.newContext(Stealth.contextOptions(config.headless ?? false))
+    const browserContext = await browser.newContext(Stealth.contextOptions(config.headless ?? false, config.network))
     await browserContext.addInitScript(Stealth.INIT_SCRIPT)
     if (panelOn) await browserContext.addInitScript(PANEL_INIT_SCRIPT)
     const page = await browserContext.newPage()
     page.on("close", () => {
       health.dead = true
       health.reason = `page closed (credential: ${cred.id})`
-      log.error("page closed — multi-credential crawl will terminate", { credential: cred.id })
+      log.error("page closed — multi-credential crawl will terminate", {
+        credential: cred.id,
+        ...lifecycleContext(browser, page),
+      })
     })
     page.on("crash", () => {
       health.dead = true
       health.reason = `page crashed (credential: ${cred.id})`
-      log.error("page crashed — multi-credential crawl will terminate", { credential: cred.id })
+      log.error("page crashed — multi-credential crawl will terminate", {
+        credential: cred.id,
+        ...lifecycleContext(browser, page),
+      })
+    })
+    browserContext.on("page", (p) => {
+      log.debug("new page/popup opened", { credential: cred.id, ...lifecycleContext(browser, p) })
     })
     attachDialogAutoAccept(page)
     attachFileChooserAutoFill(page)
@@ -2279,7 +2328,10 @@ async function runMultiCredential(config: AgentConfig, credentials: CredentialCo
 
     // Filter: skip contexts that failed or got access-denied redirect
     // Normal redirects (e.g. / → /dashboard) are fine — only skip if redirected to login/unauthorized
-    const ACCESS_DENIED_PATTERNS = /\/(login|signin|sign-in|unauthorized|forbidden|access-denied|auth)/i
+    // NOTE: 'authenticate', not bare 'auth' — bare 'auth' matched legitimate resources like
+    // /auth/profile, /auth/settings, /authors/123 and wrongly skipped them as access-denied.
+    // Real /auth/login|signin gates are still caught via the login/signin terms.
+    const ACCESS_DENIED_PATTERNS = /\/(login|signin|sign-in|unauthorized|forbidden|access-denied|authenticate)/i
     const visitableContexts: LocalCrawlContext[] = []
 
     for (const r of navigateResults) {
@@ -2557,9 +2609,15 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
     sessionID = created
   }
 
-  const browser = await Stealth.connect({ cdp: config.cdp, headless: config.headless ?? false })
+  const browser = await Stealth.connect({
+    cdp: config.cdp,
+    headless: config.headless ?? false,
+    network: config.network,
+  })
   const health = createBrowserHealth()
-  const context: BrowserContext = await browser.newContext(Stealth.contextOptions(config.headless ?? false))
+  const context: BrowserContext = await browser.newContext(
+    Stealth.contextOptions(config.headless ?? false, config.network),
+  )
   await context.addInitScript(Stealth.INIT_SCRIPT)
   if (panelOn) await context.addInitScript(PANEL_INIT_SCRIPT)
   const page = await context.newPage()
@@ -2627,7 +2685,7 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
         capturedEndpoints: 0,
         pagesExplored: 0,
         totalSteps: 0,
-        errors: [`Initial navigation failed: ${initNavErr.message}`],
+        errors: [`Initial navigation failed: ${initNavErr.message}${certHint(initNavErr.message, config)}`],
         usage: usageAcc,
       }
     }
@@ -2790,7 +2848,13 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
           .catch((e: Error) => e)
 
         if (navErr) {
-          log.warn("navigation failed", { url: nextUrl, err: navErr.message.split("\n")[0] })
+          // A TLS-trust failure behind a proxy is a configuration fault, not a
+          // flaky page: raised to error so a crawl that quietly skips every
+          // https page is visible rather than finishing "clean" with holes.
+          const head = navErr.message.split("\n")[0]
+          const hint = certHint(navErr.message, config)
+          if (hint) log.error("navigation failed", { url: nextUrl, err: head + hint })
+          else log.warn("navigation failed", { url: nextUrl, err: head })
           continue
         }
 

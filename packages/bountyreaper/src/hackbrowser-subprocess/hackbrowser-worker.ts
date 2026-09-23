@@ -149,6 +149,28 @@ function applyAnthropicBearerBody(
   }
 }
 
+/**
+ * Merge the parent-resolved outbound policy into a fetch init. Applied to EVERY
+ * provider branch below, so the crawl planner's own model calls honour the same
+ * proxy the rest of the tool uses — but only when the parent sent one, which it
+ * does only under network.proxy.includeInternal. Exported so the wiring can be
+ * exercised without spawning the whole subprocess.
+ */
+export function applyTransport(desc: ModelDescriptor, init?: any): any {
+  const n = desc.network
+  if (!n) return init
+  const out = { ...(init ?? {}) }
+  if (n.proxy) out.proxy = n.proxy
+  const tls: Record<string, unknown> = {}
+  if (n.rejectUnauthorized !== undefined) tls.rejectUnauthorized = n.rejectUnauthorized
+  if (n.ca) tls.ca = n.ca
+  if (n.cert) tls.cert = n.cert
+  if (n.key) tls.key = n.key
+  if (n.passphrase) tls.passphrase = n.passphrase
+  if (Object.keys(tls).length > 0) out.tls = tls
+  return out
+}
+
 // Mirror of provider.ts's shouldUseCopilotResponsesApi / isGpt5OrLater. Kept local rather than
 // imported because this worker is a standalone bundle that must not pull in the heavy provider
 // module. GPT-5+ Copilot models are served on the Responses API, not Chat Completions; gpt-5-mini
@@ -164,10 +186,17 @@ function createModelFromDescriptor(desc: ModelDescriptor): LanguageModel {
 
   // Fetch wrapper that drops unsupported sampling params (used by the branches
   // that don't already install a custom fetch).
-  const samplingFetch: typeof globalThis.fetch | undefined = stripSampling
-    ? (((input: any, init?: any) =>
-        fetch(input, init ? { ...init, body: stripSamplingParams(init.body) } : init)) as typeof globalThis.fetch)
-    : undefined
+  // Fetch wrapper for the branches that don't install their own. Needed when
+  // sampling params must be stripped OR when an outbound policy has to be
+  // applied — either reason alone is enough to wrap.
+  const samplingFetch: typeof globalThis.fetch | undefined =
+    stripSampling || desc.network
+      ? (((input: any, init?: any) =>
+          fetch(
+            input,
+            applyTransport(desc, init && stripSampling ? { ...init, body: stripSamplingParams(init.body) } : init),
+          )) as typeof globalThis.fetch)
+      : undefined
 
   if (desc.npm.includes("anthropic")) {
     // OAuth/subscription (or sk-ant-oat): authenticate via Authorization: Bearer.
@@ -188,7 +217,7 @@ function createModelFromDescriptor(desc: ModelDescriptor): LanguageModel {
             userId: desc.anthropicUserId,
             systemPrefix: desc.anthropicSystemPrefix,
           })
-          return fetch(url, { ...init, headers, body })
+          return fetch(url, applyTransport(desc, { ...init, headers, body }))
         },
       }
       if (desc.baseURL) opts.baseURL = desc.baseURL
@@ -223,7 +252,7 @@ function createModelFromDescriptor(desc: ModelDescriptor): LanguageModel {
           headers.delete("authorization")
           headers.set("x-initiator", "user")
           for (const [key, value] of Object.entries(copilotHeaders(sessionToken))) headers.set(key, value)
-          return fetch(url, { ...init, headers, body })
+          return fetch(url, applyTransport(desc, { ...init, headers, body }))
         }
 
         let response = await send(await exchangeCopilotToken(githubToken, exchangeBase))
@@ -327,6 +356,7 @@ function buildCrawlOptions(opts: WorkerOptions, signal: AbortSignal): CrawlOptio
     bountyreaperUrl: opts.bountyreaperUrl,
     model,
     cdp: opts.cdp,
+    network: opts.network,
     logSink,
     eventSink,
     signal,

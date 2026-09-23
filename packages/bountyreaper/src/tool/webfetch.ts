@@ -1,5 +1,6 @@
 import z from "zod"
 import { Tool } from "./tool"
+import { Network } from "../network/network"
 import TurndownService from "turndown"
 import DESCRIPTION from "./webfetch.txt"
 import { abortAfterAny } from "../util/abort"
@@ -63,12 +64,20 @@ export const WebFetchTool = Tool.define("webfetch", {
       "Accept-Language": "en-US,en;q=0.9",
     }
 
-    const initial = await fetch(params.url, { signal, headers })
+    // Outbound policy for this destination (proxy / CA / client cert). Empty when
+    // nothing is configured, so the call below stays a plain fetch.
+    const transport = Network.toFetchInit(await Network.forUrl(params.url))
+
+    const initial = await fetch(params.url, { signal, headers, ...transport })
 
     // Retry with honest UA if blocked by Cloudflare bot detection (TLS fingerprint mismatch)
     const response =
       initial.status === 403 && initial.headers.get("cf-mitigated") === "challenge"
-        ? await fetch(params.url, { signal, headers: { ...headers, "User-Agent": "bountyreaper" } })
+        ? await fetch(params.url, {
+            signal,
+            headers: { ...headers, "User-Agent": "bountyreaper" },
+            ...transport,
+          })
         : initial
 
     clearTimeout()
