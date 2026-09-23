@@ -204,6 +204,7 @@ export namespace Agent {
           defaults,
           PermissionNext.fromConfig({
             question: "allow",
+            hackbrowser: "allow",
           }),
           user,
         ),
@@ -329,7 +330,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             bash: "allow",
-            mcpbrowser: "allow",
+            hackbrowser: "allow",
             read: "allow",
             glob: "allow",
             grep: "allow",
@@ -361,7 +362,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             bash: "allow",
-            mcpbrowser: "allow",
+            hackbrowser: "allow",
             read: "allow",
             glob: "allow",
             grep: "allow",
@@ -405,7 +406,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             bash: "allow",
-            mcpbrowser: "allow",
+            hackbrowser: "allow",
             read: "allow",
             glob: "allow",
             grep: "allow",
@@ -456,7 +457,7 @@ export namespace Agent {
           PermissionNext.fromConfig({
             question: "allow",
             bash: "allow",
-            mcpbrowser: "allow",
+            hackbrowser: "allow",
             read: "allow",
             glob: "allow",
             grep: "allow",

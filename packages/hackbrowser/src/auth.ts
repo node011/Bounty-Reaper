@@ -1,4 +1,4 @@
-import type { Page, BrowserContext } from "playwright"
+import type { Page, BrowserContext, ElementHandle } from "playwright"
 import { Log } from "./log.ts"
 import fs from "fs"
 import readline from "readline"
@@ -52,7 +52,7 @@ export async function waitForHuman(prompt: string): Promise<string> {
 /**
  * Detect if a 2FA / MFA / OTP page is shown and pause for user input.
  */
-export async function handle2FA(page: Page): Promise<boolean> {
+export async function handle2FA(page: Page, interactive = true): Promise<boolean> {
   const mfaSelectors = [
     'input[name*="otp"]',
     'input[name*="mfa"]',
@@ -70,6 +70,10 @@ export async function handle2FA(page: Page): Promise<boolean> {
     const el = await page.$(sel)
     if (el) {
       log.info("2FA detected", { selector: sel })
+      if (!interactive) {
+        log.warn("2FA detected in non-interactive mode — cannot complete, skipping")
+        return true
+      }
       const code = await waitForHuman("Enter your 2FA code and press Enter:")
       await el.fill(code)
       const form = await page.$("form")
@@ -405,33 +409,169 @@ export async function waitForManualLogin(
  * Auto-login with username/password credentials.
  * Falls back to manual login via browser button if form not found.
  */
+// Username-field selectors in priority order. querySelector returns DOM order,
+// not selector-list order, so we try each selector in turn and take the first
+// VISIBLE match — this puts the real identifier field (email / Clerk's
+// name="identifier") ahead of a stray search box or hidden input.
+const USER_SELECTORS = [
+  'input[type="email"]',
+  'input[name="identifier"]',
+  'input[autocomplete="username"]',
+  'input[name*="email" i]',
+  'input[name*="user" i]',
+  'input[id*="email" i]',
+  'input[id*="user" i]',
+  'input[type="text"]',
+]
+
+// Buttons whose label matches a social/SSO provider — must NEVER be clicked as
+// the form submit. Clerk and others render "Continue with Google/GitHub" ABOVE
+// the email+Continue button, so a naive "first button" pick hijacks the flow.
+const SOCIAL_RE = /google|facebook|github|apple|microsoft|twitter|linkedin|gitlab|okta|saml|sso|discord|slack|continue with|sign ?in with|log ?in with|with (google|github|apple)/i
+
+// Preferred primary-action labels, in descending priority.
+const PRIMARY_RE = /\b(continue|next|sign ?in|log ?in|submit|proceed|verify|confirm)\b/i
+
+async function firstVisible(page: Page, selectors: string[]): Promise<ElementHandle<HTMLElement> | null> {
+  for (const sel of selectors) {
+    const els = await page.$$(sel)
+    for (const el of els) {
+      if (await el.isVisible().catch(() => false)) return el as ElementHandle<HTMLElement>
+    }
+  }
+  return null
+}
+
+// Click the form's real submit button, skipping social/OAuth buttons. Scoped to
+// the enclosing <form> when available so buttons elsewhere on the page can't win.
+async function clickSubmit(page: Page, scope?: ElementHandle<HTMLElement> | null): Promise<void> {
+  const root = scope ?? page
+  const candidates = await root.$$(
+    'button[type="submit"], input[type="submit"], button:not([type]), button[type="button"], [role="button"]',
+  )
+
+  let best: ElementHandle<Element> | null = null
+  let bestScore = -1
+  for (const btn of candidates) {
+    const info = await btn
+      .evaluate((el) => {
+        const e = el as HTMLElement & { disabled?: boolean; value?: string; type?: string }
+        const text = (e.textContent || e.value || e.getAttribute("aria-label") || "").trim()
+        const visible = !!(e.offsetParent || e.getClientRects().length)
+        return { text, type: e.getAttribute("type") || "", disabled: e.disabled === true, visible }
+      })
+      .catch(() => null)
+    if (!info || info.disabled || !info.visible) continue
+    if (SOCIAL_RE.test(info.text)) continue
+
+    let score = 0
+    if (info.type === "submit") score += 2
+    if (PRIMARY_RE.test(info.text)) score += 3
+    if (info.text === "") score += 1 // icon-only submit is still plausible
+    if (score > bestScore) {
+      bestScore = score
+      best = btn
+    }
+  }
+
+  if (best) {
+    await best.click()
+    return
+  }
+  // No safe button found — submit via Enter on the focused field.
+  await page.keyboard.press("Enter")
+}
+
+export interface AutoLoginResult {
+  success: boolean
+  error?: string
+}
+
 export async function autoLogin(
   page: Page,
   credentials: { username: string; password: string; usernameSelector?: string; passwordSelector?: string },
-): Promise<void> {
-  const userSel =
-    credentials.usernameSelector ??
-    'input[type="text"], input[type="email"], input[name*="user"], input[name*="email"], input[id*="user"], input[id*="email"]'
+  interactive = false,
+): Promise<AutoLoginResult> {
   const passSel = credentials.passwordSelector ?? 'input[type="password"]'
 
-  try {
-    await page.waitForSelector(userSel, { timeout: 5000 })
-    await page.fill(userSel, credentials.username)
-    await page.fill(passSel, credentials.password)
+  // Locate the username field (first visible in priority order).
+  let userHandle: ElementHandle<HTMLElement> | null = null
+  if (credentials.usernameSelector) {
+    await page.waitForSelector(credentials.usernameSelector, { timeout: 5000 }).catch(() => {})
+    userHandle = (await page.$(credentials.usernameSelector)) as ElementHandle<HTMLElement> | null
+  } else {
+    // Give the login form up to 5s to render, then pick the first visible field.
+    for (let i = 0; i < 10 && !userHandle; i++) {
+      userHandle = await firstVisible(page, USER_SELECTORS)
+      if (!userHandle) await page.waitForTimeout(500)
+    }
+  }
 
-    const submitBtn = await page.$('button[type="submit"], input[type="submit"], button:not([type])')
-    if (submitBtn) {
-      await submitBtn.click()
+  if (!userHandle) {
+    log.warn("auto-login: login form not found", { username: credentials.username })
+    return { success: false, error: "login_form_not_found" }
+  }
+
+  // Scope submit clicks to the enclosing form so page-level buttons can't win.
+  const formHandle = (await userHandle
+    .evaluateHandle((el) => el.closest("form"))
+    .then((h) => h.asElement() as ElementHandle<HTMLElement> | null)
+    .catch(() => null)) as ElementHandle<HTMLElement> | null
+
+  try {
+    await userHandle.fill(credentials.username)
+
+    const passwordVisible = await page.$(passSel)
+    if (passwordVisible && (await passwordVisible.isVisible().catch(() => false))) {
+      // Single-step form: both fields visible at once
+      await page.fill(passSel, credentials.password)
+      await clickSubmit(page, formHandle)
+      await page.waitForLoadState("domcontentloaded").catch(() => {})
+      log.info("auto-login attempted (single-step)", { username: credentials.username })
     } else {
-      await page.keyboard.press("Enter")
+      // Multi-step form: submit identifier first, wait for password field
+      log.info("auto-login: password not visible, trying multi-step flow", { username: credentials.username })
+      await clickSubmit(page, formHandle)
+
+      try {
+        await page.waitForSelector(passSel, { timeout: 8000, state: "visible" })
+      } catch {
+        log.warn("auto-login: password field never appeared after identifier submit", {
+          username: credentials.username,
+        })
+        return { success: false, error: "multi_step_password_not_found" }
+      }
+
+      await page.fill(passSel, credentials.password)
+      // Re-scope: the password step may be a fresh form.
+      const passField = (await page.$(passSel)) as ElementHandle<HTMLElement> | null
+      const passForm = (await passField
+        ?.evaluateHandle((el) => el.closest("form"))
+        .then((h) => h.asElement() as ElementHandle<HTMLElement> | null)
+        .catch(() => null)) as ElementHandle<HTMLElement> | null
+      await clickSubmit(page, passForm)
+      await page.waitForLoadState("domcontentloaded").catch(() => {})
+      log.info("auto-login attempted (multi-step)", { username: credentials.username })
     }
 
-    await page.waitForLoadState("domcontentloaded").catch(() => {})
-    log.info("auto-login attempted", { username: credentials.username })
+    await handle2FA(page, interactive)
 
-    await handle2FA(page)
+    // Verify login succeeded — still seeing a visible password field means the
+    // submit didn't take us off the login flow.
+    await page.waitForTimeout(1500)
+    const passStill = await page.$(passSel)
+    const passStillVisible = passStill ? await passStill.isVisible().catch(() => false) : false
+    const urlLooksLikeLogin = /\/(login|sign-?in|auth|accounts)\b/i.test(page.url())
+    if (passStillVisible && urlLooksLikeLogin) {
+      log.warn("auto-login: still on login page after submit — credentials likely rejected", {
+        username: credentials.username,
+      })
+      return { success: false, error: "credentials_rejected" }
+    }
+
+    return { success: true }
   } catch (err) {
-    log.warn("auto-login failed, falling back to manual login", { err: String(err) })
-    await waitForManualLogin(page)
+    log.warn("auto-login failed", { err: String(err), username: credentials.username })
+    return { success: false, error: String(err) }
   }
 }

@@ -281,6 +281,18 @@ tool also enforces a per-host permission gate, but you ask regardless.
 - `steps` (1–200, default 50) — max pages
 - `headless` (default true; forced false when credentials are given)
 
+**Credential vault flow:**
+When the user provides login credentials in chat, IMMEDIATELY call `credential_save` to store them in the vault. Do NOT wait for mcpbrowser — save first, crawl later. The mcpbrowser post-mode config will offer saved vault credentials for auto-fill.
+
+- User says "admin is admin@site.com / Pass123" → call `credential_save` with label "admin"
+- User provides multiple accounts → save all in one `credential_save` call
+- User updates a password → call `credential_save` again (it updates existing entries)
+
+**Authentication decision (mcpbrowser):**
+- Vault has credentials → mcpbrowser config asks which to use (auto)
+- App uses 2FA/OAuth/CAPTCHA → use `credentials` (manual login)
+- No auth needed → omit both
+
 **The user can also launch it themselves** with the `/mcpbrowser` slash command (or
 `bountyreaper mcpbrowser <target>` from the CLI) — same backend. If a credentialed
 crawl is needed (manual login), prefer pointing the user to `/mcpbrowser`.
