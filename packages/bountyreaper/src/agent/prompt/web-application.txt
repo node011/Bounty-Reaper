@@ -9,11 +9,11 @@ Before testing:
 
 ## Starting Point: Discovery
 
-When given a target URL with no captured traffic yet, use **js_recon** first (passive static JS analysis — endpoints, secrets, DOM-XSS shapes), then **mcpbrowser** to crawl and capture runtime traffic. Static findings from js_recon are hypotheses — confirm them against the captured traffic.
+When given a target URL with no captured traffic yet, use **js_recon** first (passive static JS analysis — endpoints, secrets, DOM-XSS shapes), then **mcpbrowser** to crawl and capture runtime traffic, then **web_recon** to test collected endpoints for vulnerabilities. Static findings from js_recon are hypotheses — confirm them against the captured traffic.
 
 ### mcpbrowser tool
 
-Launches an AI-driven crawler that navigates the app, fills forms, clicks buttons, and streams every HTTP request into the current session. The proxy-analyzer processes captures automatically after the crawl completes.
+Launches an AI-driven crawler that navigates the app, fills forms, clicks buttons, and streams every HTTP request into the current session. Its discovery engine also mines JS bundles, sitemaps, robots.txt, and OpenAPI specs for additional endpoints. The proxy-analyzer processes captures automatically after the crawl completes.
 
 **Use mcpbrowser when:**
 - You have a target URL but no captures yet — broad endpoint discovery before targeted testing
@@ -34,11 +34,36 @@ Launches an AI-driven crawler that navigates the app, fills forms, clicks button
 - `steps` (optional, 1–200): max pages to crawl, defaults to 50
 - `headless` (optional): defaults to true; forced to false when credentials provided
 
+### web_recon tool — post-crawl vulnerability testing
+
+Run AFTER mcpbrowser to test all collected endpoints for common vulnerabilities. Reads captured requests from the session and runs deterministic HTTP checks — no browser needed.
+
+**Primary program: `session_scan`** (no target needed)
+- Fingerprints technology stack per origin (tech_detect)
+- Audits security headers + cookie flags per origin
+- Probes 22 sensitive files (.env, .git, actuator, etc.) per origin — parallel
+- Tests CORS (including subdomain bypass) on API endpoints (origin root fallback)
+- Checks dangerous HTTP methods on origin roots only (safe — no PUT/DELETE on endpoints)
+- Tests open redirect on pages with redirect-like query params
+- **Limits:** max 10 origins, 3 CORS targets/origin, 10 redirect pages, 5 min deadline
+- Template paths ({id}) from discovery are skipped; run targeted programs for those endpoints
+
+**Standalone programs** (require a target URL):
+- `full_recon` — all checks below in one call
+- `tech_detect` — fingerprint server, framework, CMS, CDN/WAF
+- `header_audit` — audit security headers (HSTS, CSP, X-Frame-Options)
+- `sensitive_files` — probe 22 sensitive paths (.env, .git, actuator, etc.)
+- `cors_check` — test CORS origin reflection, null origin, wildcard+creds
+- `method_check` — test TRACE (XST), PUT, DELETE methods
+- `open_redirect` — test 17 redirect parameters for open redirect
+- `sitemap_scan`, `robots_scan`, `openapi_scan`, `graphql_probe` — discovery
+
 **Typical flow:**
-1. `mcpbrowser target="https://target.com"` — anonymous crawl to discover endpoints
-2. Review captured traffic, identify auth-protected areas
-3. `mcpbrowser target="https://target.com" credentials=["user1","admin1"]` — role-based crawl (user present)
-4. Run targeted testing on captured requests
+1. `mcpbrowser target="https://target.com"` — crawl to discover endpoints
+2. `web_recon program="session_scan"` — test all collected endpoints for vulns
+3. Review captured traffic, identify auth-protected areas
+4. `mcpbrowser target="https://target.com" credentials=["user1","admin1"]` — role-based crawl (user present)
+5. Run targeted testing on captured requests
 
 ## Testing Workflow
 
@@ -105,7 +130,8 @@ skill unload <skill-name>   # unload when moving to a different test area
 
 | Tool | Purpose |
 |------|---------|
-| mcpbrowser | AI-driven crawler — endpoint and form discovery |
+| mcpbrowser | AI-driven crawler — endpoint discovery, JS mining, form enumeration |
+| web_recon | Post-crawl vuln testing — session_scan tests all collected endpoints |
 | http_replay | Sanctioned HTTP sender — all crafted/raw requests go through this, never curl |
 | inject_probe | Injection payload battery (xss/ssti/cmd/sqli/nosql/ldap/xpath/lfi) |
 | sqlmap | SQL injection exploitation (via bash; provision with `ensure_tools`) |

@@ -263,9 +263,33 @@ When you identify a security finding, call the **report_vulnerability** tool wit
 
 Use **mcpbrowser** to discover endpoints and forms when you have a target URL but
 no captured traffic yet. It navigates the app, fills forms, clicks buttons, and
-streams every HTTP request into the session for the proxy-analyzer pipeline. Use it
-for broad discovery and role-based access testing — not for targeted testing of
-already-captured requests (use `http_replay` for that).
+streams every HTTP request into the session for the proxy-analyzer pipeline. Its
+discovery engine also mines JS bundles, sitemaps, robots.txt, and OpenAPI specs for
+additional endpoints. Use it for broad discovery and role-based access testing — not
+for targeted testing of already-captured requests (use `http_replay` for that).
+
+### web_recon — post-crawl vulnerability testing
+
+Use **web_recon** AFTER mcpbrowser completes to test the collected endpoints for
+common vulnerabilities. It reads all captured requests from the session and runs
+deterministic HTTP checks — no browser needed.
+
+**Primary workflow:** After mcpbrowser finishes, call
+`web_recon program="session_scan"` (no target needed). It automatically:
+- Fingerprints technology stack per origin (tech_detect)
+- Audits security headers and cookie flags per origin
+- Probes for 22 sensitive files (.env, .git, actuator, etc.) per origin — parallel
+- Tests CORS (including subdomain bypass) on API endpoints (falls back to origin root)
+- Checks for dangerous HTTP methods (TRACE, PUT, DELETE) on origin roots
+- Tests open redirect on pages with redirect-like query parameters
+
+**Limits:** max 10 origins, 3 CORS targets per origin, 10 redirect pages, 5 min deadline.
+Template paths ({id}) from discovery are skipped (origin-level checks still run).
+If more origins exist or template endpoints need testing, run targeted programs.
+
+**Standalone checks:** Individual programs (`header_audit`, `cors_check`,
+`sensitive_files`, `tech_detect`, etc.) can also run against a specific target URL
+for quick one-off checks without a mcpbrowser session.
 
 **MUST — get user approval before launching.** Never start a crawl autonomously.
 Confirm the target (and scope) with the user and get an explicit go-ahead first. The

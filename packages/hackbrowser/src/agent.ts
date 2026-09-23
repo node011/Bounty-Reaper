@@ -60,6 +60,7 @@ import { pickSample } from "./upload-samples.ts"
 import { PANEL_INIT_SCRIPT } from "./panel/inject.ts"
 import { csEmit, setPanelEnabled } from "./panel/emit.ts"
 import { deriveScope, makeMatcher, normalizeScope, type ScopeMatcher } from "./scope.ts"
+import { runDiscovery, emitEndpoints, attachBundleMiner } from "./discovery/index.ts"
 import type { LanguageModel } from "ai"
 import type { RawElement } from "./types.ts"
 
@@ -971,7 +972,7 @@ async function explorePageWithAI(
   // and ask LLM for additional plans. Max 2 iterations (loop guard).
   for (let iteration = 0; iteration < MAX_UNPLANNED_ITERATIONS && steps < MAX_STEPS_PER_PAGE; iteration++) {
     const currentElements = filterVisitedLinks(await collectElements(page), pageUrl, globalState.visitedPages)
-    const unexplored = findUnexploredElements(currentElements, semanticActionsDone, seenKeys)
+    const unexplored = findUnexploredElements(currentElements, semanticActionsDone, seenKeys, globalState.visitedNav)
     if (unexplored.length === 0) break
 
     log.info("unexplored elements found", {
@@ -1531,14 +1532,23 @@ function findUnexploredElements(
   elements: RawElement[],
   semanticActionsDone: Set<string>,
   seenKeys: Set<string>,
+  visitedNav: Set<string>,
 ): string[] {
+  const navFirst: string[] = [] // site-chrome nav — prioritized within the budget
   const unexplored: string[] = []
   const rolesSeen = new Set<string>() // for duplicate role filter
 
   for (const el of elements) {
     if (!el.label || !el.selector) continue
-    if (el.role === "link") continue
+    // Declarative links (href set) are already discovered by the BFS link
+    // harvest. But IMPERATIVE nav — role=link with NO href (JS onclick) — is
+    // invisible to the harvest, so keep it as a click candidate so its route
+    // can be discovered by clicking (#127).
+    if (el.role === "link" && el.href) continue
     if (INPUT_ROLES.has(el.role)) continue // input fields are part of forms, not standalone actions
+    // Never auto-click destructive / session-ending controls (logout, delete
+    // account, revoke…) — essential now that nav exploration clicks more.
+    if (SKIP_AUTO_DISCOVERY.test(el.label)) continue
 
     // Check if this element was already actioned
     const actionKey = `${el.selector}::click::`
@@ -1551,10 +1561,24 @@ function findUnexploredElements(
     if (rolesSeen.has(roleKey)) continue
     rolesSeen.add(roleKey)
 
-    unexplored.push(`[${el.role}] ${el.label}`)
+    // Crawl-wide nav dedup (#127): a site-chrome nav item (navbar/sidebar)
+    // appears on every page. Surface it once across the whole crawl — not per
+    // page — so nav isn't re-clicked repeatedly. Page-body (non-chrome) actions
+    // are unaffected. (Mark-on-surface: the additional-plan step then clicks it.)
+    const entry = `[${el.role}] ${el.label}`
+    if (el.inChrome) {
+      const navKey = `${el.role}::${el.label}`
+      if (visitedNav.has(navKey)) continue
+      visitedNav.add(navKey)
+      navFirst.push(entry)
+    } else {
+      unexplored.push(entry)
+    }
   }
 
-  return unexplored
+  // Nav-first: within the small additional-plan budget, prioritize navigation so
+  // route discovery isn't starved by page-body actions (#127).
+  return [...navFirst, ...unexplored]
 }
 
 /** Map form field role to executor action */
@@ -2668,6 +2692,48 @@ export async function run(config: AgentConfig): Promise<CrawlResult> {
     // Seed URL always goes directly to queue (never deferred)
     globalState.visitedPages.add(normalizeUrl(page.url()))
     globalState.pageQueue.push(page.url())
+
+    // Discovery Engine (#126): seed the BFS from declared sources (sitemap /
+    // robots now; specs / JS routes in later phases) via the authenticated,
+    // proxy-aware browser context. Best-effort + additive — a failure here
+    // never blocks the crawl; results just augment the queue.
+    try {
+      // Resolve against the current URL only if it's still in scope — an initial
+      // navigation can redirect to an out-of-scope SSO/IdP; fall back to target.
+      const seedBase = isInScope(page.url(), inScope) ? page.url() : targetUrl
+      const seedOrigin = new URL(seedBase).origin
+
+      const discovered = await runDiscovery(page, seedBase, inScope)
+      let seeded = 0
+      for (const url of discovered.pages) {
+        if (enqueueUrl(url, globalState, inScope)) seeded++
+      }
+      if (seeded > 0) log.info("discovery seeded pages", { pages: seeded, confidence: discovered.confidence })
+
+      if (sessionID) {
+        // Endpoints -> ingest OFF the critical path (fire-and-forget): the crawl
+        // needs pages synchronously; discovered endpoints just need to reach the
+        // backend eventually. Approach B — proxy-agents test them, crawler never
+        // hits them. Deduped crawl-wide via globalState.emittedEndpoints.
+        if (discovered.endpoints.length > 0) {
+          void emitEndpoints(discovered.endpoints, serverUrl, sessionID, credentialId, globalState.emittedEndpoints)
+            .then((n) => n > 0 && log.info("discovery ingested endpoints", { endpoints: n }))
+            .catch((err) => log.warn("endpoint emit failed", { err: String(err) }))
+        }
+        // Keep mining JS bundles loaded later in the crawl — lazy route chunks a
+        // seed-time DOM scan can't see (the biggest coverage gap for SPAs).
+        attachBundleMiner(page, {
+          origin: seedOrigin,
+          inScope,
+          serverUrl,
+          sessionID,
+          credentialId,
+          seen: globalState.emittedEndpoints,
+        })
+      }
+    } catch (err) {
+      log.warn("discovery failed (skipped)", { err: String(err) })
+    }
 
     // Login detection via response event — fires immediately when response arrives,
     // before page navigation can cancel the interceptor's async handler
