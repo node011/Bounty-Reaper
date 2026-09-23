@@ -856,9 +856,23 @@ export namespace ProviderTransform {
     }
 
     if (input.model.api.id.includes("gpt-5") && !input.model.api.id.includes("gpt-5-chat")) {
-      if (!input.model.api.id.includes("gpt-5-pro")) {
+      // OpenAI reasoning parameters are only safe on SDKs that actually speak the
+      // OpenAI API. Generic OpenAI-compatible gateways (e.g. LiteLLM in front of
+      // Azure) route `reasoning_effort` + `tools` upstream to the Responses API,
+      // which fails unless the deployment's api-version >= 2025-03-01-preview:
+      //   "Azure OpenAI Responses API is enabled only for api-version 2025-03-01-preview and later"
+      // Inject reasoning defaults only for OpenAI-native SDKs, or for a custom
+      // deployment that explicitly opts in with `"reasoning": true` on the model.
+      const openaiNativeSdk =
+        input.model.api.npm === "@ai-sdk/openai" ||
+        input.model.api.npm === "@ai-sdk/azure" ||
+        input.model.api.npm === "@ai-sdk/amazon-bedrock/mantle" ||
+        input.model.api.npm === "@ai-sdk/github-copilot"
+      if ((openaiNativeSdk || input.model.capabilities.reasoning) && !input.model.api.id.includes("gpt-5-pro")) {
         result["reasoningEffort"] = "medium"
-        result["reasoningSummary"] = "auto"
+        // `reasoningSummary` is a Responses-API-only field; never send it on a
+        // chat-completions (OpenAI-compatible) endpoint.
+        if (openaiNativeSdk) result["reasoningSummary"] = "auto"
       }
 
       // Generic OpenAI-compatible APIs do not necessarily support OpenAI's verbosity parameter.
