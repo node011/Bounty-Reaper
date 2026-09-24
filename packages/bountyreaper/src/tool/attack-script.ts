@@ -3,6 +3,8 @@ import { Tool } from "./tool"
 import path from "path"
 import { Network } from "../network/network"
 import { Gate } from "./gate"
+import { Engagement } from "../methodology/engagement"
+import { Session } from "../session"
 
 const SCRIPTS_DIR = path.resolve(import.meta.dir, "../../data/scripts")
 
@@ -59,6 +61,20 @@ export const AttackScriptTool = Tool.define("attack_script", {
     timeout_seconds: z.number().optional().default(120).describe("Maximum execution time in seconds (default: 120)"),
   }),
   async execute(params, ctx) {
+    // OOB-callback engagement gate: when an ROE record exists, callbacks must
+    // be explicitly approved on it (audit: engagement-level OOB approval flag).
+    if (params.script === "oob_interactsh") {
+      const eng = Engagement.get(Session.root(ctx.sessionID))
+      if (eng && !eng.oobApproved) {
+        return {
+          title: "attack_script: oob_interactsh",
+          output:
+            "OOB callbacks are NOT approved for this engagement. If the operator has approved out-of-band " +
+            "callbacks, update the engagement first: engagement_setup with oob_approved=true.",
+          metadata: { script: params.script, exitCode: -1, hasStderr: false },
+        }
+      }
+    }
     await Gate.execute(ctx, { tool: "attack_script", what: params.script, detail: { args: params.args } })
     const scriptPath = path.join(SCRIPTS_DIR, `${params.script}.py`)
     const file = Bun.file(scriptPath)

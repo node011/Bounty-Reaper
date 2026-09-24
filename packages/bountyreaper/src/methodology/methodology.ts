@@ -2,6 +2,9 @@ import { Database, eq, and } from "../storage/db"
 import { IntelEntryTable, MethodologyPhaseTable, ValidationViolationTable } from "./methodology.sql"
 import { Identifier } from "../id/id"
 import { Phase } from "./phase"
+import { SkillLoad } from "./skill-load"
+import { Engagement } from "./engagement"
+import { CoverageNote } from "../session/coverage-note"
 
 // ============================================================
 // METHODOLOGY ENGINE — Phase tracking, prereq validation,
@@ -49,8 +52,8 @@ export namespace Methodology {
     const applicablePhases = Phase.forScope(scopeType)
 
     const phases: PhaseState[] = applicablePhases.map((def) => {
-      const result = validateDeliverables(def, entries)
-      const prereqCheck = checkPrerequisites(def, applicablePhases, entries)
+      const result = validateDeliverables(def, entries, sessionID)
+      const prereqCheck = checkPrerequisites(def, applicablePhases, entries, sessionID)
 
       const status: Phase.Status = result.completed
         ? "completed"
@@ -92,6 +95,7 @@ export namespace Methodology {
   function validateDeliverables(
     def: Phase.Definition,
     entries: Array<typeof IntelEntryTable.$inferSelect>,
+    sessionID: string,
   ): { completed: boolean; evidence: string; deliverableCount: number } {
     const matching = entries.filter((e) => {
       const tags = (e.tags as string[]) ?? []
@@ -102,18 +106,26 @@ export namespace Methodology {
     })
 
     if (matching.length >= def.minDeliverables && matching.length > 0)
-      return {
-        completed: true,
-        evidence: `${matching.length} entries with required tags`,
-        deliverableCount: matching.length,
-      }
+      return applyGates(
+        def,
+        {
+          completed: true,
+          evidence: `${matching.length} entries with required tags`,
+          deliverableCount: matching.length,
+        },
+        sessionID,
+      )
 
     // Optional phases (minDeliverables=0) are complete when nothing is
     // required of them — otherwise a clean target with zero findings in an
     // optional phase (e.g. business_logic) would deadlock `reporting`,
     // which lists it as a prerequisite.
     if (def.minDeliverables === 0 && matching.length === 0)
-      return { completed: true, evidence: "optional phase, no deliverables required", deliverableCount: 0 }
+      return applyGates(
+        def,
+        { completed: true, evidence: "optional phase, no deliverables required", deliverableCount: 0 },
+        sessionID,
+      )
 
     return {
       completed: false,
@@ -125,10 +137,52 @@ export namespace Methodology {
     }
   }
 
+  /**
+   * Post-deliverable gates (applied only when the deliverable check passed):
+   *  1. Engagement gate — active-testing phases require a recorded ROE.
+   *  2. Skill gate — phases with requiredSkills need ≥1 matching loaded skill.
+   *     Required phases (minDeliverables > 0) are completion-blocked; optional
+   *     phases keep completion and are surfaced as violations instead, so a
+   *     missing skill cannot deadlock the reporting prerequisite chain.
+   */
+  function applyGates(
+    def: Phase.Definition,
+    base: { completed: boolean; evidence: string; deliverableCount: number },
+    sessionID: string,
+  ): { completed: boolean; evidence: string; deliverableCount: number } {
+    if (!base.completed) return base
+
+    // Placeholder completion: an optional phase with ZERO deliverables is not
+    // "active testing" — let it complete untouched so an untouched clean
+    // target never deadlocks the reporting prerequisite chain. Gates apply
+    // as soon as the phase has real activity (deliverables > 0).
+    if (def.minDeliverables === 0 && base.deliverableCount === 0) return base
+
+    if (def.requiresEngagement && !Engagement.get(sessionID)) {
+      return {
+        completed: false,
+        evidence: `${base.evidence}; engagement not recorded — run engagement_setup`,
+        deliverableCount: base.deliverableCount,
+      }
+    }
+
+    const skillGate = SkillLoad.satisfied(def, sessionID)
+    if (!skillGate.ok && def.minDeliverables > 0) {
+      return {
+        completed: false,
+        evidence: `${base.evidence}; no methodology skill loaded (expected one matching: ${skillGate.expected.join(", ")}) — use skill(action=load)`,
+        deliverableCount: base.deliverableCount,
+      }
+    }
+
+    return base
+  }
+
   function checkPrerequisites(
     def: Phase.Definition,
     applicablePhases: Phase.Definition[],
     entries: Array<typeof IntelEntryTable.$inferSelect>,
+    sessionID: string,
   ): { canStart: boolean; reason?: string } {
     if (def.prerequisites.length === 0) return { canStart: true }
 
@@ -139,7 +193,7 @@ export namespace Methodology {
       if (!applicableIds.has(prereq)) continue // skip prereqs not in scope
       const prereqDef = Phase.get(prereq)
       if (!prereqDef) continue
-      const result = validateDeliverables(prereqDef, entries)
+      const result = validateDeliverables(prereqDef, entries, sessionID)
       if (!result.completed) missing.push(prereq)
     }
 
@@ -260,6 +314,50 @@ export namespace Methodology {
       }
     }
 
+    // 5. skill_gate: phases with requiredSkills but no matching loaded skill
+    for (const phase of phases) {
+      const def = Phase.get(phase.id)
+      if (!def || !def.requiredSkills || def.requiredSkills.length === 0) continue
+      const gate = SkillLoad.satisfied(def, sessionID)
+      if (gate.ok) continue
+      const active = phase.status !== "not_started" || phase.deliverableCount > 0
+      violations.push({
+        gate: "skill_gate",
+        severity: active && def.minDeliverables > 0 ? "blocking" : "warning",
+        message: `Phase "${phase.name}" ${active ? "active" : "pending"} without a loaded methodology skill. Load one matching: ${gate.expected.join(", ")} (skill action=load).`,
+      })
+    }
+
+    // 6. engagement_missing: active-testing phase activity without an ROE record
+    if (!Engagement.get(sessionID)) {
+      const active = phases.find((p) => {
+        const def = Phase.get(p.id)
+        return def?.requiresEngagement && (p.status !== "not_started" || p.deliverableCount > 0)
+      })
+      if (active) {
+        violations.push({
+          gate: "engagement_missing",
+          severity: "blocking",
+          message: `Active testing phase "${active.name}" without a rules-of-engagement record. Run engagement_setup (authorization ref, scope, exclusions, rate limits, test windows, identity types, OOB approval).`,
+        })
+      }
+    }
+
+    // 7. identity_coverage: authorization testing needs ≥2 distinct identities/tenants
+    const authzActive = phases.find(
+      (p) => p.id === "authorization_testing" && (p.status !== "not_started" || p.deliverableCount > 0),
+    )
+    if (authzActive) {
+      const identities = CoverageNote.identities(sessionID)
+      if (identities.length < 2) {
+        violations.push({
+          gate: "identity_coverage",
+          severity: "warning",
+          message: `Authorization phase active with ${identities.length} identity/tenant recorded — test at least 2 distinct identities and record them via record_coverage_note (dimension=identity).`,
+        })
+      }
+    }
+
     // Persist violations
     persistViolations(sessionID, violations)
 
@@ -326,6 +424,17 @@ export namespace Methodology {
         lines.push(`### Current Phase: ${current.name}`)
         lines.push(`Required tags: ${current.requiredTags.join(", ")}`)
         lines.push(`Recommended agents: ${current.agents.join(", ")}`)
+        if (current.requiredSkills && current.requiredSkills.length > 0) {
+          const gate = SkillLoad.satisfied(current, sessionID)
+          lines.push(
+            gate.ok
+              ? `Skill gate: satisfied (loaded: ${gate.matched})`
+              : `Skill gate: LOAD REQUIRED — one matching: ${current.requiredSkills.join(", ")}`,
+          )
+        }
+        if (current.requiresEngagement && !Engagement.get(sessionID)) {
+          lines.push("Engagement gate: ROE NOT RECORDED — run engagement_setup before active testing")
+        }
       }
     }
 

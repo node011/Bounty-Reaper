@@ -32,6 +32,20 @@ export namespace Phase {
     relatedVrtCategories: string[]
     appliesTo: ScopeType[]
     agents: string[]
+    /**
+     * Methodology skill-gate patterns. The phase cannot COMPLETE until at
+     * least one loaded skill (skill action=load) matches one of these
+     * case-insensitive substrings. Empty = no skill requirement.
+     * Enforced for required phases (minDeliverables > 0); optional phases
+     * surface a violation instead of blocking (avoids deadlocking reporting).
+     */
+    requiredSkills: string[]
+    /**
+     * Active-testing phase — completion requires a recorded engagement
+     * (rules of engagement: authorization ref, scope, exclusions, rate
+     * limits, test windows, identity types, OOB approval) via engagement_setup.
+     */
+    requiresEngagement: boolean
   }
 
   export const ALL: Definition[] = [
@@ -44,6 +58,8 @@ export namespace Phase {
       relatedVrtCategories: [],
       appliesTo: ["wildcard", "single", "cidr", "mobile"],
       agents: ["explore", "bountyreaper"],
+      requiredSkills: [],
+      requiresEngagement: false,
     },
     {
       id: "passive_recon",
@@ -54,6 +70,8 @@ export namespace Phase {
       relatedVrtCategories: [],
       appliesTo: ["wildcard", "single"],
       agents: ["explore"],
+      requiredSkills: ["recon", "osint", "subdomain"],
+      requiresEngagement: false,
     },
     {
       id: "active_recon",
@@ -64,6 +82,8 @@ export namespace Phase {
       relatedVrtCategories: [],
       appliesTo: ["wildcard", "single"],
       agents: ["explore", "web-application"],
+      requiredSkills: ["recon", "enum", "crawl"],
+      requiresEngagement: true,
     },
     {
       id: "technology_profiling",
@@ -74,6 +94,8 @@ export namespace Phase {
       relatedVrtCategories: ["Known CVE", "Framework Vuln"],
       appliesTo: ["wildcard", "single"],
       agents: ["explore", "web-application"],
+      requiredSkills: ["tech", "fingerprint", "cve"],
+      requiresEngagement: true,
     },
     {
       id: "authentication_testing",
@@ -84,6 +106,8 @@ export namespace Phase {
       relatedVrtCategories: ["Auth Bypass", "Default Creds"],
       appliesTo: ["wildcard", "single"],
       agents: ["web-application", "proxy-agent"],
+      requiredSkills: ["auth", "login", "password", "jwt", "oauth", "sso"],
+      requiresEngagement: true,
     },
     {
       id: "session_management",
@@ -94,6 +118,8 @@ export namespace Phase {
       relatedVrtCategories: ["Info Disclosure"],
       appliesTo: ["wildcard", "single"],
       agents: ["web-application", "proxy-agent"],
+      requiredSkills: ["session", "cookie", "csrf"],
+      requiresEngagement: true,
     },
     {
       id: "authorization_testing",
@@ -104,6 +130,8 @@ export namespace Phase {
       relatedVrtCategories: ["IDOR", "Privilege Escalation", "Auth Bypass", "CORS"],
       appliesTo: ["wildcard", "single"],
       agents: ["web-application", "proxy-agent"],
+      requiredSkills: ["idor", "authz", "access", "privilege", "bola"],
+      requiresEngagement: true,
     },
     {
       id: "input_validation",
@@ -114,6 +142,8 @@ export namespace Phase {
       relatedVrtCategories: ["SQLi", "XSS", "SSTI", "Command Injection", "SSRF"],
       appliesTo: ["wildcard", "single"],
       agents: ["web-application"],
+      requiredSkills: ["xss", "sqli", "injection", "ssrf", "ssti", "xxe"],
+      requiresEngagement: true,
     },
     {
       id: "business_logic",
@@ -124,6 +154,8 @@ export namespace Phase {
       relatedVrtCategories: ["Race Condition", "Chain Test"],
       appliesTo: ["wildcard", "single"],
       agents: ["web-application"],
+      requiredSkills: ["business", "logic", "race"],
+      requiresEngagement: true,
     },
     {
       id: "data_protection",
@@ -134,6 +166,8 @@ export namespace Phase {
       relatedVrtCategories: ["Info Disclosure"],
       appliesTo: ["wildcard", "single"],
       agents: ["web-application", "explore"],
+      requiredSkills: ["data", "crypto", "tls", "exposure"],
+      requiresEngagement: true,
     },
     {
       id: "api_security",
@@ -144,6 +178,8 @@ export namespace Phase {
       relatedVrtCategories: ["IDOR", "Auth Bypass", "SSRF", "Info Disclosure"],
       appliesTo: ["wildcard", "single"],
       agents: ["web-application", "proxy-agent"],
+      requiredSkills: ["api", "graphql", "rest", "grpc", "websocket"],
+      requiresEngagement: true,
     },
     {
       id: "infrastructure",
@@ -163,6 +199,8 @@ export namespace Phase {
       ],
       appliesTo: ["wildcard", "cidr"],
       agents: ["cloud-security", "internal-network"],
+      requiredSkills: ["cloud", "k8s", "kubernetes", "infra", "dns"],
+      requiresEngagement: true,
     },
     {
       id: "reporting",
@@ -183,6 +221,8 @@ export namespace Phase {
       relatedVrtCategories: [],
       appliesTo: ["wildcard", "single", "cidr", "mobile"],
       agents: ["bountyreaper"],
+      requiredSkills: [],
+      requiresEngagement: false,
     },
   ]
 

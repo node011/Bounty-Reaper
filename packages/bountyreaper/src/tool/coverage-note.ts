@@ -46,6 +46,19 @@ export const RecordCoverageNoteTool = Tool.define("record_coverage_note", {
           "later agents' prompts on every request, so keep it brief: techniques tried · result · key gap.",
       ),
     request_id: z.string().optional().describe("Optional: the request/target id you were testing, for traceability."),
+    dimension: z
+      .enum(["surface", "identity", "state", "input", "impact", "validation_depth"])
+      .optional()
+      .describe(
+        "Optional coverage dimension this note exercises: surface (endpoints/routes), identity (which " +
+          "identity/tenant/role you tested AS — pair with `identity`), state (CRUD/workflow transitions), " +
+          "input (query/JSON/headers/cookies/path), impact (read/write/privesc/disclosure), validation_depth " +
+          "(probe-only vs confirmed impact). Authorization phases require ≥2 distinct identities recorded.",
+      ),
+    identity: z
+      .string()
+      .optional()
+      .describe('The identity/tenant/role this test ran as (e.g. "user-a", "tenant-2", "admin"). Required for dimension=identity.'),
   }),
   async execute(params, ctx) {
     const rec = CoverageNote.record({
@@ -56,6 +69,8 @@ export const RecordCoverageNoteTool = Tool.define("record_coverage_note", {
       note: params.note,
       testedBy: ctx.agent,
       requestID: params.request_id,
+      dimension: params.dimension,
+      identity: params.identity,
     })
     return {
       title: `Coverage: ${params.class} @ ${params.asset} (${params.scope})`,

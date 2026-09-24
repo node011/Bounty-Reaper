@@ -59,6 +59,7 @@ import { AttackScriptTool } from "./attack-script"
 import { GenerateReportTool } from "./generate-report"
 import { EbpfTool } from "./ebpf"
 import { WebReconTool } from "./web-recon"
+import { EngagementSetupTool } from "./engagement"
 import { WinhookTool } from "./winhook"
 import { MachookTool } from "./machook"
 import { LinuxhookTool } from "./linuxhook"
@@ -209,6 +210,7 @@ export namespace ToolRegistry {
       GenerateReportTool,
       EbpfTool,
       WebReconTool,
+      EngagementSetupTool,
       WinhookTool,
       MachookTool,
       LinuxhookTool,

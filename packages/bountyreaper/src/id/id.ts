@@ -29,6 +29,8 @@ export namespace Identifier {
     agent_performance: "apf",
     validation_violation: "vvl",
     operation_ledger: "opl",
+    engagement: "eng",
+    methodology_skill_load: "msl",
   } as const
 
   export function schema(prefix: keyof typeof prefixes) {

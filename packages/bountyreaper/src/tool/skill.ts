@@ -10,6 +10,8 @@ import { PermissionNext } from "../permission/next"
 import { Ripgrep } from "../file/ripgrep"
 import { iife } from "@/util/iife"
 import { Agent } from "../agent/agent"
+import { Session } from "../session"
+import { SkillLoad } from "../methodology/skill-load"
 
 const accessibleCache = new Map<string, Skill.Info[]>()
 
@@ -220,6 +222,8 @@ export const SkillTool = Tool.define("skill", async (ctx) => {
       })
 
       SkillContext.load(params.name)
+      // Methodology skill gate evidence: record the load (session-scoped).
+      SkillLoad.record(Session.root(ctx.sessionID), params.name, ctx.agent)
 
       const dir = path.dirname(skill.location)
       const base = pathToFileURL(dir).href

@@ -196,3 +196,52 @@ export const ValidationViolationTable = sqliteTable(
     index("validation_violation_severity_idx").on(table.session_id, table.severity),
   ],
 )
+
+/**
+ * Skill loads recorded per session — evidence for the methodology skill gate.
+ * A phase declaring `requiredSkills` completes only when at least one loaded
+ * skill name matches one of the phase's required patterns. Written by the
+ * `skill` tool's load action; append-friendly upsert keyed by (session, name).
+ */
+export const MethodologySkillLoadTable = sqliteTable(
+  "methodology_skill_load",
+  {
+    id: text().primaryKey(),
+    session_id: text()
+      .notNull()
+      .references(() => SessionTable.id, { onDelete: "cascade" }),
+    skill_name: text().notNull(),
+    agent: text(),
+    loads: integer().notNull().default(1),
+    ...Timestamps,
+  },
+  (table) => [
+    index("methodology_skill_load_session_idx").on(table.session_id),
+    index("methodology_skill_load_lookup_idx").on(table.session_id, table.skill_name),
+  ],
+)
+
+/**
+ * Rules-of-engagement record — one per session, captured via engagement_setup
+ * BEFORE active testing. Active-testing phases require this row (see Phase
+ * requiresEngagement); the OOB program refuses without oob_approved.
+ */
+export const EngagementTable = sqliteTable(
+  "engagement",
+  {
+    id: text().primaryKey(),
+    session_id: text()
+      .notNull()
+      .references(() => SessionTable.id, { onDelete: "cascade" }),
+    authorization_ref: text().notNull(),
+    scope: text({ mode: "json" }).$type<string[]>(),
+    exclusions: text({ mode: "json" }).$type<string[]>(),
+    rate_limits: text(),
+    test_windows: text(),
+    identity_types: text({ mode: "json" }).$type<string[]>(),
+    oob_approved: integer().notNull().default(0),
+    notes: text(),
+    ...Timestamps,
+  },
+  (table) => [index("engagement_session_idx").on(table.session_id)],
+)

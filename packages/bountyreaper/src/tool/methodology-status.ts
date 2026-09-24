@@ -5,6 +5,9 @@ import { Intel } from "../methodology/intel"
 import { Chain } from "../methodology/chain"
 import { Validation } from "../methodology/validation"
 import { Session } from "../session"
+import { Engagement } from "../methodology/engagement"
+import { SkillLoad } from "../methodology/skill-load"
+import { CoverageNote } from "../session/coverage-note"
 
 export const MethodologyStatusTool = Tool.define("methodology_status", {
   description:
@@ -30,6 +33,42 @@ export const MethodologyStatusTool = Tool.define("methodology_status", {
 
     // 1. Methodology progress
     sections.push(Methodology.formatForPrompt(rootSession))
+
+    // 1b. Engagement (rules of engagement)
+    sections.push("")
+    sections.push(Engagement.formatForPrompt(rootSession))
+
+    // 1c. Skills loaded (methodology skill-gate evidence)
+    const skills = SkillLoad.list(rootSession)
+    sections.push("")
+    sections.push("## Skills Loaded")
+    if (skills.length === 0) {
+      sections.push(
+        "None — load methodology skills before testing (`skill` action=load). Phases with a skill gate cannot complete without one.",
+      )
+    } else {
+      for (const s of skills) {
+        sections.push(`- ${s.skillName} (loaded ${s.loads}x${s.agent ? `, last by ${s.agent}` : ""})`)
+      }
+    }
+
+    // 1d. Coverage dimensions + identity/tenant coverage
+    const dims = CoverageNote.dimensionSummary(rootSession)
+    const identities = CoverageNote.identities(rootSession)
+    sections.push("")
+    sections.push("## Coverage Dimensions")
+    if (dims.length === 0) {
+      sections.push(
+        "None recorded — tag coverage notes with `dimension` (surface/identity/state/input/impact/validation_depth) to track depth, not just counts.",
+      )
+    } else {
+      for (const d of dims) sections.push(`- ${d.dimension}: ${d.count} note(s)`)
+    }
+    sections.push(
+      identities.length >= 2
+        ? `- Identities/tenants recorded: ${identities.join(", ")}`
+        : `- Identities/tenants recorded: ${identities.length} (authorization testing needs ≥2 distinct identities — record via record_coverage_note dimension=identity)`,
+    )
 
     // 2. Coverage
     sections.push("")

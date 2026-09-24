@@ -380,6 +380,8 @@ export const CoverageNoteTable = sqliteTable(
     note: text().notNull(), // compact prose: what was tried + result + gaps
     tested_by: text(), // agent name that recorded it
     request_id: text(), // optional traceability soft pointer (absent for cloud/network)
+    dimension: text(), // coverage dimension: surface|identity|state|input|impact|validation_depth
+    identity: text(), // identity/tenant/role the test ran as (for identity-dimension coverage)
     ...Timestamps,
   },
   (table) => [

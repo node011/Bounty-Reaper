@@ -21,6 +21,18 @@ import { Identifier } from "../id/id"
 export namespace CoverageNote {
   export type Scope = "wide" | "local"
 
+  /**
+   * Coverage dimensions (audit: track WHAT was covered, not just how many
+   * cells). Optional — a note may declare the dimension it exercises:
+   *  - surface          endpoints/routes/API versions/subdomains tested
+   *  - identity         which identity/tenant/role the test ran as
+   *  - state            create/read/update/delete/workflow transitions
+   *  - input            query/JSON/multipart/headers/cookies/path
+   *  - impact           read access/write access/privesc/data disclosure
+   *  - validation_depth probe-only / baseline compare / confirmed impact
+   */
+  export type Dimension = "surface" | "identity" | "state" | "input" | "impact" | "validation_depth"
+
   export interface Info {
     id: string
     sessionID: string
@@ -30,6 +42,8 @@ export namespace CoverageNote {
     note: string
     testedBy?: string
     requestID?: string
+    dimension?: Dimension
+    identity?: string
     timeCreated: number
     timeUpdated: number
   }
@@ -46,6 +60,8 @@ export namespace CoverageNote {
     note: string
     testedBy?: string
     requestID?: string
+    dimension?: Dimension
+    identity?: string
   }): Info {
     const id = Identifier.ascending("coverage_note")
     const now = Date.now()
@@ -61,6 +77,8 @@ export namespace CoverageNote {
           note: input.note,
           tested_by: input.testedBy ?? null,
           request_id: input.requestID ?? null,
+          dimension: input.dimension ?? null,
+          identity: input.identity ?? null,
           time_created: now,
           time_updated: now,
         })
@@ -75,6 +93,8 @@ export namespace CoverageNote {
       note: input.note,
       testedBy: input.testedBy,
       requestID: input.requestID,
+      dimension: input.dimension,
+      identity: input.identity,
       timeCreated: now,
       timeUpdated: now,
     }
@@ -90,9 +110,40 @@ export namespace CoverageNote {
       note: row.note,
       testedBy: row.tested_by ?? undefined,
       requestID: row.request_id ?? undefined,
+      dimension: (row.dimension as Dimension | null) ?? undefined,
+      identity: row.identity ?? undefined,
       timeCreated: row.time_created,
       timeUpdated: row.time_updated,
     }
+  }
+
+  /** Distinct identity/tenant/role values recorded via dimension=identity notes. */
+  export function identities(sessionID: string): string[] {
+    const rows = Database.use((db) =>
+      db
+        .select({ identity: CoverageNoteTable.identity })
+        .from(CoverageNoteTable)
+        .where(eq(CoverageNoteTable.session_id, sessionID))
+        .all(),
+    )
+    return [...new Set(rows.map((r) => r.identity).filter((v): v is string => !!v && v.trim().length > 0))]
+  }
+
+  /** Count of notes per declared dimension (only non-null dimensions). */
+  export function dimensionSummary(sessionID: string): Array<{ dimension: string; count: number }> {
+    const rows = Database.use((db) =>
+      db
+        .select({ dimension: CoverageNoteTable.dimension })
+        .from(CoverageNoteTable)
+        .where(eq(CoverageNoteTable.session_id, sessionID))
+        .all(),
+    )
+    const counts = new Map<string, number>()
+    for (const r of rows) {
+      if (!r.dimension) continue
+      counts.set(r.dimension, (counts.get(r.dimension) ?? 0) + 1)
+    }
+    return [...counts.entries()].map(([dimension, count]) => ({ dimension, count }))
   }
 
   /**
