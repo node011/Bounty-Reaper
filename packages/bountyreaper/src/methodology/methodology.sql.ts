@@ -127,6 +127,9 @@ export const ChainCandidateTable = sqliteTable(
     testing_plan: text(),
     status: text().notNull(), // detected, testing, confirmed, disproven
     confidence: real().notNull().default(0.5),
+    // Chain proof model (audit #5 / exploit-chainer discipline): every hop must
+    // be proven before a chain may be "confirmed" or its severity elevated.
+    proof: text({ mode: "json" }),
     detected_at: integer(),
     ...Timestamps,
   },

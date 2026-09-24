@@ -20,6 +20,29 @@ export namespace Chain {
     | "race_condition_business"
     | "custom"
 
+  /**
+   * Chain proof model — a combination of findings may only be treated as an
+   * exploit path (and have its severity elevated) when EVERY gate below is
+   * proven. "Could be chained" without proof is a potential chain, not a
+   * finding. Ported discipline: exploit-chainer "validate each link".
+   */
+  export interface ChainProof {
+    /** Each individual finding in the chain is independently confirmed. */
+    prerequisiteOk?: boolean
+    /** The attacker can actually traverse from finding A to finding B. */
+    reachabilityOk?: boolean
+    /** Tokens, roles, network paths and timing actually align across hops. */
+    compatibilityOk?: boolean
+    /** Final impact demonstrated with a minimal, safe proof. */
+    impactDemonstrated?: boolean
+    /** Refutation attempted (controls/boundary checks tried to disprove the chain). */
+    refutationAttempted?: boolean
+    /** Per-hop evidence trail. */
+    hops?: Array<{ from: string; to: string; verified: boolean; evidence?: string }>
+    notes?: string
+    updatedAt?: number
+  }
+
   export interface Candidate {
     id: string
     pattern: Pattern
@@ -31,7 +54,25 @@ export namespace Chain {
     testingPlan: string
     status: "detected" | "testing" | "confirmed" | "disproven"
     confidence: number
+    proof?: ChainProof
     detectedAt: number
+  }
+
+  const PROOF_GATES: Array<{ key: keyof ChainProof; label: string }> = [
+    { key: "prerequisiteOk", label: "prerequisite (each finding confirmed)" },
+    { key: "reachabilityOk", label: "reachability (A -> B traversable)" },
+    { key: "compatibilityOk", label: "compatibility (tokens/roles/network/timing align)" },
+    { key: "impactDemonstrated", label: "impact (final impact demonstrated, minimal safe proof)" },
+    { key: "refutationAttempted", label: "refutation (attempted to disprove the chain)" },
+  ]
+
+  export function proofComplete(proof?: ChainProof): boolean {
+    if (!proof) return false
+    return PROOF_GATES.every((g) => proof[g.key] === true)
+  }
+
+  export function missingProofGates(proof?: ChainProof): string[] {
+    return PROOF_GATES.filter((g) => proof?.[g.key] !== true).map((g) => g.label)
   }
 
   const OAUTH_REGEX = /\b(oauth|authorize|callback|redirect_uri|token|sso|saml|openid)\b/i
@@ -282,6 +323,7 @@ export namespace Chain {
             testing_plan: chain.testingPlan,
             status: prev?.status ?? chain.status,
             confidence: chain.confidence,
+            proof: (prev?.proof ?? chain.proof ?? null) as any,
             detected_at: chain.detectedAt,
             time_created: now,
             time_updated: now,
@@ -306,8 +348,50 @@ export namespace Chain {
       testingPlan: r.testing_plan ?? "",
       status: r.status as Candidate["status"],
       confidence: r.confidence,
+      proof: (r.proof as ChainProof | null) ?? undefined,
       detectedAt: r.detected_at ?? r.time_created,
     }))
+  }
+
+  /**
+   * Record proof progress for a chain. A chain may only be marked "confirmed"
+   * when ALL proof gates pass; otherwise the status is held at/below "testing"
+   * (an over-claimed confirmation is downgraded back to testing).
+   */
+  export function recordProof(
+    sessionID: string,
+    chainID: string,
+    input: Partial<ChainProof>,
+  ): { candidate?: Candidate; verdict: string } {
+    return Database.use((db) => {
+      const row = db
+        .select()
+        .from(ChainCandidateTable)
+        .where(and(eq(ChainCandidateTable.session_id, sessionID), eq(ChainCandidateTable.id, chainID)))
+        .get()
+      if (!row) return { verdict: `chain not found: ${chainID}` }
+
+      const prevProof = (row.proof as ChainProof | null) ?? {}
+      const proof: ChainProof = { ...prevProof, ...input, updatedAt: Date.now() }
+      const complete = proofComplete(proof)
+      const nextStatus = complete
+        ? "confirmed"
+        : row.status === "confirmed"
+          ? "testing" // downgrade an over-claimed confirmation
+          : row.status
+
+      db.update(ChainCandidateTable)
+        .set({ proof: proof as any, status: nextStatus, time_updated: Date.now() })
+        .where(eq(ChainCandidateTable.id, chainID))
+        .run()
+
+      const updated = load(sessionID).find((c) => c.id === chainID)
+      const missing = missingProofGates(proof)
+      const verdict = complete
+        ? "CONFIRMED — all proof gates passed; severity elevation is justified."
+        : `POTENTIAL CHAIN — UNVERIFIED. Missing gates: ${missing.join("; ")}. Do not elevate severity until proven.`
+      return { candidate: updated, verdict }
+    })
   }
 
   export function detectAndPersist(sessionID: string): Candidate[] {
@@ -329,7 +413,14 @@ export namespace Chain {
         `[${confLabel}-${c.confidence}%] ${c.pattern.toUpperCase()}: "${c.entryTitles[0]}" + "${c.entryTitles[1]}" -> ${c.expectedImpact}`,
       )
       lines.push(`  Test: ${c.testingPlan}`)
-      lines.push(`  Entries: ${c.entryIDs.join(", ")} | Assets: ${c.assets.join(", ")}`)
+      lines.push(`  Entries: ${c.entryIDs.join(", ")} | Assets: ${c.assets.join(", ")} | id=${c.id}`)
+      if (proofComplete(c.proof)) {
+        lines.push("  Proof: COMPLETE — severity elevation justified")
+      } else {
+        lines.push(
+          `  Proof: UNVERIFIED (missing: ${missingProofGates(c.proof).join("; ")}) — record via chain_proof before elevating severity`,
+        )
+      }
     }
     return lines.join("\n")
   }

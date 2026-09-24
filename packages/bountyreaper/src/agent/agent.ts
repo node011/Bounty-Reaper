@@ -16,6 +16,8 @@ import PROMPT_TITLE from "./prompt/title.txt"
 import PROMPT_WEB_APPLICATION from "./prompt/web-application.txt"
 import PROMPT_CLOUD_SECURITY from "./prompt/cloud-security.txt"
 import PROMPT_INTERNAL_NETWORK from "./prompt/internal-network.txt"
+import PROMPT_THREAT_MODELER from "./prompt/threat-modeler.txt"
+import PROMPT_VALIDATOR from "./prompt/validator.txt"
 import PROMPT_MOBILE_APPLICATION from "./prompt/mobile-application.txt"
 import PROMPT_NORMALIZE_REQUEST from "./prompt/normalize-request.txt"
 import PROMPT_BOUNTYREAPER from "./prompt/bountyreaper.txt"
@@ -483,6 +485,71 @@ export namespace Agent {
             k8s_audit: "allow",
             ci_audit: "allow",
             cipipe: "allow",
+          }),
+          user,
+        ),
+        options: {},
+      },
+      "threat-modeler": {
+        name: "threat-modeler",
+        description:
+          "Threat modeling and attack-surface analysis. STRIDE per component, trust boundaries, attack trees, MITRE ATT&CK mapping, and evidence-backed test routing. Analysis only — does not send attack traffic.",
+        mode: "subagent",
+        native: true,
+        color: "green",
+        prompt: `${PROMPT_METHODOLOGY_COMMON}\n\n${PROMPT_METHODOLOGY_CONTINUATION}\n\n---\n\n${PROMPT_THREAT_MODELER}`,
+        skills: ["mitre_attack", "recon-methodology"],
+        permission: PermissionNext.merge(
+          defaults,
+          PermissionNext.fromConfig({
+            question: "allow",
+            read: "allow",
+            glob: "allow",
+            grep: "allow",
+            webfetch: "allow",
+            websearch: "allow",
+            add_intel: "allow",
+            update_vrt_check: "allow",
+            methodology_status: "allow",
+            scope_check: "allow",
+            record_coverage_note: "allow",
+            web_get_session_context: "allow",
+            web_get_detail: "allow",
+          }),
+          user,
+        ),
+        options: {},
+      },
+      validator: {
+        name: "validator",
+        description:
+          "Independent PoC validation. Reproduces claimed findings from scratch, control-verified deltas, refutation attempts, non-destructive canary proofs. Kills false positives before reporting.",
+        mode: "subagent",
+        native: true,
+        color: "green",
+        prompt: `${PROMPT_METHODOLOGY_COMMON}\n\n${PROMPT_METHODOLOGY_CONTINUATION}\n\n---\n\n${PROMPT_VALIDATOR}`,
+        skills: ["attack-taint-tracing", "attack-idor-automation"],
+        permission: PermissionNext.merge(
+          defaults,
+          PermissionNext.fromConfig({
+            question: "allow",
+            bash: "allow",
+            read: "allow",
+            glob: "allow",
+            grep: "allow",
+            webfetch: "allow",
+            websearch: "allow",
+            report_vulnerability: "allow",
+            triage_vulnerability: "allow",
+            add_intel: "allow",
+            update_vrt_check: "allow",
+            methodology_status: "allow",
+            scope_check: "allow",
+            record_coverage_note: "allow",
+            http_replay: "allow",
+            inject_probe: "allow",
+            web_get_session_context: "allow",
+            web_get_detail: "allow",
           }),
           user,
         ),

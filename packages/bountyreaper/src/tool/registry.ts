@@ -60,6 +60,7 @@ import { GenerateReportTool } from "./generate-report"
 import { EbpfTool } from "./ebpf"
 import { WebReconTool } from "./web-recon"
 import { EngagementSetupTool } from "./engagement"
+import { ChainProofTool } from "./chain-proof"
 import { WinhookTool } from "./winhook"
 import { MachookTool } from "./machook"
 import { LinuxhookTool } from "./linuxhook"
@@ -211,6 +212,7 @@ export namespace ToolRegistry {
       EbpfTool,
       WebReconTool,
       EngagementSetupTool,
+      ChainProofTool,
       WinhookTool,
       MachookTool,
       LinuxhookTool,
