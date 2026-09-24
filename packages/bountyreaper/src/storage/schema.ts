@@ -14,6 +14,8 @@ export {
   WebFunctionTable,
   WebRetestQueueTable,
   EndpointTemplateTable,
+  CoverageNoteTable,
+  RequestObservationTable,
 } from "../session/session.sql"
 export { OperationLedgerTable } from "../session/operation-ledger.sql"
 export { SessionShareTable } from "../share/share.sql"
@@ -25,4 +27,6 @@ export {
   ChainCandidateTable,
   AgentPerformanceTable,
   ValidationViolationTable,
+  EngagementTable,
+  MethodologySkillLoadTable,
 } from "../methodology/methodology.sql"
