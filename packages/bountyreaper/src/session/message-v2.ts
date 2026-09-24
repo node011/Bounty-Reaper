@@ -523,7 +523,13 @@ export namespace MessageV2 {
     const supportsMediaInToolResults = (() => {
       if (model.api.npm === "@ai-sdk/anthropic") return true
       if (model.api.npm === "@ai-sdk/openai") return true
-      if (model.api.npm === "@ai-sdk/amazon-bedrock") return true
+      if (model.api.npm === "@ai-sdk/amazon-bedrock") {
+        // Only Bedrock models that accept images support media in tool results;
+        // hoisting media for text-only models (e.g. Titan) breaks the request.
+        // Ported from opencode c10134729.
+        const id = model.api.id.toLowerCase()
+        return id.includes("anthropic.") || id.includes("nova") || id.includes("llama4") || id.includes("llama-4")
+      }
       if (model.api.npm === "@ai-sdk/google-vertex/anthropic") return true
       if (model.api.npm === "@ai-sdk/google") {
         const id = model.api.id.toLowerCase()

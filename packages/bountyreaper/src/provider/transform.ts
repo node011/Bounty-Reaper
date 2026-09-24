@@ -346,8 +346,20 @@ export namespace ProviderTransform {
 
   // Gemini models with vendor-tuned sampling defaults; blanket 1.0 temps
   // destabilize the others, so gate by family/version patterns.
+  const GEMINI_2_5_RE = /gemini-2[.-]5(?:[.-]|$)/i
+  const GEMINI_LEGACY_RE = /gemini-(?:(?:flash|pro)-)?[12](?:[.-]|$)/i
+
+  // Ported from opencode 610df0b56: named matchers for the gemini family.
+  function isLegacyGemini(apiId: string) {
+    return GEMINI_LEGACY_RE.test(apiId)
+  }
+
+  function isGemini25(apiId: string) {
+    return GEMINI_2_5_RE.test(apiId)
+  }
+
   const GEMINI_MODELS_WITH_SAMPLING_DEFAULTS = [
-    /gemini-2[.-]5(?:[.-]|$)/,
+    GEMINI_2_5_RE,
     /gemini-3-(?:flash|pro)(?:[.-]|$)/,
     /gemini-3[.-]1(?:[.-]|$)/,
     /gemini-3[.-]5-flash(?!-lite)(?:[.-]|$)/,
@@ -783,7 +795,7 @@ export namespace ProviderTransform {
       result["usage"] = {
         include: true,
       }
-      if (input.model.api.id.includes("gemini-3")) {
+      if (input.model.api.id.toLowerCase().includes("gemini") && !isLegacyGemini(input.model.api.id)) {
         result["reasoning"] = { effort: "high" }
       }
     }
