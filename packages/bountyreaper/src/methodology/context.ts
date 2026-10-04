@@ -7,6 +7,8 @@ import { AgentPerformance } from "./performance"
 import { Phase } from "./phase"
 import { Validation } from "./validation"
 import { categoryInLane } from "../tool/vuln-scope"
+import { SkillLoad } from "./skill-load"
+import { Engagement } from "./engagement"
 
 // ============================================================
 // METHODOLOGY CONTEXT — System prompt injection for
@@ -27,6 +29,47 @@ export namespace MethodologyContext {
    *   Leave undefined for the orchestrator / non-tester agents (full context).
    */
   export function generate(sessionID: string, agentClass?: string): string | null {
+    const isTester = !!agentClass
+    // Bootstrap FIRST and on its own terms: `generate` bails out entirely when the session
+    // has no intel yet, which is precisely the cold-start case where the agent most needs
+    // to be told how to clear the gates. Returns null once the session is unblocked.
+    const boot = bootstrapSync(sessionID)
+    const body = generateBody(sessionID, agentClass)
+    if (!body) return boot
+    return boot ? `${boot}\n\n---\n\n${body}` : body
+  }
+
+  /** Synchronous gate summary — no catalog scan, safe on the hot prompt path. */
+  function bootstrapSync(sessionID: string): string | null {
+    const blockers: string[] = []
+    if (!Engagement.get(sessionID)) {
+      blockers.push(
+        "**1. Record the rules of engagement FIRST** — recon and every later phase are gated on this:",
+        '   `engagement_setup(authorization_ref="<program URL or written authorization>", scope=["<in-scope hosts>"], rate_limits="<e.g. 10 req/s>", test_windows="<e.g. 24/7>", identity_types=["authenticated"], oob_approved=true)`',
+        "   Do not begin Active Recon until this is recorded.",
+      )
+    }
+    const gated = Phase.ALL.filter((def) => (def.requiredSkills ?? []).length > 0 && !SkillLoad.satisfied(def, sessionID).ok)
+    if (gated.length > 0) {
+      blockers.push(
+        `**2. Load a methodology skill per phase family** (${gated.length} phase${gated.length === 1 ? "" : "s"} gated).`,
+        "   Run `skill(action=\"search\", query=\"<phase topic>\")` then `skill(action=\"load\", name=\"...\")`.",
+        "   The gate matches on the skill NAME — e.g. any skill whose name contains `recon` clears Active Recon.",
+        "   Load the one closest to your next step; do NOT load them all up front.",
+        ...gated.map((def) => `   - ${def.name} — needs a skill matching: ${(def.requiredSkills ?? []).join(", ")}`),
+      )
+    }
+    if (blockers.length === 0) return null
+    return [
+      "# STARTUP BLOCKERS — CLEAR THESE BEFORE ANY OTHER WORK",
+      "",
+      "This session is gated. Until these are cleared, phases cannot complete and progress is frozen.",
+      "",
+      ...blockers,
+    ].join("\n")
+  }
+
+  function generateBody(sessionID: string, agentClass?: string): string | null {
     const isTester = !!agentClass
     // Check if any intel entries exist for this session
     const count = Database.use((db) =>

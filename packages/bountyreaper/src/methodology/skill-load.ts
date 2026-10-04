@@ -3,6 +3,7 @@ import { MethodologySkillLoadTable } from "./methodology.sql"
 import { Identifier } from "../id/id"
 import { Phase } from "./phase"
 import { Log } from "../util/log"
+import { Skill } from "../skill"
 
 // ============================================================
 // SKILL-LOAD TRACKING — evidence for the methodology skill gate
@@ -118,6 +119,33 @@ export namespace SkillLoad {
       if (patterns.some((p) => name.includes(p.toLowerCase()))) return name
     }
     return undefined
+  }
+
+  /**
+   * Resolve concrete skill name(s) from the catalog that would satisfy a gate's
+   * patterns. The gate matches on substring, so any catalog skill whose NAME
+   * contains one of the patterns satisfies it — this turns "load one matching:
+   * recon, enum, crawl" into an exact, copy-pasteable skill(action=load) call.
+   * Without this, an agent has to guess a name and cold sessions look stuck.
+   */
+  export async function suggest(patterns: string[], limit = 3): Promise<string[]> {
+    if (patterns.length === 0) return []
+    const lowered = patterns.map((p) => p.toLowerCase())
+    return (await Skill.all())
+      .map((s) => s.name)
+      .filter((name) => {
+        const n = name.toLowerCase()
+        return lowered.some((p) => n.includes(p))
+      })
+      // Prefer names matching exactly ONE pattern: a skill like "attack-oauth" clears
+      // the auth gate and happens to also contain "auth", but a recon-named skill is a
+      // clearer instruction for the recon phase. Shorter = less ambiguous.
+      .sort((a, b) => {
+        const ha = lowered.filter((p) => a.toLowerCase().includes(p)).length
+        const hb = lowered.filter((p) => b.toLowerCase().includes(p)).length
+        return ha - hb || a.length - b.length || a.localeCompare(b)
+      })
+      .slice(0, limit)
   }
 
   /**

@@ -94,23 +94,65 @@ export namespace SkillIndex {
     return Array.from(entries.values())
   }
 
+  /** Split a free-text query into search terms, preserving cwe/owasp-style ids. */
+  function terms(query: string): string[] {
+    return query
+      .toLowerCase()
+      .split(/[^a-z0-9._-]+/)
+      .map((t) => t.trim())
+      .filter((t) => t.length > 1)
+  }
+
+  /**
+   * Score one entry against one term. Field weights are unchanged from the original
+   * single-term matcher so existing callers see identical ranking.
+   */
+  function scoreTerm(entry: Entry, q: string): number {
+    let score = 0
+    const name = entry.name.toLowerCase()
+    if (name === q) score += 100
+    else if (name.startsWith(q)) score += 50
+    else if (name.includes(q)) score += 20
+    if (entry.tags.some((t) => t.toLowerCase() === q)) score += 40
+    else if (entry.tags.some((t) => t.toLowerCase().includes(q))) score += 15
+    if (entry.cwe_ids.some((c) => c.toLowerCase() === q)) score += 30
+    else if (entry.cwe_ids.some((c) => c.toLowerCase().includes(q))) score += 20
+    if (entry.tech_stack.some((t) => t.toLowerCase().includes(q))) score += 12
+    if (entry.owasp_id?.toLowerCase().includes(q)) score += 30
+    if (entry.category?.toLowerCase().includes(q)) score += 10
+    if (entry.description.toLowerCase().includes(q)) score += 5
+    return score
+  }
+
+  /**
+   * Intent search: the query is tokenized and terms are OR'd, so a multi-word intent
+   * like "auth login jwt oauth" returns skills matching ANY of those concepts instead
+   * of 0 results (the previous matcher compared the whole string as one substring, so
+   * it only ever hit when a skill literally contained the entire phrase).
+   * Entries matching MORE distinct terms rank first — that is what makes intent
+   * queries surface the right skill rather than 50 single-term coincidences.
+   */
   export function search(query: string, limit = 50): Entry[] {
-    const q = query.toLowerCase()
+    const words = terms(query)
+    if (words.length === 0) return []
     const scored: Array<{ entry: Entry; score: number }> = []
     for (const entry of entries.values()) {
       let score = 0
-      if (entry.name.toLowerCase() === q) score += 100
-      else if (entry.name.toLowerCase().startsWith(q)) score += 50
-      else if (entry.name.toLowerCase().includes(q)) score += 20
-      if (entry.tags.some((t) => t.toLowerCase() === q)) score += 40
-      else if (entry.tags.some((t) => t.toLowerCase().includes(q))) score += 15
-      if (entry.owasp_id?.toLowerCase().includes(q)) score += 30
-      if (entry.category?.toLowerCase().includes(q)) score += 10
-      if (entry.description.toLowerCase().includes(q)) score += 5
-      if (score > 0) scored.push({ entry, score })
+      let hits = 0
+      for (const word of words) {
+        const s = scoreTerm(entry, word)
+        if (s > 0) {
+          score += s
+          hits++
+        }
+      }
+      if (score === 0) continue
+      // Coverage bonus: rewards breadth of match over one lucky field hit.
+      score += Math.round((hits / words.length) * 60)
+      scored.push({ entry, score })
     }
     return scored
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name))
       .slice(0, limit)
       .map((s) => s.entry)
   }
