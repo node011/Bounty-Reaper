@@ -96,7 +96,9 @@ export namespace MethodologyContext {
             ? "[>]"
             : phase.status === "blocked"
               ? "[!]"
-              : "[ ]"
+              : phase.status === "skipped"
+                ? "[-]"
+                : "[ ]"
       sections.push(`${icon} ${phase.name} (${phase.deliverableCount} entries)`)
     }
     sections.push(`\nOverall: ${state.completionPercent}% (${state.completedCount}/${state.totalCount})`)

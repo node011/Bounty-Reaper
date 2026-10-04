@@ -19,7 +19,11 @@ export namespace Phase {
     | "infrastructure"
     | "reporting"
 
-  export type Status = "not_started" | "in_progress" | "completed" | "blocked"
+  // "skipped" = an optional phase (minDeliverables 0) with nothing to do. It SATISFIES a
+  // prerequisite (so `reporting` is not deadlocked by an optional phase) but is NOT
+  // completion: counting it as "completed" reported 33% progress on a session that had
+  // done nothing, which is a false signal that masks real coverage gaps.
+  export type Status = "not_started" | "in_progress" | "completed" | "blocked" | "skipped"
 
   export type ScopeType = "wildcard" | "single" | "cidr" | "mobile"
 

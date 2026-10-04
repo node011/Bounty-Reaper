@@ -22,7 +22,14 @@ function globalFiles() {
     files.push(path.join(Flag.BOUNTYREAPER_CONFIG_DIR, "AGENTS.md"))
   }
   files.push(path.join(Global.Path.config, "AGENTS.md"))
-  if (!Flag.BOUNTYREAPER_DISABLE_CLAUDE_CODE_PROMPT) {
+  // `~/.claude/CLAUDE.md` is Claude Code's OWN global config, not BountyReaper's. It was
+  // merged into every session by default, which injected that tool's auto-dispatch table
+  // — ~50 agent names (recon-advisor, web-hunter, ad-attacker, …) that do not exist in
+  // this runtime (the real Task roster is 7). An agent following those instructions
+  // dispatches to agents that cannot be invoked, and the resulting failures look like
+  // harness bugs. Project-level CLAUDE.md is unaffected and still loaded above.
+  // Opt back in with BOUNTYREAPER_INCLUDE_CLAUDE_CODE_PROMPT=1.
+  if (Flag.BOUNTYREAPER_INCLUDE_CLAUDE_CODE_PROMPT && !Flag.BOUNTYREAPER_DISABLE_CLAUDE_CODE_PROMPT) {
     files.push(path.join(os.homedir(), ".claude", "CLAUDE.md"))
   }
   return files

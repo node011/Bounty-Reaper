@@ -17,6 +17,7 @@ import { Shell } from "@/shell/shell"
 import { BashArity } from "@/permission/arity"
 import { Truncate } from "./truncation"
 import { Plugin } from "@/plugin"
+import { Gate } from "./gate"
 
 const MAX_METADATA_LENGTH = 30_000
 
@@ -96,6 +97,18 @@ export const BashTool = Tool.define("bash", async () => {
       const cwd = params.workdir || Instance.directory
       if (params.timeout !== undefined && params.timeout < 0) {
         throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
+      }
+      // Mechanical engagement gate: refuse active-target scanning (nmap & co) when no
+      // rules of engagement are recorded. The methodology engine flags this, but an
+      // advisory flag does not stop a command from running — and "just check this port"
+      // is exactly the pressure under which the advisory flag gets ignored.
+      const scanRefusal = await Gate.activeScan(ctx, params.command)
+      if (scanRefusal) {
+        return {
+          title: "bash: blocked by active-scan engagement gate",
+          metadata: { output: scanRefusal, description: params.description, exit: -1 },
+          output: scanRefusal,
+        }
       }
       const timeout = params.timeout ?? DEFAULT_TIMEOUT
       const tree = await parser().then((p) => p.parse(params.command))

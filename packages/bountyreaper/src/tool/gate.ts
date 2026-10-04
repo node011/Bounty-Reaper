@@ -1,4 +1,5 @@
 import type { Tool } from "./tool"
+import { Flag } from "../flag/flag"
 
 /**
  * Permission gate for the post-exploitation and audit tools.
@@ -139,5 +140,84 @@ export namespace Gate {
       always: [`${input.tool}:exec:*`],
       metadata: { tool: input.tool, risk: RISK.exec, ...input.detail },
     })
+  }
+
+  // --- Active-target scan gate ---
+  //
+  // The methodology engine flags `engagement_missing` on every active-testing phase, but
+  // that was purely advisory: nothing consulted it, so `bash nmap <ip>` executed happily
+  // with no rules of engagement on record. Compliance collapses exactly when it matters —
+  // under a "just check this port" request. This makes the gate mechanical.
+  //
+  // Only ACTIVE, TARGET-DIRECTED scanning is gated. Passive enumeration of local files,
+  // loopback testing, and ordinary dev commands are untouched, because a gate that fires
+  // on `ls` gets disabled wholesale and then protects nothing.
+
+  /** Programs that send packets to a target. */
+  const SCANNERS = [
+    "nmap",
+    "masscan",
+    "naabu",
+    "unicornscan",
+    "zmap",
+    "hping3",
+    "hping",
+    "arp-scan",
+    "nping",
+    "scapy",
+    "netdiscover",
+    "nikto",
+  ]
+
+  const LOOPBACK = /(^|[\s"'=])(127\.\d+\.\d+\.\d+|localhost|::1|0\.0\.0\.0)([\s"'$]|$)/
+
+  /** True when `command` runs an active scanner against something other than loopback. */
+  export function isActiveScan(command: string): boolean {
+    // Match the program as an actual invocation (start of string, or after a shell
+    // separator), not as a substring — `grep nmap notes.txt` and `echo "nmap"` must
+    // not trip the gate.
+    for (const scanner of SCANNERS) {
+      const re = new RegExp(`(^|[;&|(\\n]|&&|\\|\\|)\\s*(sudo\\s+|command\\s+|time\\s+)?(\\.\\/${scanner}|${scanner})\\b`)
+      if (!re.test(command)) continue
+      if (LOOPBACK.test(command)) continue
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Refuse active scanning when no rules of engagement are recorded. Returns a refusal
+   * message when blocked, or undefined when the command may proceed.
+   *
+   * Deliberately NOT bypassable by the model: the correct move is to record authorization
+   * or ask the operator, and the refusal text says exactly that.
+   */
+  export async function activeScan(ctx: Tool.Context, command: string): Promise<string | undefined> {
+    if (Flag.BOUNTYREAPER_DISABLE_ACTIVE_SCAN_GATE) return undefined
+    if (!isActiveScan(command)) return undefined
+    // Dynamic imports: a static `Session`/`Engagement` import here creates a cycle
+    // (session -> tool registry -> bash -> gate) that breaks bash's own definition.
+    const [{ Engagement }, { Session }] = await Promise.all([
+      import("../methodology/engagement"),
+      import("../session"),
+    ])
+    if (Engagement.get(Session.root(ctx.sessionID))) return undefined
+
+    return (
+      "BLOCKED — active scan without a rules-of-engagement record.\n\n" +
+      "`nmap` and friends send packets to a target, which is active testing. The methodology " +
+      "engine requires an authorization record before any active-testing phase, and this gate " +
+      "enforces it because advisory gates do not survive user pressure.\n\n" +
+      "Do ONE of these — do not retry the scan:\n" +
+      "1. If the user HAS authorized this: record it first.\n" +
+      '   engagement_setup(authorization_ref="<program URL or the user\'s stated authorization>",\n' +
+      '     scope=["<exact hosts/IPs in scope>"], rate_limits="<e.g. 10 req/s>",\n' +
+      '     test_windows="<e.g. 24/7 or UTC 22:00-06:00>", oob_approved=<true|false>)\n' +
+      "   For an ad-hoc internal check the operator can declare scope directly, e.g.\n" +
+      '   authorization_ref="operator-declared ad-hoc: internal lab, authorized".\n' +
+      "2. If you do NOT have authorization: STOP and ask the user for it. Do not scan.\n\n" +
+      "Passive work (subfinder, amass, certificate transparency, WHOIS) needs no authorization " +
+      "and is unaffected."
+    )
   }
 }

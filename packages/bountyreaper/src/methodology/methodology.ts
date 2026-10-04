@@ -57,11 +57,13 @@ export namespace Methodology {
 
       const status: Phase.Status = result.completed
         ? "completed"
-        : !prereqCheck.canStart
-          ? "blocked"
-          : result.deliverableCount > 0
-            ? "in_progress"
-            : "not_started"
+        : result.skipped
+          ? "skipped"
+          : !prereqCheck.canStart
+            ? "blocked"
+            : result.deliverableCount > 0
+              ? "in_progress"
+              : "not_started"
 
       return {
         id: def.id,
@@ -76,8 +78,12 @@ export namespace Methodology {
     // Persist phase state
     persistPhases(sessionID, phases)
 
-    const completedCount = phases.filter((p) => p.status === "completed").length
-    const totalCount = phases.length
+    // Skipped optional phases are excluded from the denominator: including them made an
+    // untouched session report 33% because 4 of 12 phases were auto-"completed" with zero
+    // deliverables.
+    const counted = phases.filter((p) => p.status !== "skipped")
+    const completedCount = counted.filter((p) => p.status === "completed").length
+    const totalCount = counted.length
     const current = phases.find((p) => p.status === "in_progress") ?? phases.find((p) => p.status === "not_started")
 
     const violations = generateViolations(sessionID, entries, phases, scopeType)
@@ -96,7 +102,7 @@ export namespace Methodology {
     def: Phase.Definition,
     entries: Array<typeof IntelEntryTable.$inferSelect>,
     sessionID: string,
-  ): { completed: boolean; evidence: string; deliverableCount: number } {
+  ): { completed: boolean; skipped?: boolean; evidence: string; deliverableCount: number } {
     const matching = entries.filter((e) => {
       const tags = (e.tags as string[]) ?? []
       const title = (e.title || "").toLowerCase()
@@ -116,14 +122,15 @@ export namespace Methodology {
         sessionID,
       )
 
-    // Optional phases (minDeliverables=0) are complete when nothing is
-    // required of them — otherwise a clean target with zero findings in an
-    // optional phase (e.g. business_logic) would deadlock `reporting`,
-    // which lists it as a prerequisite.
+    // Optional phases (minDeliverables=0) with nothing recorded are SKIPPED, not
+    // completed. They must not deadlock `reporting` (which lists them as prerequisites),
+    // but reporting them as "completed" made an untouched session look 33% done — a
+    // false progress signal that hides real coverage gaps. `skipped` satisfies the
+    // prerequisite chain and is excluded from completionPercent.
     if (def.minDeliverables === 0 && matching.length === 0)
       return applyGates(
         def,
-        { completed: true, evidence: "optional phase, no deliverables required", deliverableCount: 0 },
+        { completed: false, skipped: true, evidence: "optional phase, nothing to do", deliverableCount: 0 },
         sessionID,
       )
 
@@ -147,9 +154,11 @@ export namespace Methodology {
    */
   function applyGates(
     def: Phase.Definition,
-    base: { completed: boolean; evidence: string; deliverableCount: number },
+    base: { completed: boolean; skipped?: boolean; evidence: string; deliverableCount: number },
     sessionID: string,
-  ): { completed: boolean; evidence: string; deliverableCount: number } {
+  ): { completed: boolean; skipped?: boolean; evidence: string; deliverableCount: number } {
+    // Preserve `skipped` on the early return — an optional phase that produced nothing
+    // is skipped regardless of the engagement/skill gates below.
     if (!base.completed) return base
 
     // Placeholder completion: an optional phase with ZERO deliverables is not
@@ -255,7 +264,9 @@ export namespace Methodology {
     const violations: ViolationInfo[] = []
 
     // 1. methodology_ordering: Check if advanced phases are attempted before basics
-    const completedIds = new Set(phases.filter((p) => p.status === "completed").map((p) => p.id))
+    const completedIds = new Set(
+      phases.filter((p) => p.status === "completed" || p.status === "skipped").map((p) => p.id),
+    )
     for (const phase of phases) {
       if (phase.status === "in_progress" && phase.blockReason) {
         violations.push({
@@ -410,7 +421,9 @@ export namespace Methodology {
             ? "[ACTIVE]"
             : phase.status === "blocked"
               ? "[BLOCKED]"
-              : "[TODO]"
+              : phase.status === "skipped"
+                ? "[SKIP]"
+                : "[TODO]"
       lines.push(`| ${phase.name} | ${icon} | ${phase.deliverableCount} |`)
     }
 

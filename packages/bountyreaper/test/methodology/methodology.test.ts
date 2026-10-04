@@ -19,13 +19,18 @@ describe("Methodology — Phase Computation", () => {
 
         const state = Methodology.computeState(session.id)
         // Empty session → "single" scope → 12 phases (no infrastructure).
-        // Optional phases (minDeliverables=0) are complete with zero entries —
-        // otherwise a clean target could never unblock `reporting`.
+        // Optional phases (minDeliverables=0) are SKIPPED, not completed: they must not
+        // deadlock `reporting`, but counting them as done reported 33% progress on a
+        // session that had done nothing, which is a false signal that hides real gaps.
         const singlePhaseCount = Phase.forScope("single").length
-        const optionalCount = Phase.forScope("single").filter((p) => p.minDeliverables === 0).length
+        const optional = Phase.forScope("single").filter((p) => p.minDeliverables === 0)
         expect(state.phases.length).toBe(singlePhaseCount)
-        expect(state.completedCount).toBe(optionalCount)
-        expect(state.totalCount).toBe(singlePhaseCount)
+        expect(state.completedCount).toBe(0)
+        expect(state.completionPercent).toBe(0)
+        // Skipped phases are excluded from the progress denominator entirely.
+        expect(state.totalCount).toBe(singlePhaseCount - optional.length)
+        expect(state.phases.filter((p) => p.status === "skipped").length).toBe(optional.length)
+        expect(state.phases.filter((p) => p.status === "completed").length).toBe(0)
 
         await Session.remove(session.id)
       },

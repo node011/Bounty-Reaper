@@ -29,6 +29,13 @@ export namespace Flag {
   export const BOUNTYREAPER_DISABLE_AUTOCOMPACT = truthy("BOUNTYREAPER_DISABLE_AUTOCOMPACT")
   export const BOUNTYREAPER_DISABLE_MODELS_FETCH = truthy("BOUNTYREAPER_DISABLE_MODELS_FETCH")
 export const BOUNTYREAPER_SANITIZE_TOOL_DESCRIPTIONS = truthy("BOUNTYREAPER_SANITIZE_TOOL_DESCRIPTIONS")
+// Escape hatch for the mechanical active-scan engagement gate (tool/gate.ts). Off by
+// default; only an operator testing the harness itself should set this.
+export const BOUNTYREAPER_DISABLE_ACTIVE_SCAN_GATE = truthy("BOUNTYREAPER_DISABLE_ACTIVE_SCAN_GATE")
+// Opt-in to merging Claude Code's own global ~/.claude/CLAUDE.md into BountyReaper
+// sessions. Off by default: that file targets a different agent runtime and its
+// agent roster does not exist here (see session/instruction.ts).
+export const BOUNTYREAPER_INCLUDE_CLAUDE_CODE_PROMPT = truthy("BOUNTYREAPER_INCLUDE_CLAUDE_CODE_PROMPT")
   export const BOUNTYREAPER_DISABLE_CLAUDE_CODE = truthy("BOUNTYREAPER_DISABLE_CLAUDE_CODE")
   export const BOUNTYREAPER_DISABLE_CLAUDE_CODE_PROMPT =
     BOUNTYREAPER_DISABLE_CLAUDE_CODE || truthy("BOUNTYREAPER_DISABLE_CLAUDE_CODE_PROMPT")
