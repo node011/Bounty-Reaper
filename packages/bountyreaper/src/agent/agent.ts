@@ -1,5 +1,8 @@
 import { Config } from "../config/config"
 import z from "zod"
+import { Log } from "@/util/log"
+
+const log = Log.create({ service: "agent" })
 import { Provider } from "../provider/provider"
 import { generateObject, streamObject, type ModelMessage } from "ai"
 import { SystemPrompt } from "../session/system"
@@ -129,6 +132,60 @@ async function loadVulnAgent(
   return { prompt: fullPrompt, description: shortDesc }
 }
 
+// Embed core skills into a specialist agent's prompt (upstream pattern: the right
+// methodology must be IN CONTEXT at decision time, not behind a search the agent may
+// never run). Skills are embedded in listed order until the token budget is exhausted;
+// the remainder are returned for the "recommended skills" section, so the prompt only
+// ever asks the agent to load what is NOT already embedded.
+// Budget note: internal-network's six skills total ~28k tokens — embedding the whole
+// library would eat a sixth of a typical context window, so core-first with a cap is
+// the design, not laziness.
+const EMBED_TOKEN_BUDGET = 12_000
+
+async function embedAgentSkills(
+  prompt: string,
+  skillNames: string[],
+): Promise<{ prompt: string; embedded: string[]; recommended: string[] }> {
+  const skills = await Promise.all(skillNames.map(async (name) => ({ name, skill: await Skill.get(name) })))
+  const embedded: string[] = []
+  const recommended: string[] = []
+  const blocks: string[] = []
+  let spent = 0
+  for (const { name, skill } of skills) {
+    if (!skill) {
+      log.warn("agent skill not found — check name against the skill catalog", { skill: name })
+      continue
+    }
+    const content = stripDefensiveSections(skill.content)
+    const tokens = Math.ceil(content.length / 4)
+    if (!content) continue
+    if (spent + tokens > EMBED_TOKEN_BUDGET) {
+      recommended.push(name)
+      continue
+    }
+    spent += tokens
+    embedded.push(name)
+    blocks.push(`<skill name="${name}">\n${content}\n</skill>`)
+  }
+
+  const section =
+    blocks.length > 0
+      ? [
+          "",
+          "",
+          "## Embedded Skill References",
+          "",
+          "Your specialty's core testing methodology is statically embedded below — apply these",
+          "payloads, patterns, and procedures directly. Additional deep-dive skills can still be",
+          'loaded at runtime via skill(action="search").',
+          "",
+          blocks.join("\n\n"),
+        ].join("\n")
+      : ""
+
+  return { prompt: `${prompt}${section}`, embedded, recommended }
+}
+
 export namespace Agent {
   // Hard step-caps (Layer 1 backstop for the loop-termination fix — see
   // AGENT_LOOP_TERMINATION_SPEC.md). Single tuning point. NOTE: proxy-tester-* are
@@ -195,6 +252,47 @@ export namespace Agent {
       },
     })
     const user = PermissionNext.fromConfig(cfg.permission ?? {})
+
+    // Embed each specialist's core skills into its prompt (upstream pattern) instead of
+    // only emitting a "recommended skills" list the agent may never act on. Whatever did
+    // not fit the embed budget stays in `agent.skills` so the recommendation section
+    // stays accurate — it never asks the agent to load something already embedded.
+    const METHODOLOGY_PREFIX = `${PROMPT_METHODOLOGY_COMMON}\n\n${PROMPT_METHODOLOGY_CONTINUATION}\n\n---\n\n`
+    const [webSkills, cloudSkills, internalNetworkSkills, threatModelerSkills, validatorSkills] = await Promise.all([
+      embedAgentSkills(`${METHODOLOGY_PREFIX}${PROMPT_WEB_APPLICATION}`, [
+        "wstg-recon-config",
+        "wstg-auth-session",
+        "wstg-injection",
+        "wstg-logic-client-api",
+      ]),
+      embedAgentSkills(`${METHODOLOGY_PREFIX}${PROMPT_CLOUD_SECURITY}`, [
+        "cloud-assessment",
+        "k8s-assessment",
+        "cis-aws-foundations-2.1.1",
+        "cis-aws-foundations-2.2",
+        "aws-postexploit",
+        "azure-postexploit",
+        "gcp-postexploit",
+        "k8s-postexploit",
+        "ci-assessment",
+        "cis-aws-foundations-3.1.1",
+        "cis-aws-foundations-4.1",
+        "cis-aws-foundations-5.1",
+        "cis-aws-foundations-6.2",
+      ]),
+      embedAgentSkills(`${METHODOLOGY_PREFIX}${PROMPT_INTERNAL_NETWORK}`, [
+        "ad-security",
+        "kerberos-attacks",
+        "ebpf-attacks",
+        "windows-postexploit",
+        "linux-postexploit",
+        "macos-postexploit",
+      ]),
+      // mitre_attack removed: it is a per-technique directory with no index SKILL.md,
+      // so the name never resolved and the referral was a phantom.
+      embedAgentSkills(`${METHODOLOGY_PREFIX}${PROMPT_THREAT_MODELER}`, ["recon-methodology"]),
+      embedAgentSkills(`${METHODOLOGY_PREFIX}${PROMPT_VALIDATOR}`, ["attack-taint-tracing", "attack-idor-automation"]),
+    ])
 
     const result: Record<string, Info> = {
       bountyreaper: {
@@ -325,8 +423,8 @@ export namespace Agent {
         mode: "subagent",
         native: true,
         color: "red",
-        prompt: `${PROMPT_METHODOLOGY_COMMON}\n\n${PROMPT_METHODOLOGY_CONTINUATION}\n\n---\n\n${PROMPT_WEB_APPLICATION}`,
-        skills: ["wstg-recon-config", "wstg-auth-session", "wstg-injection", "wstg-logic-client-api"],
+        prompt: webSkills.prompt,
+        skills: webSkills.recommended,
         permission: PermissionNext.merge(
           defaults,
           PermissionNext.fromConfig({
@@ -387,22 +485,8 @@ export namespace Agent {
         mode: "subagent",
         native: true,
         color: "cyan",
-        prompt: `${PROMPT_METHODOLOGY_COMMON}\n\n${PROMPT_METHODOLOGY_CONTINUATION}\n\n---\n\n${PROMPT_CLOUD_SECURITY}`,
-        skills: [
-          "cis-aws-foundations-2.1.1",
-          "cis-aws-foundations-2.2",
-          "cis-aws-foundations-3.1.1",
-          "cis-aws-foundations-4.1",
-          "cis-aws-foundations-5.1",
-          "cis-aws-foundations-6.2",
-          "aws-postexploit",
-          "azure-postexploit",
-          "k8s-postexploit",
-          "gcp-postexploit",
-          "cloud-assessment",
-          "k8s-assessment",
-          "ci-assessment",
-        ],
+        prompt: cloudSkills.prompt,
+        skills: cloudSkills.recommended,
         permission: PermissionNext.merge(
           defaults,
           PermissionNext.fromConfig({
@@ -440,20 +524,8 @@ export namespace Agent {
         mode: "subagent",
         native: true,
         color: "yellow",
-        prompt: `${PROMPT_METHODOLOGY_COMMON}\n\n${PROMPT_METHODOLOGY_CONTINUATION}\n\n---\n\n${PROMPT_INTERNAL_NETWORK}`,
-        skills: [
-          "ad-security",
-          "kerberos-attacks",
-          "ebpf-attacks",
-          "windows-postexploit",
-          "linux-postexploit",
-          "macos-postexploit",
-          "aws-postexploit",
-          "azure-postexploit",
-          "k8s-postexploit",
-          "gcp-postexploit",
-          "cicd-attacks",
-        ],
+        prompt: internalNetworkSkills.prompt,
+        skills: internalNetworkSkills.recommended,
         permission: PermissionNext.merge(
           defaults,
           PermissionNext.fromConfig({
@@ -497,8 +569,8 @@ export namespace Agent {
         mode: "subagent",
         native: true,
         color: "green",
-        prompt: `${PROMPT_METHODOLOGY_COMMON}\n\n${PROMPT_METHODOLOGY_CONTINUATION}\n\n---\n\n${PROMPT_THREAT_MODELER}`,
-        skills: ["mitre_attack", "recon-methodology"],
+        prompt: threatModelerSkills.prompt,
+        skills: threatModelerSkills.recommended,
         permission: PermissionNext.merge(
           defaults,
           PermissionNext.fromConfig({
@@ -527,8 +599,8 @@ export namespace Agent {
         mode: "subagent",
         native: true,
         color: "green",
-        prompt: `${PROMPT_METHODOLOGY_COMMON}\n\n${PROMPT_METHODOLOGY_CONTINUATION}\n\n---\n\n${PROMPT_VALIDATOR}`,
-        skills: ["attack-taint-tracing", "attack-idor-automation"],
+        prompt: validatorSkills.prompt,
+        skills: validatorSkills.recommended,
         permission: PermissionNext.merge(
           defaults,
           PermissionNext.fromConfig({
