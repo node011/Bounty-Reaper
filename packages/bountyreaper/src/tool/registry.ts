@@ -31,7 +31,6 @@ import { ApplyPatchTool } from "./apply_patch"
 
 import { MemorySearchTool, MemoryWriteTool, MemoryReadTool, MemoryContextTool } from "./memory"
 import { HindsightRetainTool, HindsightRecallTool, HindsightReflectTool } from "./hindsight"
-import { Hindsight } from "../hindsight"
 import { ToolSearchTool, LoadToolsTool, UnloadToolsTool, ListLoadedToolsTool } from "./tool-search"
 import { LazyToolRegistry } from "./lazy-registry"
 import { WebWriteRoleTool } from "./web-write-role"
@@ -174,7 +173,12 @@ export namespace ToolRegistry {
       MemoryWriteTool,
       MemoryReadTool,
       MemoryContextTool,
-      ...(Hindsight.enabled() ? [HindsightRetainTool, HindsightRecallTool, HindsightReflectTool] : []),
+      // Always registered: gating on key resolution here raced InstanceBootstrap's
+      // async key load and could silently drop the tools for the whole session. The
+      // tools themselves report "not configured" honestly instead.
+      HindsightRetainTool,
+      HindsightRecallTool,
+      HindsightReflectTool,
       ToolSearchTool,
       LoadToolsTool,
       UnloadToolsTool,

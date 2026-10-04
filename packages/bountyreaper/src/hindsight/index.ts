@@ -71,22 +71,37 @@ export namespace Hindsight {
 
   /**
    * Per-project bank, so memory carries across sessions — the whole point of
-   * long-term memory. Falls back to a stable global bank outside a project.
+   * long-term memory. `Instance.project` THROWS when no instance context is
+   * active (it does not return undefined), hence the guarded read; without it a
+   * retain outside a session would crash instead of degrading.
    */
   export function bank(): string {
-    const scope = Instance.project?.id || "global"
+    let scope = "global"
+    try {
+      scope = Instance.project?.id || "global"
+    } catch {}
     return `${BANK_PREFIX}-${scope}`
   }
 
-  /** Fire-and-forget retain. Never throws; failures logged and cooled down. */
-  export async function retain(content: string, context?: string, tags?: string[]): Promise<void> {
+  /**
+   * Fire-and-forget retain. Resolves to whether the memory was actually
+   * accepted — callers MUST NOT report success on `false`, or the agent gets
+   * told a memory was stored when it was silently dropped.
+   */
+  export async function retain(content: string, context?: string, tags?: string[]): Promise<boolean> {
     const c = await client_for()
-    if (!c) return
-    await c.retain(bank(), content.slice(0, 16_000), {
-      ...(context ? { context } : {}),
-      ...(tags?.length ? { tags } : {}),
-      async: true,
-    }).catch(fail)
+    if (!c) return false
+    try {
+      await c.retain(bank(), content.slice(0, 16_000), {
+        ...(context ? { context } : {}),
+        ...(tags?.length ? { tags } : {}),
+        async: true,
+      })
+      return true
+    } catch (err) {
+      fail(err)
+      return false
+    }
   }
 
   /** Recall relevant memories. Returns formatted text or undefined. */
@@ -114,6 +129,11 @@ export namespace Hindsight {
       fail(err)
       return undefined
     }
+  }
+
+  /** True when a key is resolved (env or stored) AND the API is not in cooldown. */
+  export function configured(): boolean {
+    return Boolean(key()) && Date.now() >= unhealthyUntil
   }
 
   export function enabled(): boolean {
