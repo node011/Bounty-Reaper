@@ -15,6 +15,7 @@ import { LocalProvider, useLocal } from "@tui/context/local"
 import { DialogModel, useConnected } from "@tui/component/dialog-model"
 import { DialogMcp, DialogBolt } from "@tui/component/dialog-mcp"
 import { DialogStatus } from "@tui/component/dialog-status"
+import { DialogHindsight } from "@tui/component/dialog-hindsight"
 import { DialogThemeList } from "@tui/component/dialog-theme-list"
 import { DialogHelp } from "./ui/dialog-help"
 import { CommandProvider, useCommandDialog } from "@tui/component/dialog-command"
@@ -516,6 +517,17 @@ function App() {
         dialog.replace(() => <DialogProviderList />)
       },
       category: "Provider",
+    },
+    {
+      title: "Hindsight memory",
+      value: "bountyreaper.hindsight",
+      slash: {
+        name: "hindsight",
+      },
+      onSelect: () => {
+        dialog.replace(() => <DialogHindsight />)
+      },
+      category: "System",
     },
     {
       title: "View status",

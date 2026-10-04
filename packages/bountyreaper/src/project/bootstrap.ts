@@ -13,6 +13,7 @@ import { ShareNext } from "@/share/share-next"
 import { Snapshot } from "../snapshot"
 import { Truncate } from "../tool/truncation"
 import { Network } from "../network/network"
+import { Hindsight } from "../hindsight"
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
@@ -32,6 +33,9 @@ export async function InstanceBootstrap() {
   Vcs.init()
   Snapshot.init()
   Truncate.init()
+  // Resolve the Hindsight key once here so the tool registry and prompt loop can gate
+  // synchronously; every runtime path (CLI, server, TUI worker) passes through this.
+  await Hindsight.init()
 
   Bus.subscribe(Command.Event.Executed, async (payload) => {
     if (payload.properties.name === Command.Default.INIT) {

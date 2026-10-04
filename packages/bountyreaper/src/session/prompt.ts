@@ -50,6 +50,7 @@ import { Shell } from "@/shell/shell"
 import { Truncate } from "@/tool/truncation"
 import { Token } from "@/util/token"
 import { MethodologyContext } from "@/methodology/context"
+import { Hindsight } from "@/hindsight"
 import { AgentPerformance } from "@/methodology/performance"
 import { testerClass } from "@/tool/vuln-scope"
 import { stopHackbrowser } from "@/tool/hackbrowser-launcher"
@@ -824,6 +825,22 @@ export namespace SessionPrompt {
       // (non-tester) gets the full routing view.
       const methodologyCtx = MethodologyContext.generate(Session.root(sessionID), testerClass(lastUser.agent))
       if (methodologyCtx) system.push(methodologyCtx)
+
+      // Auto-recall: on the first step of each turn, query Hindsight with the user's own
+      // prompt so past engagement memory reaches the agent without it asking. Never blocks
+      // the turn — a timeout/slow upstream just skips the block, and the explicit
+      // hindsight_recall tool remains available for deeper pulls.
+      if (Hindsight.enabled() && step === 1) {
+        const query = (lastUserMsg?.parts ?? [])
+          .flatMap((p) => (p.type === "text" && !p.synthetic ? [p.text] : []))
+          .join(" ")
+          .trim()
+        const recalled = query ? await Promise.race([
+          Hindsight.recall(query, 2000),
+          new Promise<undefined>((r) => setTimeout(() => r(undefined), 4000)),
+        ]) : undefined
+        if (recalled) system.push("# Hindsight Memory\n\nRelevant memories from previous work:\n\n" + recalled)
+      }
 
       // Inject MCP tool availability info so the LLM knows to use search_tools
       const mcpLazyStats = LazyToolRegistry.stats()
