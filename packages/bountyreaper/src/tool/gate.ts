@@ -186,38 +186,46 @@ export namespace Gate {
   }
 
   /**
-   * Refuse active scanning when no rules of engagement are recorded. Returns a refusal
-   * message when blocked, or undefined when the command may proceed.
+   * Gate active-target scanning through the permission system, mirroring upstream
+   * CyberStrike's design: destructive/human-in-loop risk is a permission question,
+   * NOT a hard block. Upstream deliberately never hard-gates scanning commands on an
+   * authorization artifact — there is no such artifact — and reserve mechanical
+   * refusal for recording correctness. A hard block here silently strangled automated
+   * testing runs.
    *
-   * Deliberately NOT bypassable by the model: the correct move is to record authorization
-   * or ask the operator, and the refusal text says exactly that.
+   * Resolution, in order:
+   *   - engagement recorded → no ask at all (methodology engine already covers it)
+   *   - config rule (e.g. BOUNTYREAPER_PERMISSION {"*":"allow"} or active_scan: allow)
+   *     → auto-approved without waiting — automated testing is unaffected
+   *   - interactive session → one-time ask; "always" persists for the session
+   *   - headless run without rules → auto-rejected by run.ts (never hangs)
+   *
+   * Throws RejectedError/DeniedError on refusal, which surfaces as a tool error fed
+   * back to the model — the upstream pattern for steering.
    */
-  export async function activeScan(ctx: Tool.Context, command: string): Promise<string | undefined> {
-    if (Flag.BOUNTYREAPER_DISABLE_ACTIVE_SCAN_GATE) return undefined
-    if (!isActiveScan(command)) return undefined
-    // Dynamic imports: a static `Session`/`Engagement` import here creates a cycle
-    // (session -> tool registry -> bash -> gate) that breaks bash's own definition.
+  export async function activeScan(ctx: Tool.Context, command: string): Promise<void> {
+    if (Flag.BOUNTYREAPER_DISABLE_ACTIVE_SCAN_GATE) return
+    if (!isActiveScan(command)) return
     const [{ Engagement }, { Session }] = await Promise.all([
       import("../methodology/engagement"),
       import("../session"),
     ])
-    if (Engagement.get(Session.root(ctx.sessionID))) return undefined
+    if (Engagement.get(Session.root(ctx.sessionID))) return
 
-    return (
-      "BLOCKED — active scan without a rules-of-engagement record.\n\n" +
-      "`nmap` and friends send packets to a target, which is active testing. The methodology " +
-      "engine requires an authorization record before any active-testing phase, and this gate " +
-      "enforces it because advisory gates do not survive user pressure.\n\n" +
-      "Do ONE of these — do not retry the scan:\n" +
-      "1. If the user HAS authorized this: record it first.\n" +
-      '   engagement_setup(authorization_ref="<program URL or the user\'s stated authorization>",\n' +
-      '     scope=["<exact hosts/IPs in scope>"], rate_limits="<e.g. 10 req/s>",\n' +
-      '     test_windows="<e.g. 24/7 or UTC 22:00-06:00>", oob_approved=<true|false>)\n' +
-      "   For an ad-hoc internal check the operator can declare scope directly, e.g.\n" +
-      '   authorization_ref="operator-declared ad-hoc: internal lab, authorized".\n' +
-      "2. If you do NOT have authorization: STOP and ask the user for it. Do not scan.\n\n" +
-      "Passive work (subfinder, amass, certificate transparency, WHOIS) needs no authorization " +
-      "and is unaffected."
+    const scanner = SCANNERS.find((s) =>
+      new RegExp(`(^|[;&|(\\n]|&&|\\|\\|)\\s*(sudo\\s+|command\\s+|time\\s+)?(\\.\\/${s}|${s})\\b`).test(command),
     )
+    await ctx.ask({
+      permission: "active_scan",
+      patterns: [`${scanner} *`],
+      always: [`${scanner} *`],
+      metadata: {
+        scanner,
+        command: command.slice(0, 200),
+        risk:
+          "active scan against a target with NO rules of engagement recorded. " +
+          "Approve only if you have authorization, or run engagement_setup to record it.",
+      },
+    })
   }
 }

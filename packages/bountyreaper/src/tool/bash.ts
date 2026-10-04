@@ -98,18 +98,11 @@ export const BashTool = Tool.define("bash", async () => {
       if (params.timeout !== undefined && params.timeout < 0) {
         throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
       }
-      // Mechanical engagement gate: refuse active-target scanning (nmap & co) when no
-      // rules of engagement are recorded. The methodology engine flags this, but an
-      // advisory flag does not stop a command from running — and "just check this port"
-      // is exactly the pressure under which the advisory flag gets ignored.
-      const scanRefusal = await Gate.activeScan(ctx, params.command)
-      if (scanRefusal) {
-        return {
-          title: "bash: blocked by active-scan engagement gate",
-          metadata: { output: scanRefusal, description: params.description, exit: -1 },
-          output: scanRefusal,
-        }
-      }
+      // Engagement gate: active-target scanning with no rules of engagement goes through
+      // the permission system (like upstream), not a hard refusal — config allow rules
+      // and skipPermissions auto-approve, interactive sessions get a one-time ask,
+      // headless runs auto-reject. Rejection throws and surfaces as a tool error.
+      await Gate.activeScan(ctx, params.command)
       const timeout = params.timeout ?? DEFAULT_TIMEOUT
       const tree = await parser().then((p) => p.parse(params.command))
       if (!tree) {
