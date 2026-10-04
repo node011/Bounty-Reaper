@@ -216,6 +216,9 @@ export namespace LLM {
               "x-bountyreaper-session": input.sessionID,
               "x-bountyreaper-request": input.user.id,
               "x-bountyreaper-client": Flag.BOUNTYREAPER_CLIENT,
+              // Namespaced session identity (upstream e9f8a21): sent on all
+              // opencode-gateway requests alongside the legacy names.
+              "x-opencode-session-id": input.sessionID,
               // OpenCode Go's gateway requires the x-opencode-session header
               // for prompt caching; requests without it may be rejected.
               "x-opencode-project": Instance.project.id,

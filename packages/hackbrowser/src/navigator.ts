@@ -20,6 +20,7 @@ function goSessionHeaders(): Record<string, string> | undefined {
   if (!session) return undefined
   return {
     "x-opencode-session": session,
+    "x-opencode-session-id": session,
     "x-opencode-client": process.env.X_OPENCODE_CLIENT ?? "bountyreaper",
     // Framework UA (mirrors Provider.OPENCODE_FRAMEWORK_UA; worker passes it
     // via env, literal fallback for standalone planner runs).
