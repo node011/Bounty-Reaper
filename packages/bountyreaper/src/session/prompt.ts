@@ -350,6 +350,14 @@ export namespace SessionPrompt {
     // the run so the turn reruns on the session's main model (reported: free zen
     // quota dead → proxy-analyzer stuck at 0 tool calls).
     let tierFallback = false
+    // Methodology force-continue budget. `MethodologyContext.shouldForceContinue` was
+    // written but never wired, so a methodology session could stop the moment the model
+    // emitted a text turn — typically right before doing the work the gates were asking
+    // for. It is consulted at the natural-finish exit below. HARD-BOUNDED per turn: a
+    // weak model that keeps "stopping" must not be able to loop forever, and an
+    // over-eager directive must degrade to a normal stop rather than a hang.
+    const FORCE_CONTINUE_LIMIT = 3
+    let forceContinues = 0
     while (true) {
       SessionStatus.set(sessionID, { type: "busy" })
       log.info("loop", { step, sessionID })
@@ -379,6 +387,36 @@ export namespace SessionPrompt {
         !["tool-calls", "unknown"].includes(lastAssistant.finish) &&
         lastUser.id < lastAssistant.id
       ) {
+        // Methodology force-continue: the model wants to stop, but the methodology engine
+        // still has hard blockers. Inject one synthetic directive turn instead of exiting.
+        // Bounded (FORCE_CONTINUE_LIMIT) and skipped entirely on abort. `blocked`/`error`
+        // paths already returned "stop" from the processor and never reach here, so this
+        // cannot paper over a real failure.
+        if (!abort.aborted && forceContinues < FORCE_CONTINUE_LIMIT) {
+          const { force, directive } = MethodologyContext.shouldForceContinue(sessionID)
+          if (force) {
+            forceContinues++
+            log.info("methodology force-continue", { sessionID, attempt: forceContinues })
+            const cont = await Session.updateMessage({
+              id: Identifier.ascending("message"),
+              role: "user",
+              sessionID,
+              time: { created: Date.now() },
+              agent: lastUser.agent,
+              model: lastUser.model,
+            })
+            await Session.updatePart({
+              id: Identifier.ascending("part"),
+              messageID: cont.id,
+              sessionID,
+              type: "text",
+              synthetic: true,
+              text: `<methodology-directive>\n${directive}\n</methodology-directive>`,
+              time: { start: Date.now(), end: Date.now() },
+            })
+            continue
+          }
+        }
         if (lastAssistant.finish === "content-filter") {
           log.warn("exiting loop — content-filter", { sessionID, finish: lastAssistant.finish })
         } else {

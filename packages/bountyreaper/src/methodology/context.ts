@@ -201,6 +201,15 @@ export namespace MethodologyContext {
    * Check if the session should be forced to continue (coverage/phases incomplete).
    * Returns specific, actionable delegation directives instead of generic messages.
    */
+  /**
+   * Blocking gates the agent can clear on its own. `engagement_missing` is deliberately
+   * EXCLUDED: clearing it needs a written authorization reference and scope from the
+   * human, so force-continuing on it would burn turns telling the agent to do something
+   * impossible AND suppress the natural end-of-turn where it should ASK the user for
+   * those details. That trade is strictly worse than letting the turn end.
+   */
+  const SELF_CLEARABLE_GATES = new Set(["skill_gate", "methodology_ordering", "evidence_quality", "per_asset_coverage"])
+
   export function shouldForceContinue(sessionID: string): { force: boolean; directive: string } {
     const count = Database.use((db) =>
       db
@@ -213,20 +222,22 @@ export namespace MethodologyContext {
     if (count.length === 0) return { force: false, directive: "" }
 
     const state = Methodology.computeState(sessionID)
-    const coverage = Intel.computeCoverage(sessionID)
 
-    // Force continue if coverage is below threshold and phases are incomplete
-    if (state.completionPercent < 50 && coverage.coveragePercent < 30) {
-      const directive = buildSmartDirective(sessionID, state, coverage)
-      return { force: true, directive }
+    // Force continue on gates the agent can actually clear. A concrete, actionable
+    // blocker is the only thing worth spending another turn on.
+    const clearable = state.violations.filter((v) => v.severity === "blocking" && SELF_CLEARABLE_GATES.has(v.gate))
+    if (clearable.length > 0) {
+      return { force: true, directive: buildViolationDirective(sessionID, clearable, state) }
     }
 
-    // Force continue if there are blocking violations
-    const blocking = state.violations.filter((v) => v.severity === "blocking")
-    if (blocking.length > 0) {
-      const directive = buildViolationDirective(sessionID, blocking, state)
-      return { force: true, directive }
-    }
+    // NOTE: the original draft also forced a continue whenever
+    // `completionPercent < 50 && coveragePercent < 30`. That was written while the
+    // function was dead code and never pressure-tested; wiring it as-is made it fire on
+    // nearly every natural stop, because "under 50% complete" is the normal state of an
+    // engagement rather than a reason to keep talking. Force-continue now requires a
+    // SPECIFIC actionable item (a self-clearable gate, or an untested high-confidence
+    // chain). A vague "you're only a third done" is not a blocker and would just burn
+    // turns until FORCE_CONTINUE_LIMIT truncated the real work anyway.
 
     // Force continue if HIGH-confidence chains are untested
     const chains = Chain.load(sessionID)
@@ -244,45 +255,6 @@ export namespace MethodologyContext {
   }
 
   // --- Smart Force-Continue Directives ---
-
-  function buildSmartDirective(
-    sessionID: string,
-    state: ReturnType<typeof Methodology.computeState>,
-    coverage: Intel.CoverageReport,
-  ): string {
-    const lines: string[] = [
-      `Methodology ${state.completionPercent}% complete, coverage ${coverage.coveragePercent}%. DO NOT STOP.`,
-    ]
-
-    // Find worst coverage asset
-    const assetCoverages = Intel.computePerAssetCoverage(sessionID)
-    const worstAsset = assetCoverages
-      .filter((a) => a.totalChecks > 0)
-      .sort((a, b) => a.coveragePercent - b.coveragePercent)[0]
-
-    // Find current phase's recommended agent
-    if (state.currentPhase) {
-      const ranked = AgentPerformance.selectAgentsForPhase(sessionID, state.currentPhase)
-      const primary = ranked[0]
-      if (primary && worstAsset) {
-        lines.push(
-          `NEXT ACTION: Delegate to ${primary.codename} (${primary.name}) for ${state.currentPhase} on ${worstAsset.asset} (${worstAsset.coveragePercent}% coverage).`,
-        )
-      } else if (primary) {
-        lines.push(`NEXT ACTION: Delegate to ${primary.codename} (${primary.name}) for ${state.currentPhase}.`)
-      }
-    }
-
-    // Show top 3 untested items
-    if (coverage.untestedItems.length > 0) {
-      lines.push("Untested priorities:")
-      for (const item of coverage.untestedItems.slice(0, 3)) {
-        lines.push(`  - ${item.entryTitle}: ${item.vrtCategory} (${item.asset})`)
-      }
-    }
-
-    return lines.join("\n")
-  }
 
   function buildViolationDirective(
     sessionID: string,
