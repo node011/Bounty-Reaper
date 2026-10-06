@@ -1,0 +1,12 @@
+{
+  "name": "blind-ssrf-oob",
+  "mode": "graybox",
+  "baseline": { "method": "POST", "path": "/api/preview", "body": "{\"url\":\"https://example.com/favicon.ico\"}" },
+  "exploit": { "method": "POST", "path": "/api/preview", "body": "{\"url\":\"http://<OOB_URL>\"}" },
+  "expect": {
+    "baseline_status": [200, 400],
+    "exploit_not_in": [500]
+  },
+  "sink_window": { "sink": "ssrf-fetch" },
+  "oob": { "required": true }
+}

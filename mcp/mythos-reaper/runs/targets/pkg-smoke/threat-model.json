@@ -1,0 +1,60 @@
+{
+  "target": "pkg-smoke",
+  "mode": "graybox",
+  "endpoints_analysed": 3,
+  "queue": [
+    {
+      "rank": 1,
+      "endpoint": "GET /admin/export?template=",
+      "score": 5,
+      "reasons": [
+        "admin path",
+        "export"
+      ],
+      "candidate_cwes": [],
+      "params": [],
+      "auth": "unknown",
+      "hypothesis": "",
+      "probe_ref": "",
+      "status": "queued"
+    },
+    {
+      "rank": 2,
+      "endpoint": "POST /api/preview",
+      "score": 5,
+      "reasons": [
+        "param:url→redirect/ssrf-prone",
+        "state-changing method",
+        "unauthenticated"
+      ],
+      "candidate_cwes": [
+        "CWE-601/CWE-918"
+      ],
+      "params": [
+        {
+          "name": "url",
+          "value": ""
+        }
+      ],
+      "auth": "none",
+      "hypothesis": "",
+      "probe_ref": "",
+      "status": "queued"
+    },
+    {
+      "rank": 3,
+      "endpoint": "GET /static/index.html",
+      "score": 0,
+      "reasons": [],
+      "candidate_cwes": [],
+      "params": [],
+      "auth": "unknown",
+      "hypothesis": "",
+      "probe_ref": "",
+      "status": "queued"
+    }
+  ],
+  "vuln_class_density": {
+    "CWE-601": 1
+  }
+}

