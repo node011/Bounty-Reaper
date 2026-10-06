@@ -470,6 +470,31 @@ export function Prompt(props: PromptProps) {
 
   command.register(() => [
     {
+      title: "mythos-reaper toggle",
+      value: "mythos.toggle",
+      category: "Session",
+      onSelect: async (dialog) => {
+        const name = "mythos-reaper"
+        try {
+          await local.mcp.toggle(name)
+          const statusData = (await sdk.client.mcp.status()).data!
+          sync.set("mcp", statusData)
+          toast.show({
+            variant: "info",
+            message: `mythos-reaper is ${statusData[name]?.status ?? "unknown"}`,
+            duration: 3000,
+          })
+        } catch (error) {
+          toast.show({
+            variant: "warning",
+            message: `mythos-reaper toggle failed: ${error instanceof Error ? error.message : String(error)}`,
+            duration: 5000,
+          })
+        }
+        dialog.clear()
+      },
+    },
+    {
       title: "Stash prompt",
       value: "prompt.stash",
       category: "Prompt",
@@ -580,6 +605,42 @@ export function Prompt(props: PromptProps) {
         command: inputText,
       })
       setStore("mode", "normal")
+    } else if (inputText.startsWith("/mythos")) {
+      // Native toggle for the mythos-reaper harness MCP — no prompt is sent
+      // to the model. Usage: /mythos [on|off|status], bare /mythos toggles.
+      const arg = inputText.trim().split(/\s+/)[1]?.toLowerCase() ?? "toggle"
+      const name = "mythos-reaper"
+      try {
+        if (arg === "on") {
+          await sdk.client.mcp.connect({ name })
+        } else if (arg === "off") {
+          await sdk.client.mcp.disconnect({ name })
+        } else if (arg !== "status") {
+          await local.mcp.toggle(name)
+        }
+        const statusData = (await sdk.client.mcp.status()).data!
+        sync.set("mcp", statusData)
+        const status = statusData[name]?.status ?? "unknown"
+        toast.show({
+          variant: status === "connected" ? "success" : "info",
+          message:
+            arg === "on" || arg === "off"
+              ? `mythos-reaper ${arg === "on" ? "enabled" : "disabled"} (${status})`
+              : `mythos-reaper is ${status}`,
+          duration: 3000,
+        })
+      } catch (error) {
+        toast.show({
+          variant: "warning",
+          message: `mythos-reaper toggle failed: ${error instanceof Error ? error.message : String(error)}`,
+          duration: 5000,
+        })
+      }
+      input.extmarks.clear()
+      setStore("prompt", { input: "", parts: [] })
+      input.clear()
+      props.onSubmit?.()
+      return
     } else if (
       inputText.startsWith("/") &&
       iife(() => {
