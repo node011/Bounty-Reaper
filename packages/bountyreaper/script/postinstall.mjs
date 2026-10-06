@@ -151,6 +151,89 @@ function installSkills() {
 }
 
 /**
+ * Install the mythos-reaper audit-harness MCP (mcp/mythos-reaper) into
+ * Global.Path.data (~/.local/share/bountyreaper/mythos-reaper/) and write a
+ * generic launcher into Global.Path.bin so the built-in config entry
+ * (config.ts) works on ANY machine — no hardcoded repo paths.
+ *
+ * The launcher idempotently bootstraps a python venv (uv if present, else
+ * python3 -m venv) and installs the `mcp` dependency on first run — same
+ * first-use-network convention as the npx -y built-ins.
+ */
+function installMythosReaper() {
+  const mythosSrc = path.join(__dirname, "mythos-reaper")
+  if (!fs.existsSync(mythosSrc)) return
+
+  const dataDir = path.join(xdgDataDir(), "bountyreaper")
+  const mythosDest = path.join(dataDir, "mythos-reaper")
+  const binDir = path.join(dataDir, "bin")
+
+  // Remove old copy before updating
+  if (fs.existsSync(mythosDest)) {
+    fs.rmSync(mythosDest, { recursive: true, force: true })
+  }
+  copyDirSync(mythosSrc, mythosDest)
+
+  fs.mkdirSync(binDir, { recursive: true })
+  const isWindows = os.platform() === "win32"
+  const launcherPath = path.join(binDir, isWindows ? "mythos-reaper-mcp.cmd" : "mythos-reaper-mcp")
+  // Also drop the launcher into ~/.bountyreaper/bin — the curl installer's
+  // PATH dir — so the built-in config command ["mythos-reaper-mcp"] resolves
+  // for curl installs and npm installs alike.
+  const curlBinDir = path.join(os.homedir(), ".bountyreaper", "bin")
+  const curlLauncherPath = path.join(curlBinDir, isWindows ? "mythos-reaper-mcp.cmd" : "mythos-reaper-mcp")
+  let curlLauncher = launcherPath
+  try {
+    fs.mkdirSync(curlBinDir, { recursive: true })
+    curlLauncher = curlLauncherPath
+  } catch {
+    // fall back to Global.Path.bin copy only
+  }
+
+  if (isWindows) {
+    fs.writeFileSync(
+      launcherPath,
+      `@echo off\r\nsetlocal\r\nset "PKG_DIR=%APPDATA%\\bountyreaper\\mythos-reaper"\r\nset "VENV=%PKG_DIR%\\.venv"\r\nif not exist "%VENV%\\Scripts\\python.exe" (\r\n  python -m venv "%VENV%"\r\n  "%VENV%\\Scripts\\python.exe" -m pip install --quiet mcp\r\n)\r\nset "MYTHOS_REAPER_RUNS=%PKG_DIR%\\runs"\r\n"%VENV%\\Scripts\\python.exe" -m mythos_reaper.mcp_server %*\r\n`,
+      { mode: 0o755 },
+    )
+  } else {
+    fs.writeFileSync(
+      launcherPath,
+      `#!/bin/sh
+# mythos-reaper MCP launcher — installed by bountyreaper postinstall.
+# Bootstraps a venv on first run, then serves the MCP over stdio.
+set -e
+PKG_DIR="$HOME/.local/share/bountyreaper/mythos-reaper"
+VENV="$PKG_DIR/.venv"
+RUNS_DIR="\${MYTHOS_REAPER_RUNS:-$PKG_DIR/runs}"
+
+if [ ! -x "$VENV/bin/python" ]; then
+  if command -v uv >/dev/null 2>&1; then
+    (cd "$PKG_DIR" && uv venv "$VENV" >/dev/null 2>&1)
+    "$VENV/bin/python" -m ensurepip >/dev/null 2>&1 || true
+  else
+    python3 -m venv "$VENV"
+  fi
+fi
+if ! "$VENV/bin/python" -c "import mcp" >/dev/null 2>&1; then
+  "$VENV/bin/python" -m pip install --quiet "mcp>=1.2.0,<2" 2>/dev/null \\
+    || "$VENV/bin/python" -m ensurepip >/dev/null 2>&1 && "$VENV/bin/python" -m pip install --quiet "mcp>=1.2.0,<2"
+fi
+export MYTHOS_REAPER_RUNS="$RUNS_DIR"
+cd "$PKG_DIR"
+exec "$VENV/bin/python" -m mythos_reaper.mcp_server "$@"
+`,
+      { mode: 0o755 },
+    )
+  }
+  if (curlLauncherPath !== launcherPath) {
+    fs.copyFileSync(launcherPath, curlLauncherPath)
+    fs.chmodSync(curlLauncherPath, 0o755)
+  }
+  console.log(`mythos-reaper installed to ${mythosDest} (launcher: ${curlLauncherPath})`)
+}
+
+/**
  * Install hackbrowser worker JS to Global.Path.bin equivalent
  * (~/.local/share/bountyreaper/bin/hackbrowser-worker.js).
  *
@@ -274,6 +357,7 @@ async function main() {
       installWebUI()
       installSkills()
       installHackbrowserWorker()
+      installMythosReaper()
       ensureWindowsPath()
       return
     }
@@ -287,6 +371,7 @@ async function main() {
     installWebUI()
     installSkills()
     installHackbrowserWorker()
+    installMythosReaper()
   } catch (error) {
     console.error("Failed to setup bountyreaper binary:", error.message)
     process.exit(1)

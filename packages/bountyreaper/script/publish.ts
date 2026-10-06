@@ -7,6 +7,34 @@ import { fileURLToPath } from "url"
 const dir = fileURLToPath(new URL("..", import.meta.url))
 process.chdir(dir)
 
+// mythos-reaper MCP launcher — shipped as a npm bin ("mythos-reaper-mcp") and
+// installed to ~/.bountyreaper/bin by postinstall so the built-in config entry
+// (config.ts: command ["mythos-reaper-mcp"]) resolves on any machine.
+const LAUNCHER_SH = `#!/bin/sh
+# mythos-reaper MCP launcher — installed by bountyreaper.
+# Bootstraps a venv on first run, then serves the MCP over stdio.
+set -e
+PKG_DIR="$HOME/.local/share/bountyreaper/mythos-reaper"
+VENV="$PKG_DIR/.venv"
+RUNS_DIR="\${MYTHOS_REAPER_RUNS:-$PKG_DIR/runs}"
+
+if [ ! -x "$VENV/bin/python" ]; then
+  if command -v uv >/dev/null 2>&1; then
+    (cd "$PKG_DIR" && uv venv "$VENV" >/dev/null 2>&1)
+    "$VENV/bin/python" -m ensurepip >/dev/null 2>&1 || true
+  else
+    python3 -m venv "$VENV"
+  fi
+fi
+if ! "$VENV/bin/python" -c "import mcp" >/dev/null 2>&1; then
+  "$VENV/bin/python" -m pip install --quiet "mcp>=1.2.0,<2" 2>/dev/null \\
+    || "$VENV/bin/python" -m ensurepip >/dev/null 2>&1 && "$VENV/bin/python" -m pip install --quiet "mcp>=1.2.0,<2"
+fi
+export MYTHOS_REAPER_RUNS="$RUNS_DIR"
+cd "$PKG_DIR"
+exec "$VENV/bin/python" -m mythos_reaper.mcp_server "$@"
+`
+
 const SCOPE = "@bountyreaper-io"
 const scopedName = `${SCOPE}/${pkg.name}`
 const distDir = `dist/${pkg.name}`
@@ -53,6 +81,22 @@ if (existsSync(skillSrcPath)) {
   console.warn("Warning: Skills not found — npm package will not include built-in skills")
 }
 
+// Bundle the mythos-reaper audit-harness MCP engine (installed to
+// Global.Path.data by postinstall.mjs; launched via the generic
+// mythos-reaper-mcp launcher registered as a npm bin below).
+const mythosSrcPath = "../../mcp/mythos-reaper"
+if (existsSync(mythosSrcPath)) {
+  await $`rm -rf ./${distDir}/mythos-reaper/.venv ./${distDir}/mythos-reaper/runs`
+  await $`cp -r ${mythosSrcPath} ./${distDir}/mythos-reaper`
+  // Write the PATH-resolvable launcher that the built-in config entry
+  // (config.ts: command ["mythos-reaper-mcp"]) spawns.
+  await Bun.file(`./${distDir}/bin/mythos-reaper-mcp`).write(LAUNCHER_SH)
+  await $`chmod +x ./${distDir}/bin/mythos-reaper-mcp`
+  console.log("Bundled mythos-reaper engine + launcher into npm package")
+} else {
+  console.warn("Warning: mythos-reaper not found — npm package will not include the mythos harness")
+}
+
 // Bundle hackbrowser worker JS (subprocess.md). Placed by postinstall into
 // Global.Path.bin (~/.local/share/bountyreaper/bin/) so the main binary can
 // spawn it at runtime without playwright in the main binary's module graph.
@@ -72,6 +116,7 @@ await Bun.file(`./${distDir}/package.json`).write(
       description: pkg.description,
       bin: {
         [pkg.name]: `./bin/${pkg.name}`,
+        "mythos-reaper-mcp": "./bin/mythos-reaper-mcp",
       },
       scripts: {
         postinstall: "bun ./postinstall.mjs || node ./postinstall.mjs",

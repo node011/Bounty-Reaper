@@ -133,6 +133,14 @@ export namespace Config {
         command: ["npx", "-y", "satellite-mcp"],
         enabled: false,
       },
+      // --- Tier 3: Mythos harness (engine bundled with the binary, installed
+      // by postinstall; launcher lives in ~/.bountyreaper/bin which the curl
+      // installer adds to PATH — resolved like npx, no hardcoded paths) ---
+      "mythos-reaper": {
+        type: "local",
+        command: ["mythos-reaper-mcp"],
+        enabled: false,
+      },
     }
 
     for (const [key, value] of Object.entries(auth)) {

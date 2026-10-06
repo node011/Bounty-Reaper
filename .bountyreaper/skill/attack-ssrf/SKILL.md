@@ -40,6 +40,8 @@ that sub-skill, then work from it:
 | Target runs in cloud; goal is IMDS/GCP/Azure metadata credentials | Cloud metadata | `skill(action="load", name="attack-ssrf-cloud-metadata")` |
 | Filters block private IPs — encodings, rebinding, redirects needed | Filter bypass | `skill(action="load", name="attack-ssrf-filter-bypass")` |
 | No response body at all — confirm via callback/timing | Blind / OOB | `skill(action="load", name="attack-ssrf-blind-oob")` |
+| Blind confirmed — now EXTRACT metadata + config endpoints via DNS/reflect/timing | Blind harvest | `skill(action="load", name="attack-ssrf-blind-harvest")` |
+| SSRF confirmed on a container target — port-scan internals, kubelet 10250/10255, Envoy 9901 config_dump, etcd 2379, ConfigMap/Secret dump | K8s / service mesh | `skill(action="load", name="attack-ssrf-k8s-mesh")` |
 
 ## Identify URL input points (always first, variant-agnostic)
 
