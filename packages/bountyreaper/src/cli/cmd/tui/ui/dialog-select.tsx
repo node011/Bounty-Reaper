@@ -161,10 +161,27 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
     setStore("selected", next)
     const option = selected()
     if (option) props.onMove?.(option)
+    scrollToSelection(center)
+  }
+
+  function scrollToSelection(center: boolean) {
     if (!scroll) return
-    const target = scroll.getChildren().find((child) => {
-      return child.id === JSON.stringify(selected()?.value)
-    })
+    let remaining = store.selected
+    let index = 0
+    // Locate the row by position because a unique renderable ID cannot
+    // currently be ensured — option values may repeat (e.g. a local model
+    // that also appears in its provider's list), and duplicate ids make
+    // find-by-id miss the target (the list then stops following the cursor).
+    for (const [category, options] of grouped()) {
+      if (category) index++
+      if (remaining < options.length) {
+        index += remaining
+        break
+      }
+      index += options.length
+      remaining -= options.length
+    }
+    const target = scroll.getChildren()[index]
     if (!target) return
     const y = target.y - scroll.y
     if (center) {
@@ -292,11 +309,10 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
                   {(option) => {
                     const active = createMemo(() => isDeepEqual(option.value, selected()?.value))
                     const current = createMemo(() => isDeepEqual(option.value, props.current))
-                    return (
-                      <box
-                        id={JSON.stringify(option.value)}
-                        flexDirection="row"
-                        onMouseMove={() => {
+                      return (
+                        <box
+                          flexDirection="row"
+                          onMouseMove={() => {
                           setStore("input", "mouse")
                         }}
                         onMouseUp={() => {
