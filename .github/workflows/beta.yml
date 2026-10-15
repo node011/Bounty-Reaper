@@ -2,8 +2,11 @@ name: beta
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 * * * *"
+  # Hourly schedule inherited from upstream — DISABLED on this fork: it requires the
+  # BOUNTYREAPER_APP_ID/SECRET GitHub App credentials that only exist on the upstream
+  # repo, so every scheduled run failed (13+ failures on record). The beta-branch
+  # PR-label automation is an upstream release-process step not used here. Manual runs
+  # stay available via workflow_dispatch if the app credentials are ever configured.
 
 jobs:
   sync:
