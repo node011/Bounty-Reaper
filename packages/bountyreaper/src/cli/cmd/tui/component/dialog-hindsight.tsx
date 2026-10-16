@@ -35,10 +35,11 @@ export function DialogHindsight() {
         <box gap={1}>
           <text fg={theme.textMuted}>
             Hindsight gives BountyReaper long-term memory that learns across sessions: confirmed findings, target
-            conclusions, and what worked. Optional — without it, the built-in file memory tools still work.
+            conclusions, and what worked. Recommended: run it LOCALLY —{" "}
+            <span style={{ fg: theme.primary }}>bun script/hindsight.ts up</span> (Docker, no cloud, no key needed).
           </text>
           <text fg={theme.text}>
-            Get a key at{" "}
+            Prefer Hindsight Cloud instead? Get a key at{" "}
             <span style={{ fg: theme.primary }}>https://ui.hindsight.vectorize.io</span>
           </text>
           <Show when={verifying()}>

@@ -5,23 +5,29 @@ import { Auth } from "@/auth"
 
 const log = Log.create({ service: "hindsight" })
 
-// Hindsight Cloud integration — long-term agent memory that learns.
-// Key resolution order:
+// Hindsight — long-term agent memory that learns.
+// Deployment precedence:
+//   1. HINDSIGHT_BASE_URL env (operator chooses any endpoint; wins always)
+//   2. HINDSIGHT_LOCAL=1   → force local http://localhost:8888
+//   3. cloud key present   → https://api.hindsight.vectorize.io (legacy /hindsight flow)
+//   4. default             → LOCAL docker (docker-compose.yml ships with the project;
+//                            `bun script/hindsight.ts up` on a new system — no API key)
+// Key resolution (cloud-only requirement):
 //   1. HINDSIGHT_API_KEY      (env, wins — CI/ephemeral)
 //   2. auth.json "hindsight"  (written by the /hindsight setup flow)
-// Optional:
-//   HINDSIGHT_BASE_URL        default https://api.hindsight.vectorize.io
-//   HINDSIGHT_BANK_PREFIX     default "bountyreaper"
-// Absent/unreachable Hindsight is a no-op: built-in file memory keeps working.
+// Optional: HINDSIGHT_BANK_PREFIX (default "bountyreaper")
+// Unreachable/absent Hindsight is a no-op: built-in file memory keeps working.
 
 export namespace Hindsight {
-  const BASE_URL = process.env.HINDSIGHT_BASE_URL ?? "https://api.hindsight.vectorize.io"
+  export const CLOUD_URL = "https://api.hindsight.vectorize.io"
+  export const LOCAL_URL = process.env.HINDSIGHT_LOCAL_URL ?? "http://localhost:8888"
   const BANK_PREFIX = process.env.HINDSIGHT_BANK_PREFIX ?? "bountyreaper"
-  /** Pseudo-provider id under which the key is stored in auth.json. */
+  /** Pseudo-provider id under which a cloud key is stored in auth.json. */
   export const AUTH_ID = "hindsight"
 
   let client: HindsightClient | undefined
   let unhealthyUntil = 0
+  let probed = false
   const FAILURE_COOLDOWN_MS = 60_000
 
   export function envKey(): string | undefined {
@@ -29,7 +35,7 @@ export namespace Hindsight {
     return k && k.length > 8 ? k : undefined
   }
 
-  /** Stored key from the /hindsight setup flow, or undefined. */
+  /** Stored cloud key from the /hindsight setup flow, or undefined. */
   export async function storedKey(): Promise<string | undefined> {
     const info = await Auth.get(AUTH_ID).catch(() => undefined)
     if (info?.type !== "api") return undefined
@@ -47,18 +53,49 @@ export namespace Hindsight {
     return envKey() ?? cached
   }
 
-  /** Populates the cached stored key; call once during startup. */
+  let baseURL = process.env.HINDSIGHT_BASE_URL ?? LOCAL_URL
+  /** Effective endpoint (resolved by init(); LOCAL_URL until then). */
+  export function baseUrl(): string {
+    return baseURL
+  }
+
+  function isLocal(url: string): boolean {
+    return url.includes("//localhost") || url.includes("//127.0.0.1") || url.includes("host.docker.internal")
+  }
+
+  /** Populates the endpoint+key cache; call once during startup. */
   export async function init(): Promise<void> {
     cached = envKey() ?? (await storedKey())
-    if (cached) log.info("hindsight enabled", { bank: bank() })
+    baseURL = process.env.HINDSIGHT_BASE_URL ?? (cached ? CLOUD_URL : LOCAL_URL)
+    const active = key() || isLocal(baseURL)
+    if (active && !probed) {
+      probed = true
+      // One-time reachability probe so an offline local container is detected at
+      // boot instead of on every tool call — tools then report the honest
+      // "not reachable — run bun script/hindsight.ts up" state for the cooldown.
+      const res = await new HindsightClient({
+        baseUrl: baseURL,
+        ...(key() ? { apiKey: key() } : {}),
+      })
+        .getVersion()
+        .then(() => true, () => false)
+        .catch(() => false)
+      if (!res) {
+        log.warn("hindsight endpoint unreachable — run: bun script/hindsight.ts up", { base: baseURL })
+        fail(new Error("hindsight endpoint unreachable at startup"))
+        return
+      }
+      log.info("hindsight enabled", { base: baseURL, bank: bank() })
+    }
   }
 
   async function client_for(): Promise<HindsightClient | undefined> {
+    // Local deployments need no key; cloud does. Both use the same client.
     const k = await resolve()
-    if (!k) return undefined
+    if (!k && !isLocal(baseURL)) return undefined
     if (Date.now() < unhealthyUntil) return undefined
     if (client) return client
-    client = new HindsightClient({ baseUrl: BASE_URL, apiKey: k })
+    client = new HindsightClient({ baseUrl: baseURL, ...(k ? { apiKey: k } : {}) })
     return client
   }
 
@@ -131,12 +168,14 @@ export namespace Hindsight {
     }
   }
 
-  /** True when a key is resolved (env or stored) AND the API is not in cooldown. */
+  /** True when this session can use Hindsight right now. Local needs no key but must
+   * have passed the startup probe; cloud needs both a key and health. */
   export function configured(): boolean {
-    return Boolean(key()) && Date.now() >= unhealthyUntil
+    if (Date.now() < unhealthyUntil) return false
+    return isLocal(baseURL) ? true : Boolean(key())
   }
 
   export function enabled(): boolean {
-    return Boolean(key())
+    return Boolean(key()) || isLocal(baseURL)
   }
 }

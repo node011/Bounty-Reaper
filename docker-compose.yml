@@ -1,0 +1,52 @@
+# BountyReaper — local Hindsight (agent memory)
+#
+# Ships the memory backend LOCALLY: no cloud account, no API key round-trip to
+# Vectorize, and the data volume makes memories survive container restarts. On a new
+# system: `bun script/hindsight.ts up` and the /hindsight key is simply not needed.
+#
+#   API:   http://localhost:8888   (what bountyreaper connects to by default)
+#   UI:    http://localhost:9999
+#
+# The extraction LLM is still required (Hindsight uses it to distill facts from
+# retained memory). Pick ONE of these:
+#
+# 1) Use an existing key (openai/anthropic/gemini/deepseek/…):
+#      HINDSIGHT_LLM_PROVIDER=openai HINDSIGHT_LLM_API_KEY=sk-... bun script/hindsight.ts up
+#
+# 2) Fully local, no external key at all (Ollama, e.g. a distilled model):
+#      HINDSIGHT_LLM_PROVIDER=ollama HINDSIGHT_LLM_API_KEY=ollama \
+#      HINDSIGHT_LLM_MODEL=qwen3.5:14b bun script/hindsight.ts up
+#    (Ollama must already be running on the host; port 11434 is reachable
+#     from the container via host.docker.internal below.)
+#
+# Cloud remains available opt-in: configure an hsk_... key via /hindsight in the TUI,
+# or export HINDSIGHT_BASE_URL=https://api.hindsight.vectorize.io.
+
+services:
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight:latest
+    container_name: bountyreaper-hindsight
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+      - "9999:9999"
+    environment:
+      HINDSIGHT_API_LLM_PROVIDER: ${HINDSIGHT_LLM_PROVIDER:-openai}
+      HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_LLM_API_KEY:-}
+      HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_LLM_MODEL:-}
+      # Allows the container to reach an Ollama running on the Docker host:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    volumes:
+      # All memories live here — replicate-safe across reinstalls of the CLI itself.
+      - bountyreaper-hindsight-data:/home/hindsight/.pg0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request;urllib.request.urlopen(\"http://127.0.0.1:8888/docs\", timeout=3)' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  bountyreaper-hindsight-data:
