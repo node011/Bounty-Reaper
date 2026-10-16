@@ -55,14 +55,14 @@ async def run_subfinder(domain: str) -> set[str]:
         stderr=asyncio.subprocess.DEVNULL,
     )
     try:
-        out, _ = await asyncio.wait_for(proc.communicate(), timeout=180)
+        out, _ = await asyncio.wait_for(proc.communicate(), timeout=90)
     except TimeoutError:
         proc.kill()
         return set()
     return clean(out.decode().splitlines())
 
 
-async def gather(domain: str, use_subfinder: bool = True, timeout: float = 200) -> dict:
+async def gather(domain: str, use_subfinder: bool = True, timeout: float = 120) -> dict:
     jobs = {
         "crt.sh": fetch_crtsh(domain),
         "agniops": fetch_agniops(domain),
