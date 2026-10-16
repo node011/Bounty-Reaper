@@ -59,3 +59,14 @@ __pycache__/
 mcp/bb-recon/.bountyreaper/
 # Scratch probe scripts
 *.tmp.ts
+
+# Session/engagement data — the operator's own hunt artifacts. These belong to the
+# user's machine only and must never ship in the public tool repo.
+mcp/bb-recon/.bountyreaper/
+.bountyreaper/recon/
+.bountyreaper/retros/
+.bountyreaper/memory/
+.bountyreaper/reports/
+.bountyreaper/evidence/
+bountyreaper.env
+hindsight.env
