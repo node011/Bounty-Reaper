@@ -19,7 +19,12 @@ MAX_BYTES = 8 * 1024 * 1024
 
 PATTERNS = {
     "api_paths": r"""(?=["'])/(?:api|v[0-9]|rest|gql|graphql|rpc|query|mutation)/[A-Za-z0-9_\-./{}:]{1,120}["']?""",
-    "route_literals": r"""(?:path|route)\s*[:=]\s*["'](/[A-Za-z0-9_\-./:{}]{1,120})["']""",
+    # Angular HttpClient literal form: this.http.get(`/rest/v2/${cart}/entries`) —
+    # backtick template literals with ${} interpolation were invisible to the quoted
+    # pattern above; live benchmark fell back to manual grep on these bundles.
+    "api_paths_template": r"""[`"']((?:/)?(?:api|v[0-9]|rest|gql|graphql|rpc|query|mutation)/[A-Za-z0-9_/${}\-./?=&:]{1,160})[`"']""",
+    "route_literals": r"""(?:path|route)\s*[:=]\s*["'`](/[A-Za-z0-9_\-./:{}$]{1,120})["'`]""",
+    "angular_http_client": r"""\.(?:get|post|put|patch|delete|request)(?:<[^>]{0,80}>)?\(\s*[`"']((?:/)?[A-Za-z0-9_${}/\-./?=&:]{2,160})[`"']""",
     "graphql_ops": r"""(?:query|mutation|subscription)\s+[A-Za-z0-9_]{2,60}\s*[\(\{]""",
     "abs_urls": r"""https?://[A-Za-z0-9.\-_]+(?:\.[a-z]{2,24})(?::\d{2,5})?(?:/[A-Za-z0-9\-._~/?%&=,;#@!]*)?""",
     "relative_files": r"""(?=["'])/(?:[A-Za-z0-9_\-.]+/){0,6}[A-Za-z0-9_\-./]+\.(?:js|json|mjs|cjs|wasm|css|map)["']""",
@@ -59,12 +64,14 @@ def fetch(url: str, timeout: int = DEFAULT_TIMEOUT) -> str:
 def analyze(source: str, name: str) -> dict:
     findings = {}
     for label, pattern in PATTERNS.items():
-        hits = sorted({m.group(0).strip("\"' ") if m.lastindex is None or True else m.group(0) for l in [pattern] for m in re.finditer(l, source)})
-        # unique + strip trailing quotes without breaking regex-only groups
+        # capture group when present (drop wrapper text like .get(` ), else whole match
+        raw = sorted({(m.group(1) if m.re.groups else m.group(0)) for m in re.finditer(pattern, source)})
         uniq = []
         seen = set()
-        for h in hits:
-            h = h.strip("\"' \r\n,;)")
+        for h in raw:
+            # strip wrapper quotes/backticks, trailing junk, and leftover call prefixes
+            h = re.sub(r"^\.?\w*(?:<[^>]*>)?\(", "", h)  # .get( / .post<Cart>(
+            h = h.strip("`\"' \r\n,;)")
             if h and h not in seen:
                 seen.add(h)
                 uniq.append(h)
