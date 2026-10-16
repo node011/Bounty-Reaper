@@ -64,7 +64,10 @@ export function DialogHindsight() {
         }
         await sdk.client.auth.set({ providerID: Hindsight.AUTH_ID, auth: { type: "api", key } })
         await sdk.client.instance.dispose()
-        toast.show({ message: "Hindsight memory enabled", variant: "success" })
+        toast.show({
+          message: "Cloud key stored. NOTE: local Docker memory stays the DEFAULT — set HINDSIGHT_BASE_URL=https://api.hindsight.vectorize.io to use this key.",
+          variant: "success",
+        })
         dialog.clear()
       }}
     />

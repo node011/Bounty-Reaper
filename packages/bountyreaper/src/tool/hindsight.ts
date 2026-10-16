@@ -100,3 +100,77 @@ Costs an LLM call server-side; prefer hindsight_recall for simple retrieval.`,
     return { title: "Hindsight reflect", metadata: { configured: true }, output: text }
   },
 })
+
+// omp-parity curation tools: `learn` captures a distilled reuseable LESSON (promotable
+// pattern, not a raw event), `memory_edit` updates or soft-retires memories by id —
+// all against the same local-first bank.
+
+export const HindsightLearnTool = Tool.define("hindsight_learn", {
+  description: `Capture a reusable LESSON into the project memory bank.
+
+A lesson is a distilled, generalizable pattern — not a raw event. Correct form:
+- "Flows with parallel sub-agent lanes: seed distinct markers per lane to keep attribution when callbacks arrive"
+- "Auth challenge handlers on this stack rotate tokens AFTER the 30x redirect; capture both sides"
+
+Wrong form: "just used X tool", an endpoint, a credential, a session timesheet.
+Lessons are consolidated into the bank's standing knowledge document (read at every
+session start) and stay scoped to this project. Requires Hindsight to be reachable.`,
+  parameters: z.object({
+    content: z.string().describe("The distilled lesson, one complete reusable idea per call"),
+    tags: z.array(z.string()).optional().describe("Optional extra tags, e.g. ['idor','mcp']"),
+  }),
+  async execute(params) {
+    const ok = await Hindsight.learn(params.content, params.tags)
+    if (!ok) {
+      return {
+        title: "hindsight_learn FAILED",
+        metadata: { learned: false, tags: params.tags ?? [] },
+        output:
+          "NOT stored. Hindsight is unreachable — run `bun script/hindsight.ts up` and retry. The lesson was not captured. Do not restate it as a lesson in prose alone.",
+      }
+    }
+    return {
+      title: "Lesson captured",
+      metadata: { learned: true, tags: params.tags ?? [] },
+      output: "Lesson queued for retention. It becomes part of this project's standing knowledge on the next consolidation.",
+    }
+  },
+})
+
+export const HindsightEditTool = Tool.define("hindsight_edit", {
+  description: `Curate project memory by id: replace a fact's text, FORGET it (soft-retire — excluded from recall and consolidation, reversible), or restore one previously forgotten.
+
+Use when a stored memory is wrong, stale, was captured from a test/env artifact, or
+should never have been retained. List ids via hindsight_recall / hindsight_reflect
+results (each carries an id). Requires Hindsight reachable.`,
+  parameters: z.object({
+    memory_id: z.string().describe("Id of the memory to curate"),
+    action: z.enum(["update", "forget", "revalidate"]).describe("update = replace text; forget = soft-retire; revalidate = restore"),
+    text: z.string().optional().describe("Replacement fact text (action=update only)"),
+    reason: z.string().optional().describe("Why (written to provenance)"),
+  }),
+  async execute(params) {
+    const ok = await Hindsight.memoryEdit(params.memory_id, params.action, {
+      text: params.text,
+      reason: params.reason,
+    })
+    if (!ok) {
+      return {
+        title: "hindsight_edit FAILED",
+        metadata: { edited: false, id: params.memory_id, action: params.action },
+        output:
+          "Memory is UNCHANGED. Hindsight is unreachable — run `bun script/hindsight.ts up` and retry. The id may also be wrong; verify via hindsight_recall.",
+      }
+    }
+    return {
+      title: "Memory curated",
+      metadata: { edited: true, id: params.memory_id, action: params.action },
+      output:
+        params.action === "update"
+          ? "Fact text replaced. Re-embedded and scheduled for re-consolidation."
+          : params.action === "forget"
+            ? "Memory soft-retired: excluded from future recall and consolidation, kept in the archive. Reversible via action=revalidate."
+            : "Memory restored to active recall.",
+    }
+  },
+})

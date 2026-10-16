@@ -33,18 +33,39 @@ HINDSIGHT_LLM_MODEL=qwen3.5:14b bun script/hindsight.ts up
 
 ## What changes in the CLI
 
-- Default endpoint is now `http://localhost:8888`. With the container running, the
-  `hindsight_retain/recall/reflect` tools and auto-recall/retain hooks are ACTIVE with
-  **no `/hindsight` key entry at all**.
+- **Local is THE default memory.** Unless you explicitly set an endpoint, the CLI talks
+  to `http://localhost:8888` — a previously stored cloud key cannot flip it back to
+  cloud (`HINDSIGHT_LOCAL=1` additionally pins local over any base URL). With the
+  container running, the `hindsight_retain/recall/reflect` tools and auto-recall/retain
+  hooks are ACTIVE with **no `/hindsight` key entry at all**.
 - If the container is down at session start, the CLI logs it once and the tools say
   `not reachable — run bun script/hindsight.ts up` instead of pretending to work.
 - File-backed `memory_*` tools remain the fallback and are untouched.
+
+## Curated memory (omp-style)
+
+The agent curates the bank instead of just dumping events into it:
+
+1. **Settled knowledge loads itself.** At the first turn of every session, the CLI reads
+   the bank's `project-durable` mental model — a standing document Hindsight maintains
+   about targets, confirmed findings, what worked/what failed, and reusable lessons —
+   and injects it into the system prompt. That read is a pure database read server-side:
+   no retrieval, no LLM call, no latency tax.
+2. **`hindsight_learn`** captures a distilled reusable LESSON (a pattern, not an event).
+   Lessons are excluded from secret-sniffing scope by design of what they should contain.
+3. **`hindsight_edit`** curates by id: replace a fact's text, FORGET it (soft-retired —
+   excluded from recall/consolidation, reversible), or restore one.
+4. The doc refreshes itself **server-side**: after every observations consolidation,
+   with a delta-edit mode and a 30-minute refresh floor so a burst of retains costs one
+   refresh, not one per retain.
 
 ## Cloud (opt-in)
 
 You can still use Hindsight Cloud — via the `/hindsight` TUI flow (stores the `hsk_...`
 key in auth.json) or by exporting `HINDSIGHT_BASE_URL=https://api.hindsight.vectorize.io`.
-Precedence: `HINDSIGHT_BASE_URL` env > stored cloud key > local default.
+Cloud is opt-in ONLY: set `HINDSIGHT_BASE_URL=https://api.hindsight.vectorize.io` AND
+supply the key (`/hindsight` flow or `HINDSIGHT_API_KEY`). A stored key alone never
+reroutes to cloud.
 
 ## How replication works
 

@@ -864,11 +864,17 @@ export namespace SessionPrompt {
       const methodologyCtx = MethodologyContext.generate(Session.root(sessionID), testerClass(lastUser.agent))
       if (methodologyCtx) system.push(methodologyCtx)
 
-      // Auto-recall: on the first step of each turn, query Hindsight with the user's own
-      // prompt so past engagement memory reaches the agent without it asking. Never blocks
-      // the turn — a timeout/slow upstream just skips the block, and the explicit
-      // hindsight_recall tool remains available for deeper pulls.
+      // Memory reaches the agent without it asking (omp-style curation):
+      //   1. Settled knowledge — the bank's curated standing document (a pure database
+      //      read server-side, no retrieval, no LLM call) loads on the first turn.
+      //   2. Query-wise recall — the user's own prompt as the query, still time-boxed
+      //      so memory never blocks a turn; the hindsight_* tools cover deeper pulls.
       if (Hindsight.enabled() && step === 1) {
+        const settled = await Promise.race([
+          Hindsight.mentalModel(2500),
+          new Promise<undefined>((r) => setTimeout(() => r(undefined), 2500)),
+        ])
+        if (settled) system.push("# Settled Knowledge (curated from past sessions)\n\n" + settled)
         const query = (lastUserMsg?.parts ?? [])
           .flatMap((p) => (p.type === "text" && !p.synthetic ? [p.text] : []))
           .join(" ")

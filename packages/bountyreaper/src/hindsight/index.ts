@@ -25,6 +25,12 @@ export namespace Hindsight {
   /** Pseudo-provider id under which a cloud key is stored in auth.json. */
   export const AUTH_ID = "hindsight"
 
+  const PROJECT_MODEL_NAME = "project-durable"
+  const PROJECT_MODEL_QUERY =
+    "Durable knowledge from past hunting sessions on this project: targets and their " +
+    "attack-surface conclusions, confirmed findings and their patterns, what worked and " +
+    "what failed, workflow conventions, and reusable lessons. Exclude credentials and secrets."
+
   let client: HindsightClient | undefined
   let unhealthyUntil = 0
   let probed = false
@@ -66,7 +72,16 @@ export namespace Hindsight {
   /** Populates the endpoint+key cache; call once during startup. */
   export async function init(): Promise<void> {
     cached = envKey() ?? (await storedKey())
-    baseURL = process.env.HINDSIGHT_BASE_URL ?? (cached ? CLOUD_URL : LOCAL_URL)
+    // LOCAL IS THE DEFAULT MEMORY — period. A stored cloud key must NOT silently flip
+    // the endpoint to cloud (that legacy precedence would re-route an operator who
+    // migrated to local straight back to the vendor). Precedence:
+    //   1. HINDSIGHT_LOCAL=1      → force the shipped local endpoint
+    //   2. HINDSIGHT_BASE_URL     → operator-chosen endpoint (cloud is opt-in here)
+    //   3. default                → local http://localhost:8888
+    baseURL =
+      process.env.HINDSIGHT_LOCAL === "1"
+        ? LOCAL_URL
+        : (process.env.HINDSIGHT_BASE_URL ?? LOCAL_URL)
     const active = key() || isLocal(baseURL)
     if (active && !probed) {
       probed = true
@@ -86,6 +101,9 @@ export namespace Hindsight {
         return
       }
       log.info("hindsight enabled", { base: baseURL, bank: bank() })
+      // Fire-and-forget: the curated standing document must exist before the next
+      // session looks for it; failure is never fatal (tool layer still works).
+      ensureMentalModel().catch(() => {})
     }
   }
 
@@ -177,5 +195,124 @@ export namespace Hindsight {
 
   export function enabled(): boolean {
     return Boolean(key()) || isLocal(baseURL)
+  }
+
+  /**
+   * Called on init() success, once, idempotently. Creates the per-project mental model
+   * (omp-style session curation: the bank compresses everything it learns into ONE
+   * standing document that the next session reads on its first turn). The refresh is
+   * SERVER-DECLARATIVE — after each consolidation cycle, delta-edited with a floor of
+   * 30 min so a burst of retains costs one refresh, not one per retain. Never throws.
+   */
+  let mmEnsured = false
+
+  export async function ensureMentalModel(): Promise<void> {
+    // In-process guard: init() and startup paths may both reach here — without the
+    // flag a name-check race (create vs create) yields duplicate standing documents.
+    if (mmEnsured) return
+    mmEnsured = true
+    const c = await client_for()
+    if (!c) return
+    try {
+      const existing = await c.listMentalModels(bank(), { detail: "metadata", limit: 100 })
+      if (!existing.items?.some((m: { name?: string }) => m.name === PROJECT_MODEL_NAME)) {
+        await c.createMentalModel(bank(), PROJECT_MODEL_NAME, PROJECT_MODEL_QUERY, {
+          maxTokens: 1500,
+          trigger: { refreshAfterConsolidation: true, mode: "delta", minRefreshIntervalSeconds: 1800 },
+        })
+        // Startup convenience: the refresh trigger only fires on consolidation, so a
+        // fresh bank would boot with an empty document until that happens. Fire one
+        // manual refresh now (async op server-side) so the first session gets a
+        // populated settled-knowledge page. Never fatal.
+        const res = await c
+          .listMentalModels(bank(), { detail: "metadata", limit: 100 })
+          .then((r) => r.items?.find((m: { name?: string }) => m.name === PROJECT_MODEL_NAME))
+        if (res?.id) await c.refreshMentalModel(bank(), res.id).catch(() => {})
+        log.info("hindsight mental model created", { bank: bank() })
+      }
+    } catch (err) {
+      log.warn("hindsight mental model setup skipped", { err: String(err).slice(0, 120) })
+    }
+  }
+
+  /**
+   * The settle-knowledge document (omp's "loads on the first turn of the next one").
+   * A pure database READ on the server: no retrieval, no LLM call, no latency tax.
+   */
+  export async function mentalModel(maxTokens = 3000): Promise<string | undefined> {
+    const c = await client_for()
+    if (!c) return undefined
+    try {
+      const list = await c.listMentalModels(bank(), { detail: "metadata", limit: 100 })
+      const found = list.items?.find((m: { name?: string; id?: string }) => m.name === PROJECT_MODEL_NAME)
+      if (!found?.id) return undefined
+      const resp = await c.getMentalModel(bank(), found.id, { detail: "content" })
+      const text = (resp as { content?: string }).content?.trim()
+      if (!text) return undefined
+      return text.slice(0, maxTokens * 4)
+    } catch (err) {
+      log.warn("hindsight mental model read failed", { err: String(err).slice(0, 120) })
+      return undefined
+    }
+  }
+
+  /** Capture a reusable LESSON (omp learn): a distilled pattern, not a raw fact. */
+  export async function learn(content: string, tags?: string[]): Promise<boolean> {
+    return retain(
+      content.slice(0, 16_000),
+      "lesson",
+      ["lesson", ...(tags ?? [])],
+    )
+  }
+
+  /**
+   * Curation by id (omp memory_edit):
+   *  - action "update"    → replace the fact text (re-embeds, re-consolidates)
+   *  - action "forget"    → soft-retire: excluded from recall/consolidation, archived
+   *  - action "revalidate"→ undo a forget
+   * All reversible. Uses the REST PATCH surface the client prototype lacks.
+   */
+  export async function memoryEdit(
+    memoryId: string,
+    action: "update" | "forget" | "revalidate",
+    patch: { text?: string; reason?: string } = {},
+  ): Promise<boolean> {
+    const c = await client_for()
+    if (!c) return false
+    if (action === "update" && !(patch.text?.trim() ?? "").length) {
+      fail(new Error("memory edit: action=update requires text"))
+      return false
+    }
+    const body =
+      action === "update"
+        ? { text: patch.text!.trim().slice(0, 16_000), reason: patch.reason ?? null }
+        : action === "forget"
+          ? { state: "invalidated", reason: patch.reason ?? "forgotten by operator/agent curation" }
+          : { state: "valid", reason: patch.reason ?? null }
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    const k = await resolve()
+    if (k && !isLocal(baseURL)) headers.Authorization = `Bearer ${k}`
+    try {
+      const res = await fetch(`${baseURL}/v1/default/banks/${bank()}/memories/${encodeURIComponent(memoryId)}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(15_000),
+      })
+      if (!res.ok) throw new HindsightError(`memory edit failed: ${res.status}`, res.status)
+      return true
+    } catch (err) {
+      fail(err)
+      return false
+    }
+  }
+
+  /** Test hook only: clears the one-time probe / key / endpoint caches between tests. */
+  export function resetForTests(): void {
+    cached = undefined
+    client = undefined
+    probed = false
+    unhealthyUntil = 0
+    baseURL = LOCAL_URL
   }
 }

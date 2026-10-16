@@ -30,7 +30,7 @@ import { Truncate } from "./truncation"
 import { ApplyPatchTool } from "./apply_patch"
 
 import { MemorySearchTool, MemoryWriteTool, MemoryReadTool, MemoryContextTool } from "./memory"
-import { HindsightRetainTool, HindsightRecallTool, HindsightReflectTool } from "./hindsight"
+import { HindsightRetainTool, HindsightRecallTool, HindsightReflectTool, HindsightLearnTool, HindsightEditTool } from "./hindsight"
 import { ToolSearchTool, LoadToolsTool, UnloadToolsTool, ListLoadedToolsTool } from "./tool-search"
 import { LazyToolRegistry } from "./lazy-registry"
 import { WebWriteRoleTool } from "./web-write-role"
@@ -179,6 +179,8 @@ export namespace ToolRegistry {
       HindsightRetainTool,
       HindsightRecallTool,
       HindsightReflectTool,
+      HindsightLearnTool,
+      HindsightEditTool,
       ToolSearchTool,
       LoadToolsTool,
       UnloadToolsTool,
