@@ -1,8 +1,8 @@
 import { Log } from "@/util/log"
+import { Global } from "@/global"
 import { Instance } from "@/project/instance"
 import { Hindsight } from "./index"
 import path from "path"
-import os from "os"
 
 const log = Log.create({ service: "hindsight-skill-sync" })
 
@@ -11,10 +11,11 @@ const log = Log.create({ service: "hindsight-skill-sync" })
  * auto-refresh pattern.
  *
  * Lessons captured via hindsight_learn are compiled into a per-project SKILL.md under
- * the USER-level skill store (~/.claude/skills/lessons-<project>/) — never inside the
- * repo, so operator hunt artifacts stay out of git and session data never ships. The
- * next session discovers it automatically through the normal skill scan, meaning the
- * lessons survive context loss and gate on their own content going forward.
+ * BountyReaper's OWN skill tree (<Global.Path.data>/bountyreaper/skill/lessons-<project>/,
+ * i.e. ~/.local/share/bountyreaper/skill/) — the directory the bundled skill scanner
+ * already reads every session, and NOT a Claude/external store. It is also outside any
+ * target repo, so operator hunt artifacts can never ship in git and the next session
+ * discovers the lessons automatically through the normal scan.
  *
  * The file is explicitly marked auto-managed: it is regenerated from the bank, so
  * hand edits will be overwritten by the next refresh.
@@ -71,8 +72,9 @@ export namespace HindsightSkillSync {
     ].join("\n")
   }
 
+  /** BountyReaper's own scanned skill tree — global data dir (same home as auth.json). */
   export function skillDir(): string {
-    return path.join(process.env.HOME ?? os.homedir(), ".claude", "skills", `lessons-${projectSlug()}`)
+    return path.join(Global.Path.data, "skill", `lessons-${projectSlug()}`)
   }
 
   /**
