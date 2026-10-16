@@ -5,6 +5,7 @@ import { Session } from "../../src/session"
 import { MethodologyContext } from "../../src/methodology/context"
 import { Engagement } from "../../src/methodology/engagement"
 import { SkillLoad } from "../../src/methodology/skill-load"
+import { Phase } from "../../src/methodology/phase"
 import { Log } from "../../src/util/log"
 
 const projectRoot = path.join(__dirname, "../..")
@@ -23,9 +24,28 @@ describe("Cold-start unblocker", () => {
         const sid = (await Session.create({})).id
         const out = MethodologyContext.generate(sid)
         expect(out).not.toBeNull()
-        expect(out).toContain("STARTUP BLOCKERS")
+        // Advisory default: setup guidance renders as RECOMMENDED, not blocking.
+        expect(out).toContain("Methodology Setup")
+        expect(out).toContain("hunting is NOT blocked")
         expect(out).toContain("engagement_setup")
         expect(out).toContain('skill(action="load"')
+      },
+    })
+  })
+
+  test("enforcing mode keeps the hard STARTUP BLOCKERS header", async () => {
+    await Instance.provide({
+      directory: projectRoot,
+      fn: async () => {
+        process.env.BOUNTYREAPER_METHODOLOGY_GATES = "enforcing"
+        try {
+          const sid = (await Session.create({})).id
+          const out = MethodologyContext.generate(sid)!
+          expect(out).toContain("STARTUP BLOCKERS")
+          expect(out).toContain("phases cannot complete")
+        } finally {
+          delete process.env.BOUNTYREAPER_METHODOLOGY_GATES
+        }
       },
     })
   })
@@ -40,9 +60,9 @@ describe("Cold-start unblocker", () => {
         Engagement.record({ sessionID: sid, authorizationRef: "https://example.com/policy", oobApproved: true })
         const after = MethodologyContext.generate(sid)!
         expect(after).not.toContain("engagement_setup")
-        // Skill gates remain until skills are actually loaded — proving the two
-        // blockers are tracked independently rather than cleared by one action.
-        expect(after).toContain("STARTUP BLOCKERS")
+        // Skill guidance remains until skills are actually loaded — the two items
+        // are tracked independently rather than cleared by one action.
+        expect(after).toContain("skill")
       },
     })
   })
@@ -53,12 +73,17 @@ describe("Cold-start unblocker", () => {
       fn: async () => {
         const sid = (await Session.create({})).id
         Engagement.record({ sessionID: sid, authorizationRef: "https://example.com/policy" })
+        const before = MethodologyContext.generate(sid)!
+        // Compute how many gated phases "web2-recon" satisfies (pattern matching means
+        // ONE skill can retire MORE than one phase — "recon" is in two pattern lists).
+        const gated = Phase.ALL.filter((def) => (def.requiredSkills ?? []).length > 0)
         SkillLoad.record(sid, "web2-recon")
-        const out = MethodologyContext.generate(sid)!
-        // Active Recon is satisfied by a name containing "recon"...
-        expect(out).not.toContain("Active Reconnaissance & Enumeration — needs a skill")
-        // ...while an unrelated gate is still open.
-        expect(out).toContain("Input Validation Testing — needs a skill")
+        const retiring = gated.filter((def) => SkillLoad.satisfied(def, sid).ok).length
+        const after = MethodologyContext.generate(sid)!
+        const beforeCount = Number(before.match(/\((\d+) phases? without one yet\)/)?.[1])
+        const afterCount = Number(after.match(/\((\d+) phases? without one yet\)/)?.[1])
+        expect(beforeCount).toBeGreaterThan(0)
+        expect(afterCount).toBe(beforeCount - retiring)
       },
     })
   })

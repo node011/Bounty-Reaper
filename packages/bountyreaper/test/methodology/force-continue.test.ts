@@ -48,13 +48,19 @@ describe("MethodologyContext.shouldForceContinue", () => {
     await Instance.provide({
       directory: projectRoot,
       fn: async () => {
-        const sid = (await Session.create({})).id
-        Engagement.record({ sessionID: sid, authorizationRef: "https://example.com/policy", oobApproved: true })
-        Intel.add({ sessionID: sid, data: { type: "endpoint", title: "GET /u", asset: "example.com" } })
-        // Deliberately load NOTHING → skill_gate is blocking and IS self-clearable.
-        const verdict = MethodologyContext.shouldForceContinue(sid)
-        expect(verdict.force).toBe(true)
-        expect(verdict.directive).toContain("skill_gate")
+        // skill_gate only blocks (and thus only forces) in enforcing mode.
+        process.env.BOUNTYREAPER_METHODOLOGY_GATES = "enforcing"
+        try {
+          const sid = (await Session.create({})).id
+          Engagement.record({ sessionID: sid, authorizationRef: "https://example.com/policy", oobApproved: true })
+          Intel.add({ sessionID: sid, data: { type: "endpoint", title: "GET /u", asset: "example.com" } })
+          // Deliberately load NOTHING → skill_gate is blocking and IS self-clearable.
+          const verdict = MethodologyContext.shouldForceContinue(sid)
+          expect(verdict.force).toBe(true)
+          expect(verdict.directive).toContain("skill_gate")
+        } finally {
+          delete process.env.BOUNTYREAPER_METHODOLOGY_GATES
+        }
       },
     })
   })

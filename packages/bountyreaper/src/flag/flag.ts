@@ -36,6 +36,16 @@ export const BOUNTYREAPER_DISABLE_ACTIVE_SCAN_GATE = truthy("BOUNTYREAPER_DISABL
 // sessions. Off by default: that file targets a different agent runtime and its
 // agent roster does not exist here (see session/instruction.ts).
 export const BOUNTYREAPER_INCLUDE_CLAUDE_CODE_PROMPT = truthy("BOUNTYREAPER_INCLUDE_CLAUDE_CODE_PROMPT")
+
+  // Methodology gate mode. ADVISORY (default): the engine records and surfaces
+  // engagement/skill/prereq state, but never blocks hunting — phases complete on
+  // deliverable evidence alone and gate misses render as warnings. ENFORCING
+  // restores the pre-2026-10 behavior where an unrecorded ROE or a missing skill
+  // gate held phase completion. Read at call time (not import time) so tests and
+  // per-dir configs can flip it.
+  export function methodologyGates(): "advisory" | "enforcing" {
+    return process.env.BOUNTYREAPER_METHODOLOGY_GATES === "enforcing" ? "enforcing" : "advisory"
+  }
   export const BOUNTYREAPER_DISABLE_CLAUDE_CODE = truthy("BOUNTYREAPER_DISABLE_CLAUDE_CODE")
   export const BOUNTYREAPER_DISABLE_CLAUDE_CODE_PROMPT =
     BOUNTYREAPER_DISABLE_CLAUDE_CODE || truthy("BOUNTYREAPER_DISABLE_CLAUDE_CODE_PROMPT")

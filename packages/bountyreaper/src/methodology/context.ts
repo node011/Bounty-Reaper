@@ -9,6 +9,7 @@ import { Validation } from "./validation"
 import { categoryInLane } from "../tool/vuln-scope"
 import { SkillLoad } from "./skill-load"
 import { Engagement } from "./engagement"
+import { Flag } from "../flag/flag"
 
 // ============================================================
 // METHODOLOGY CONTEXT — System prompt injection for
@@ -41,31 +42,39 @@ export namespace MethodologyContext {
 
   /** Synchronous gate summary — no catalog scan, safe on the hot prompt path. */
   function bootstrapSync(sessionID: string): string | null {
-    const blockers: string[] = []
+    const enforcing = Flag.methodologyGates() === "enforcing"
+    const items: string[] = []
     if (!Engagement.get(sessionID)) {
-      blockers.push(
-        "**1. Record the rules of engagement FIRST** — recon and every later phase are gated on this:",
+      items.push(
+        "**1. Record the rules of engagement FIRST**:",
         '   `engagement_setup(authorization_ref="<program URL or written authorization>", scope=["<in-scope hosts>"], rate_limits="<e.g. 10 req/s>", test_windows="<e.g. 24/7>", identity_types=["authenticated"], oob_approved=true)`',
-        "   Do not begin Active Recon until this is recorded.",
       )
     }
     const gated = Phase.ALL.filter((def) => (def.requiredSkills ?? []).length > 0 && !SkillLoad.satisfied(def, sessionID).ok)
     if (gated.length > 0) {
-      blockers.push(
-        `**2. Load a methodology skill per phase family** (${gated.length} phase${gated.length === 1 ? "" : "s"} gated).`,
+      items.push(
+        `**2. Load a methodology skill per phase family** (${gated.length} phase${gated.length === 1 ? "" : "s"} without one yet).`,
         "   Run `skill(action=\"search\", query=\"<phase topic>\")` then `skill(action=\"load\", name=\"...\")`.",
-        "   The gate matches on the skill NAME — e.g. any skill whose name contains `recon` clears Active Recon.",
+        "   The match is on the skill NAME — e.g. any skill whose name contains `recon` covers Active Recon.",
         "   Load the one closest to your next step; do NOT load them all up front.",
-        ...gated.map((def) => `   - ${def.name} — needs a skill matching: ${(def.requiredSkills ?? []).join(", ")}`),
       )
     }
-    if (blockers.length === 0) return null
+    if (items.length === 0) return null
+    if (enforcing)
+      return [
+        "# STARTUP BLOCKERS — CLEAR THESE BEFORE ANY OTHER WORK",
+        "",
+        "This session is gated. Until these are cleared, phases cannot complete and progress is frozen.",
+        "",
+        ...items,
+      ].join("\n")
     return [
-      "# STARTUP BLOCKERS — CLEAR THESE BEFORE ANY OTHER WORK",
+      "# Methodology Setup (recommended — hunting is NOT blocked on this)",
       "",
-      "This session is gated. Until these are cleared, phases cannot complete and progress is frozen.",
+      "Gates are ADVISORY this session: testing continues regardless of ROE/skill records.",
+      "Recording both before each phase improves finding quality and the final report.",
       "",
-      ...blockers,
+      ...items,
     ].join("\n")
   }
 

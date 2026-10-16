@@ -82,6 +82,26 @@ Multiple concurrent workers: give each its own `--group`; each browser profile i
 4. **Same-origin fetches from the session:** combine with CORS/postMessage analysis —
    the operator's cookies ride along, exactly what a cross-origin attacker gets.
 
+## Field-reality notes (from a live hunt — read before driving)
+
+These came from an engagement where Interceptor-managed capture blocked several high-value
+lanes. Follow them instead of rediscovering them:
+
+1. **Capture flows → `mcpbrowser` first.** The Interceptor net-log verbs (`monitor`, net
+   capture) periodically returned `[]`/TypeErrors mid-hunt, so exact XHR shapes were LOST and
+   every IDOR/business-logic lane went blind. mcpbrowser streams requests straight into the
+   ingest pipeline — shapes preserved and auto-analyzed. Only fall back to `interceptor inspect`
+   for a quick look; never as the evidence channel.
+2. **Login funnels in managed tabs stall.** Passkey prompts hang, SSO refused to inherit into
+   new managed tabs, re-login cycles cost turns. `mcpbrowser` with the saved credential beats
+   Interceptor wherever authentication is required.
+3. **Use Interceptor for the things that work well:** quick signed-in surface reads
+   (`open`/`read`/`find`/`act`), confirming a logged-in state, DOM-level checks in the real
+   session. That is its lane; capture evidence is not.
+4. **Managed-tab hygiene:** verify the tab landed on the right page BEFORE acting (a repeat
+   failure mode was tabs landing in error pages with the group still reporting healthy), and
+   `group close <name>` the moment a lane finishes.
+
 ## Boundaries (hard rules)
 
 - NEVER use Interceptor for bulk crawling — it drives the operator's real browser and

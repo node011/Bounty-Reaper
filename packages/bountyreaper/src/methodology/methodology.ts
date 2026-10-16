@@ -4,6 +4,7 @@ import { Identifier } from "../id/id"
 import { Phase } from "./phase"
 import { SkillLoad } from "./skill-load"
 import { Engagement } from "./engagement"
+import { Flag } from "../flag/flag"
 import { CoverageNote } from "../session/coverage-note"
 
 // ============================================================
@@ -55,11 +56,13 @@ export namespace Methodology {
       const result = validateDeliverables(def, entries, sessionID)
       const prereqCheck = checkPrerequisites(def, applicablePhases, entries, sessionID)
 
+      // Advisory mode keeps prerequisites visible but never turns them into a
+      // "blocked" status — hunting proceeds in phase order without being fenced.
       const status: Phase.Status = result.completed
         ? "completed"
         : result.skipped
           ? "skipped"
-          : !prereqCheck.canStart
+          : !prereqCheck.canStart && Flag.methodologyGates() === "enforcing"
             ? "blocked"
             : result.deliverableCount > 0
               ? "in_progress"
@@ -166,6 +169,18 @@ export namespace Methodology {
     // target never deadlocks the reporting prerequisite chain. Gates apply
     // as soon as the phase has real activity (deliverables > 0).
     if (def.minDeliverables === 0 && base.deliverableCount === 0) return base
+
+    // ADVISORY (default): deliverable evidence alone completes the phase — ROE/skill
+    // misses are surfaced as warnings, never as blockers, so hunting never stops
+    // because of ceremony. ENFORCING restores the completion gates.
+    if (Flag.methodologyGates() !== "enforcing") {
+      if (def.requiresEngagement && !Engagement.get(sessionID))
+        return { ...base, evidence: `${base.evidence}; (advisory) engagement not recorded — run engagement_setup` }
+      const skillGate = SkillLoad.satisfied(def, sessionID)
+      if (!skillGate.ok && def.minDeliverables > 0)
+        return { ...base, evidence: `${base.evidence}; (advisory) no methodology skill loaded (expected one matching: ${skillGate.expected.join(", ")})` }
+      return base
+    }
 
     if (def.requiresEngagement && !Engagement.get(sessionID)) {
       return {
@@ -334,7 +349,7 @@ export namespace Methodology {
       const active = phase.status !== "not_started" || phase.deliverableCount > 0
       violations.push({
         gate: "skill_gate",
-        severity: active && def.minDeliverables > 0 ? "blocking" : "warning",
+        severity: active && def.minDeliverables > 0 && Flag.methodologyGates() === "enforcing" ? "blocking" : "warning",
         message: `Phase "${phase.name}" ${active ? "active" : "pending"} without a loaded methodology skill. Load one matching: ${gate.expected.join(", ")} (skill action=load).`,
       })
     }
@@ -346,10 +361,11 @@ export namespace Methodology {
         return def?.requiresEngagement && (p.status !== "not_started" || p.deliverableCount > 0)
       })
       if (active) {
+        const advisory = Flag.methodologyGates() !== "enforcing"
         violations.push({
           gate: "engagement_missing",
-          severity: "blocking",
-          message: `Active testing phase "${active.name}" without a rules-of-engagement record. Run engagement_setup (authorization ref, scope, exclusions, rate limits, test windows, identity types, OOB approval).`,
+          severity: advisory ? "warning" : "blocking",
+          message: `Active testing phase "${active.name}" without a rules-of-engagement record.${advisory ? " (advisory)" : ""} Run engagement_setup (authorization ref, scope, exclusions, rate limits, test windows, identity types, OOB approval).`,
         })
       }
     }

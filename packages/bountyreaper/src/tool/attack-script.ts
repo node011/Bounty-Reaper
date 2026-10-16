@@ -3,10 +3,63 @@ import { Tool } from "./tool"
 import path from "path"
 import { Network } from "../network/network"
 import { Gate } from "./gate"
+import { Global } from "../global"
+import { Instance } from "../project/instance"
 import { Engagement } from "../methodology/engagement"
 import { Session } from "../session"
 
-const SCRIPTS_DIR = path.resolve(import.meta.dir, "../../data/scripts")
+/**
+ * Script directory resolution. The compiled single binary broke the naive
+ * `import.meta.dir` path (a hunt hit "script resolution failed twice" and the agent
+ * fell back to locating oob_interactsh.py by hand — the correct python path was
+ * discovered only after all XXE/SSRF lanes had been shelved). Resolution order:
+ *   1. BOUNTYREAPER_SCRIPTS_DIR env override (operators/CI)
+ *   2. source layout (dev): src/tool -> ../../data/scripts
+ *   3. packaged layout: binary at <pkg>/bin -> <pkg>/data/scripts (build copies it)
+ *   4. user install layout: ~/.bountyreaper/data/scripts
+ *   5. walk up from the session-worktree cwd (repo checkouts, any depth)
+ * The first candidate containing oob_interactsh.py wins.
+ */
+function resolveScriptsDir(): string {
+  const probe = (dir: string | undefined) => dir && Bun.file(path.join(dir, "oob_interactsh.py")).exists()
+  const candidates = [
+    process.env.BOUNTYREAPER_SCRIPTS_DIR,
+    path.resolve(import.meta.dir, "../../data/scripts"),
+    path.resolve(import.meta.dir, "../data/scripts"),
+    path.resolve(import.meta.dir, "data/scripts"),
+  ]
+  try {
+    candidates.push(path.resolve(Global.Path.bin, "../data/scripts"))
+  } catch {}
+  // cwd walk-up (repo checkouts and arbitrary project roots)
+  let base: string | undefined
+  try {
+    base = Instance.directory
+  } catch {}
+  if (!base) {
+    try {
+      base = Instance.worktree
+    } catch {}
+  }
+  if (base) {
+    let cur: string | undefined = base
+    for (let i = 0; i < 5 && cur; i++) {
+      candidates.push(path.join(cur, "data", "scripts"))
+      const parent = path.dirname(cur)
+      // Stop at filesystem root instead of looping forever on "/".
+      cur = parent === cur ? undefined : cur
+    }
+  }
+  for (const dir of candidates) if (dir && probe(dir)) return dir
+  const listed = candidates.filter(Boolean).join(",")
+  throw new Error(
+    "attack_script resources not found. Tried: " +
+      listed +
+      ". Set BOUNTYREAPER_SCRIPTS_DIR to the directory containing oob_interactsh.py.",
+  )
+}
+
+const SCRIPTS_DIR = resolveScriptsDir()
 
 const AVAILABLE_SCRIPTS: Record<string, { description: string; args: string }> = {
   jwt_tamper: {
@@ -45,6 +98,11 @@ const AVAILABLE_SCRIPTS: Record<string, { description: string; args: string }> =
   wayback_endpoints: {
     description: "Wayback Machine endpoint discovery — find historical/hidden endpoints via CDX API",
     args: "DOMAIN [--probe] [--limit N] [--json-output]",
+  },
+  js_recon: {
+    description:
+      "JS bundle recon — extract API endpoints, route literals, GraphQL ops, absolute/WS URLs, config keys, blob URLs, JWT-like strings and secret-candidate URLs from live bundle URLs or local files. HIGHEST-ROI recon in live hunts: the full client-side API map comes from bundles, not endpoint guessing. PREFER this over blind unauth path probes (bundle-first rule).",
+    args: "URL_OR_LOCAL_FILE... [--limit N] [--json-output]",
   },
 }
 

@@ -144,19 +144,24 @@ describe("Methodology — Prerequisites", () => {
     })
   })
 
-  test("phases with unmet dependencies are blocked", async () => {
+  test("phases with unmet dependencies are blocked only when enforcing", async () => {
     await Instance.provide({
       directory: projectRoot,
       fn: async () => {
-        const session = await Session.create({})
+        process.env.BOUNTYREAPER_METHODOLOGY_GATES = "enforcing"
+        try {
+          const session = await Session.create({})
 
-        const state = Methodology.computeState(session.id)
-        // active_recon depends on passive_recon which depends on scope_analysis
-        const activeReconPhase = state.phases.find((p) => p.id === "active_recon")
-        expect(activeReconPhase).toBeDefined()
-        expect(activeReconPhase!.status).toBe("blocked")
+          const state = Methodology.computeState(session.id)
+          // active_recon depends on passive_recon which depends on scope_analysis
+          const activeReconPhase = state.phases.find((p) => p.id === "active_recon")
+          expect(activeReconPhase).toBeDefined()
+          expect(activeReconPhase!.status).toBe("blocked")
 
-        await Session.remove(session.id)
+          await Session.remove(session.id)
+        } finally {
+          delete process.env.BOUNTYREAPER_METHODOLOGY_GATES
+        }
       },
     })
   })

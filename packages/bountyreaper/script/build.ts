@@ -257,6 +257,16 @@ for (const key of Object.keys(binaries)) {
 }
 console.log("hackbrowser-worker.js copied to all platform bin/ directories")
 
+// Ship data/scripts (attack_script resources: oob_interactsh, js_recon, ...) next to
+// each platform's bin/. The compiled binary resolves <pkg>/data/scripts at runtime —
+// without this copy, every attack_script call failed in release builds ("script
+// resolution failed" during a live hunt: the OOB channel never stood up and the
+// XXE/SSRF lanes were shelved).
+for (const key of Object.keys(binaries)) {
+  await $`cp -R data dist/${key}/data`
+}
+console.log("data/scripts copied to all platform packages")
+
 if (Script.release) {
   for (const key of Object.keys(binaries)) {
     if (key.includes("linux")) {

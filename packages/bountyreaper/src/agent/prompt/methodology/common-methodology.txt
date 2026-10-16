@@ -65,4 +65,36 @@ The methodology follows 13 phases. Respect the phase order:
 1. Do not skip to exploitation before completing reconnaissance
 2. Do not report findings before validating evidence quality
 3. Check `methodology_status` before claiming a phase is complete
-4. Resolve blocking violations before proceeding to the next phase
+4. Gates are ADVISORY by default (testing never stops); if a run is flagged
+   enforcing, resolve blocking violations before advancing — otherwise record intent
+   if a miss matters and keep testing
+
+### Hunt Discipline — Rabbit-Hole Rules (from post-engagement analysis)
+
+These come from a live hunt where rabbit-holes consumed most of the step budget while
+the highest-yield activities stayed under-used. Follow them:
+
+1. **BUNDLE-FIRST, always.** Before probing ANY unauthenticated path: pull the JS
+   bundles (`js_recon <bundle-url>` or curl+grep) and read the API map. In live hunts
+   bundles produced every endpoint map (18+ endpoints in one target) while endpoint
+   guessing produced only 404s. Static files have no gates — this is free recon.
+2. **Time-box 5 probes.** Any unauth-endpoint-guessing, SSO-cluster, or
+   no-oracle-edition lane (e.g. Keycloak/OIDC discovery, pick-up code enumeration,
+   version fingerprinting) gets FIVE requests maximum. No oracle → leave it and move
+   to bundle-driven lanes. Dead-end written off at file #1 is a win, not a failure.
+3. **Stand up OOB FIRST.** `attack_script oob_interactsh new` BEFORE touching any
+   XXE/SSRF/blind-injection lane — the callback channel is the evidence backbone and
+   late setup is why those lanes stayed shelved. If script resolution fails, check
+   BOUNTYREAPER_SCRIPTS_DIR rather than hand-locating .py files manually.
+4. **Capture is the evidence channel.** Request shapes drive IDOR/business-logic
+   testing: use mcpbrowser capture (ingest pipeline preserves shapes) or
+   http_replay — verified capture-before-test beats "UI said it worked".
+5. **Config-dump sweep is a lane-opener.** One `curl <host>/api/config` style request
+   revealed billing URLs, integration links, API keys, and base prices — four new
+   lanes in a single response. After recon, sweep: /api/config, /config,
+   /actuator/env, /.env, /debug/vars — log contents via add_intel immediately.
+6. **Lost context = restart the SHORT way.** When a turn expires mid-lane, do not
+   re-derive: load the relevant skill, read `methodology_status` + your own intel
+   entries, and continue from the recorded state. Retrying a Cloudflare-stubbed lane
+   three times because the previous turn's write-off note got lost is the exact waste
+   these rules exist to prevent.
