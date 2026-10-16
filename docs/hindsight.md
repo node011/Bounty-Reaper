@@ -58,6 +58,12 @@ The agent curates the bank instead of just dumping events into it:
 4. The doc refreshes itself **server-side**: after every observations consolidation,
    with a delta-edit mode and a 30-minute refresh floor so a burst of retains costs one
    refresh, not one per retain.
+5. **Auto-skill update (Hermes-style).** Lessons captured via `hindsight_learn` are
+   compiled into a per-project skill file at
+   `~/.claude/skills/lessons-<project>/SKILL.md` — rewritten at every CLI start and on
+   every successful learn, then auto-discovered by the normal skill scan on the next
+   session. The file is auto-managed from the bank (hand edits get overwritten); it
+   lives OUTSIDE the repo, so session artifacts never end up in git.
 
 ## Cloud (opt-in)
 

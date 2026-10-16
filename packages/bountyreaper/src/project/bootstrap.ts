@@ -14,6 +14,7 @@ import { Snapshot } from "../snapshot"
 import { Truncate } from "../tool/truncation"
 import { Network } from "../network/network"
 import { Hindsight } from "../hindsight"
+import { HindsightSkillSync } from "../hindsight/skill-sync"
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
@@ -36,6 +37,10 @@ export async function InstanceBootstrap() {
   // Resolve the Hindsight key once here so the tool registry and prompt loop can gate
   // synchronously; every runtime path (CLI, server, TUI worker) passes through this.
   await Hindsight.init()
+  // Auto-skill update (Hermes-style): recompile the per-project lessons skill from the
+  // memory bank at every start — the file was seeded by hindsight_learn and may hold
+  // newer lessons since the last run. Fire-and-forget: never blocks the boot path.
+  HindsightSkillSync.refresh().catch(() => {})
 
   Bus.subscribe(Command.Event.Executed, async (payload) => {
     if (payload.properties.name === Command.Default.INIT) {

@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { Tool } from "./tool"
 import { Hindsight } from "../hindsight"
+import { HindsightSkillSync } from "../hindsight/skill-sync"
 
 // Explicit Hindsight tools (Cloud or self-hosted). File-backed memory tools
 // (memory_search/write/read/context) are unchanged and remain the fallback when
@@ -121,6 +122,7 @@ session start) and stay scoped to this project. Requires Hindsight to be reachab
   }),
   async execute(params) {
     const ok = await Hindsight.learn(params.content, params.tags)
+    if (ok) HindsightSkillSync.refresh().catch(() => {})
     if (!ok) {
       return {
         title: "hindsight_learn FAILED",
@@ -132,7 +134,7 @@ session start) and stay scoped to this project. Requires Hindsight to be reachab
     return {
       title: "Lesson captured",
       metadata: { learned: true, tags: params.tags ?? [] },
-      output: "Lesson queued for retention. It becomes part of this project's standing knowledge on the next consolidation.",
+      output: "Lesson queued for retention. It becomes part of this project's standing knowledge on the next consolidation and is auto-compiled into the per-project lessons skill.",
     }
   },
 })

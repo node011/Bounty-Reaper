@@ -173,6 +173,23 @@ export namespace Hindsight {
     }
   }
 
+  /**
+   * The newest LESSONS (tagged by hindsight_learn), newest-first, as raw fact lines.
+   * Feeds the auto-skill compilation — the omp learn→managed-skill pipeline.
+   */
+  export async function lessons(limit = 60): Promise<string[] | undefined> {
+    const c = await client_for()
+    if (!c) return undefined
+    try {
+      const res = await c.recall(bank(), "lesson", { tags: ["lesson"], maxTokens: 6000 })
+      const lines = (res.results ?? []).map((r) => r.text.trim()).filter(Boolean)
+      return lines.length ? lines.slice(0, limit) : undefined
+    } catch (err) {
+      fail(err)
+      return undefined
+    }
+  }
+
   /** Reflect = disposition-aware deep synthesis over the bank. */
   export async function reflect(query: string): Promise<string | undefined> {
     const c = await client_for()
